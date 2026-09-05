@@ -124,6 +124,12 @@ La implementación exacta de cada script DEBE quedar versionada en `package.json
 - Toda API, contrato, migración o decisión estructural relevante requiere documentación y, cuando corresponda, un ADR.
 - Los cambios deben ser pequeños, coherentes y trazables a una única especificación o a un conjunto explícito de criterios.
 
+## Clasificación de commits
+
+Los commits DEBEN clasificarse mediante un prefijo convencional en inglés que describa el tipo de cambio: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `perf`, `build`, `ci`, `chore` o `revert`, según corresponda. Se utilizará `feat` para nuevas funcionalidades. El texto del título después del prefijo y la descripción del commit DEBEN escribirse en español; los nombres de archivos e identificadores técnicos conservarán su forma original.
+
+El formato será `tipo: descripción breve del cambio`. Ejemplos: `docs: definir el registro obligatorio y la sincronización opcional` y `feat: permitir el registro de tareas académicas`.
+
 ## Instrucciones de prueba
 
 - Traducir cada criterio de aceptación en una o más pruebas. Una verificación manual solo aporta evidencia complementaria. Una prueba obligatoria SOLO PUEDE omitirse temporalmente mediante una excepción técnica documentada que identifique responsable, riesgo aceptado y fecha de corrección.
