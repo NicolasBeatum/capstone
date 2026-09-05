@@ -35,6 +35,12 @@ DuocMind es una aplicación móvil Android para estudiantes de Duoc UC. Integra:
 - recursos de bienestar;
 - alertas tempranas transparentes ante patrones especificados.
 
+El acceso al MVP exige registrar o autenticar una cuenta. Una cuenta recién registrada obtiene acceso inmediato sin depender de la verificación previa del correo. Un primer inicio sin conexión permanece bloqueado hasta completar el registro o la autenticación; después del primer acceso autenticado, las funciones locales aprobadas pueden seguir disponibles sin conexión o con una sesión remota vencida, mientras las operaciones remotas permanecen pausadas.
+
+El contenido académico y emocional se almacena localmente por defecto. La sincronización remota comienza desactivada y es opcional e independiente para agenda y datos emocionales fuente en cada perfil y dispositivo. Registrar o autenticar una cuenta no crea una autorización nueva de contenido; al reingresar al mismo perfil solo pueden reanudarse las categorías que ya cuenten con consentimiento vigente en ese dispositivo. Los datos, consentimientos, colas y estados de un perfil DEBEN permanecer aislados de cualquier otro perfil.
+
+La evidencia mínima del aviso de cuenta y los estados o solicitudes de consentimiento y eliminación son metadatos de cumplimiento y privacidad, no contenido sincronizado. Solo pueden tratarse para informar, autorizar, bloquear o ejecutar esas decisiones y deben respetar el inventario de la especificación.
+
 La validación inicial se orienta a estudiantes de la sede Puerto Montt. La aplicación apoya la organización y la autogestión; NO diagnostica, trata ni reemplaza atención profesional o de emergencia.
 
 El desarrollo sigue Spec-Driven Development: `especificación → aclaración → plan técnico → tareas → implementación → verificación`. Ninguna funcionalidad se implementa sin especificación aprobada y criterios de aceptación trazables.
@@ -44,16 +50,17 @@ El desarrollo sigue Spec-Driven Development: `especificación → aclaración �
 - **Aplicación móvil:** React Native con Expo y TypeScript estricto.
 - **Objetivo inicial:** Android.
 - **Gestión de paquetes:** npm con archivo de bloqueo versionado.
-- **Backend, autenticación y datos:** Supabase; una API adicional requiere especificación y ADR aprobados.
+- **Autenticación obligatoria:** la necesidad funcional de una cuenta y Supabase Auth como base propuesta están definidas por la especificación; el proveedor, sus versiones y la configuración que permita el registro inmediato sin verificación de correo, junto con sus riesgos, DEBEN ratificarse expresamente en el plan técnico o mediante ADR antes de implementarse.
+- **Persistencia y sincronización:** el contenido se conserva localmente por defecto; Supabase solo almacena contenido remoto de las categorías que el estudiante autorice para ese perfil y dispositivo. Una API o servicio adicional requiere especificación y ADR aprobados.
 - **Pruebas unitarias y de componentes:** Jest y React Native Testing Library.
 - **Pruebas de extremo a extremo:** Maestro.
 - **Calidad estática:** ESLint, Prettier y verificación de tipos de TypeScript.
 - **Control de versiones e integración continua:** GitHub y GitHub Actions.
 - **Prototipado de referencia:** Stitch o Figma; no forman parte del runtime.
 
-Esta selección está aprobada como base de planificación. Antes de crear el scaffold, el stack, sus versiones y su configuración DEBEN quedar ratificados en un plan técnico o ADR aprobado. No se debe usar una dependencia “latest” sin registrarla en el manifiesto y el archivo de bloqueo.
+La obligación funcional de registro o autenticación y el carácter opcional de la sincronización de contenido están definidos como decisiones cerradas en la especificación actualmente en BORRADOR. Esto no autoriza implementación: antes de crear el scaffold, la especificación deberá estar aprobada y el stack, sus versiones y su configuración deberán quedar ratificados en un plan técnico o ADR aprobado. No se debe usar una dependencia “latest” sin registrarla en el manifiesto y el archivo de bloqueo.
 
-El stack DEBE mantenerse simple. Se deben reutilizar primero las capacidades de Expo, React Native, TypeScript, Supabase y las herramientas de prueba ya aprobadas. Una biblioteca, servicio, framework adicional o segundo backend SOLO PUEDE proponerse cuando la especificación demuestre que el stack actual no cubre la necesidad; la incorporación requiere aprobación y la justificación exigida por la constitución.
+El stack DEBE mantenerse simple. Se deben reutilizar primero las capacidades previstas de Expo, React Native, TypeScript, Supabase y las herramientas de prueba seleccionadas como base. Una biblioteca, servicio, framework adicional o segundo backend SOLO PUEDE proponerse cuando la especificación demuestre que el stack actual no cubre la necesidad; la incorporación requiere aprobación y la justificación exigida por la constitución.
 
 ## Comandos de compilación y prueba
 
@@ -102,7 +109,9 @@ La implementación exacta de cada script DEBE quedar versionada en `package.json
 ### Persistencia y acceso a datos
 
 - Acceder a Supabase y a cualquier almacenamiento únicamente mediante la capa o adaptador de datos aprobado; la interfaz y el dominio no deben depender de detalles del proveedor.
-- Definir esquema, tipos, validación, finalidad, acceso, retención y eliminación antes de persistir un dato.
+- Definir esquema, tipos, validación, finalidad, clasificación, responsable, política de acceso, retención y eliminación antes de persistir un dato.
+- Particionar la persistencia, los consentimientos, las colas y los estados por perfil autenticado; no reutilizar ni exponer datos de un perfil al iniciar sesión con otro.
+- No enviar ni descargar agenda o datos emocionales fuente sin una autorización vigente para esa categoría, perfil y dispositivo.
 - Mantener esquemas y migraciones versionados, trazables y probados en un entorno aislado.
 - No guardar datos sensibles, sesiones o tokens en almacenamiento local plano; utilizar el mecanismo seguro definido por el plan técnico.
 - Probar políticas, migraciones y operaciones de recuperación sin utilizar producción ni datos personales reales.
@@ -119,14 +128,16 @@ La implementación exacta de cada script DEBE quedar versionada en `package.json
 
 - Traducir cada criterio de aceptación en una o más pruebas. Una verificación manual solo aporta evidencia complementaria. Una prueba obligatoria SOLO PUEDE omitirse temporalmente mediante una excepción técnica documentada que identifique responsable, riesgo aceptado y fecha de corrección.
 - Probar reglas de dominio, validaciones y alertas con pruebas unitarias, incluyendo límites y falsos positivos.
-- Probar adaptadores de Supabase, políticas de acceso, migraciones y contratos mediante integración en un entorno local o aislado aprobado; nunca contra producción.
+- Probar adaptadores de Supabase, políticas de acceso y aislamiento entre perfiles, migraciones y contratos mediante integración en un entorno local o aislado aprobado; nunca contra producción.
 - Probar componentes por comportamiento observable y semántica accesible, no por detalles internos de implementación.
-- Cubrir con Maestro los recorridos críticos aprobados: agenda, registro emocional, recursos de bienestar, alertas y eliminación de datos, a medida que entren al alcance.
-- Verificar en cada recorrido los estados de carga, vacío, error, permisos denegados y conectividad limitada o ausente que defina la especificación.
+- Cubrir con Maestro los recorridos críticos definidos por la especificación: aceptación y rechazo del aviso inicial de cuenta, registro con acceso inmediato sin exigir verificación previa del correo, rechazo de una actualización material del aviso con acceso local conservado y operaciones remotas suspendidas, aviso emocional rechazado, primer inicio sin conexión bloqueado, autenticación y recuperación, agenda, registro emocional, recursos de bienestar, alertas, cierre de sesión, cambio de perfil con conexión, sesión remota vencida con acceso local, permisos conservados al reingresar al mismo perfil, sincronización opcional, bloqueo de eliminaciones entre dispositivos y ciclo completo de eliminación o cancelación de datos y cuenta.
+- Verificar en cada recorrido los estados de carga, vacío, éxito, error, datos inválidos, consentimiento denegado, sesión vencida y conectividad limitada o ausente que defina la especificación.
+- Comprobar que un primer inicio sin registro o autenticación no permita acceder al contenido y que, después del primer acceso válido, una sesión vencida o la falta de conexión no exponga otro perfil ni bloquee las funciones locales aprobadas.
+- Comprobar que registrar, autenticar, cerrar sesión o cambiar de perfil no sincronice contenido por sí solo; sin consentimiento no debe existir envío ni descarga, y al autorizar una sola categoría la otra debe permanecer exclusivamente local.
 - Incluir revisiones de tecnologías de asistencia, foco, etiquetas, texto escalable, contraste y objetivos táctiles.
 - Medir los presupuestos de rendimiento definidos por la especificación y probar tiempos de espera, reintentos y recuperación ante fallos en Android.
 - Toda corrección debe comenzar con una prueba que reproduzca el defecto y finalizar con una prueba de regresión.
-- Usar únicamente datos sintéticos o realmente anonimizados. Las pruebas deben ser deterministas, independientes y repetibles.
+- Usar únicamente identidades sintéticas y datos sintéticos o realmente anonimizados, incluidas las direcciones de correo y cuentas de autenticación. Las pruebas deben ser deterministas, independientes y repetibles.
 - No deshabilitar pruebas, reducir controles ni actualizar snapshots solo para obtener un resultado verde. Una excepción exige justificación, responsable y fecha de corrección.
 - Mantener en CI un control versionado de dependencias y seguridad acorde al alcance del cambio.
 - Ejecutar primero la prueba más cercana al cambio y después `npm run validate` antes de considerar una tarea terminada.
@@ -138,8 +149,12 @@ La implementación exacta de cada script DEBE quedar versionada en `package.json
 
 - Tratar registros emocionales e inferencias como información de riesgo alto y potenciales datos personales sensibles.
 - Minimizar la recopilación y definir finalidad, acceso, retención y eliminación antes de persistir datos.
-- No usar datos personales reales en desarrollo, pruebas, demostraciones o evidencias.
+- Tratar el correo, el identificador de cuenta y los metadatos de sesión como datos personales o de autenticación, y la evidencia versionada del aviso como metadato personal indispensable de cumplimiento, aunque la sincronización de contenido esté desactivada.
+- No afirmar que la propiedad del correo fue verificada ni interpretar como prueba de control un estado de proveedor generado por desactivar la confirmación de correo.
+- No usar identidades, cuentas ni otros datos personales reales en desarrollo, pruebas, demostraciones o evidencias.
 - No registrar contenido emocional, tokens, identificadores personales ni respuestas sensibles en logs, analítica, reportes de error o fixtures.
+- No enviar ni descargar contenido académico o emocional sin consentimiento vigente para la categoría, el perfil y el dispositivo; la autenticación obligatoria no constituye ese consentimiento.
+- Después de una purga no conservar copias recuperables de la cuenta o su contenido. Un marcador remoto de eliminación solo puede contener los campos mínimos no reversibles definidos por la especificación y debe eliminarse cuando todas las instalaciones conocidas confirmen el estado final.
 - Un piloto con datos reales requiere aprobación explícita del usuario y las revisiones jurídica, institucional, de privacidad y de amenazas exigidas por la constitución.
 
 ### Secretos y Supabase
@@ -153,9 +168,11 @@ La implementación exacta de cada script DEBE quedar versionada en `package.json
 ### Implementación segura
 
 - Aplicar autenticación y autorización en el límite confiable; ocultar controles en la UI no constituye autorización.
+- Verificar la asociación entre cuenta y perfil local antes de exponer datos, reanudar colas o cambiar de perfil, y mantener el aislamiento aunque la sesión venza.
+- Aplicar una programación, cancelación o purga conocida antes de cualquier sincronización; un perfil con eliminación vencida y estado remoto no verificable debe permanecer bloqueado, nunca accesible ni presentado como purgado.
 - Validar entradas y salidas en fronteras de red, almacenamiento y servicios externos.
 - Diseñar errores sin detalles internos, consultas, rutas, tokens ni datos del usuario.
-- Versionar y probar migraciones. Cualquier cambio destructivo requiere respaldo y procedimiento de recuperación aprobados.
+- Versionar y probar migraciones. Cualquier cambio destructivo requiere un mecanismo de recuperación durante el plazo aprobado; una purga definitiva, una vez vencido ese plazo, debe ser irreversible y no conservar respaldos fuera de la política de retención.
 - Evaluar mantenimiento, licencia y vulnerabilidades antes de agregar una dependencia.
 - Mantener las alertas explicables y no clínicas; no implementar diagnósticos, puntajes clínicos ni decisiones automáticas de alto impacto.
 - Ante una posible filtración o vulnerabilidad crítica, detener el cambio, conservar evidencia técnica segura e informar al usuario; no ocultar ni “limpiar” el incidente sin autorización.

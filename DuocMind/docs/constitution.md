@@ -1,10 +1,12 @@
 # Constitución de desarrollo de DuocMind
 
-**Versión:** 2.1.0  
-**Estado:** Activa  
-**Enfoque:** Spec-Driven Development (SDD)  
-**Adoptada:** 2026-09-03  
-**Última enmienda:** 2026-09-03
+| Campo | Valor |
+| --- | --- |
+| Versión | 2.2.0 |
+| Estado | Activa |
+| Enfoque | Spec-Driven Development (SDD) |
+| Adoptada | 2026-09-03 |
+| Última enmienda | 2026-09-04 |
 
 ## Propósito
 
@@ -68,6 +70,10 @@ El código fuente, los identificadores y los nombres de archivos, módulos, tipo
 
 Todo dato DEBE contar con esquema, validación, finalidad, clasificación, responsable, política de acceso, retención y eliminación definidas antes de persistirse. Los registros emocionales y las inferencias relacionadas DEBEN clasificarse internamente como información de riesgo alto y tratarse como potenciales datos personales sensibles aunque el producto no sea clínico.
 
+Cuando una especificación aprobada establezca autenticación obligatoria, esta DEBE identificar y minimizar los datos de identidad, credenciales, sesión y seguridad estrictamente indispensables para autenticar y proteger el acceso, junto con la evidencia mínima indispensable para demostrar la aceptación del aviso aplicable. Antes de transmitirlos o crear la cuenta, la persona usuaria DEBE recibir un aviso claro y aceptar expresamente ese tratamiento. La evidencia de esa aceptación DEBE limitarse a su versión, alcance, finalidad, decisión, instante e identificadores técnicos mínimos, y NO autoriza ningún tratamiento de contenido. Esta regla regula el tratamiento de esos datos y NO convierte la autenticación obligatoria en un requisito general del producto; esa decisión pertenece a la especificación correspondiente.
+
+Los datos que no sean indispensables para la autenticación, su seguridad, la evidencia mínima del aviso o una solicitud de privacidad iniciada expresamente por la persona usuaria DEBEN organizarse en categorías opcionales de tratamiento o sincronización. Cada categoría de contenido DEBE comenzar desactivada y requerir una autorización independiente, explícita y revocable; crear una cuenta o iniciar sesión NO DEBE activar por sí solo ninguna categoría opcional. Los datos locales y remotos DEBEN aislarse según la identidad autenticada, y el acceso a cada categoría autorizada DEBE verificarse en el límite confiable.
+
 El desarrollo DEBE aplicar, como mínimo:
 
 - minimización de datos y privacidad por defecto;
@@ -80,7 +86,9 @@ El desarrollo DEBE aplicar, como mínimo:
 - registros técnicos sin contenido emocional ni otros datos sensibles;
 - datos sintéticos o realmente anonimizados en desarrollo, pruebas, demostraciones y evidencias.
 
-Las migraciones DEBEN estar versionadas, probadas y acompañadas por una estrategia de recuperación cuando puedan perder o transformar datos. Una operación destructiva sobre datos NO DEBE ejecutarse sin respaldo, validación del objetivo y mecanismo de reversión o recuperación aprobado.
+Las migraciones DEBEN estar versionadas, probadas y acompañadas por una estrategia de recuperación cuando puedan perder o transformar datos. Una operación destructiva sobre datos NO DEBE ejecutarse sin validación del objetivo y un mecanismo de reversión o recuperación aprobado durante el plazo de recuperación aplicable. Cuando una política aprobada exija la eliminación definitiva, la purga SOLO PUEDE ejecutarse después de vencer el plazo de recuperación aprobado; desde ese momento DEBE ser irreversible y NO DEBE conservar copias ni respaldos fuera de la política de retención aplicable.
+
+En sistemas con clientes desconectados, la especificación DEBE distinguir entre una orden todavía no recibida y una purga ya confirmada. Una copia que conozca una eliminación vencida pero no pueda descartar de forma confiable una cancelación DEBE permanecer inaccesible y aislada hasta verificar el estado; después DEBE purgarse o restaurarse sin extender el acceso. Un cliente que nunca recibió la orden DEBE consultarla y aplicarla antes de su siguiente operación remota. SOLO PUEDE conservarse después de la purga un marcador mínimo no reversible, sin contenido, cuando sea indispensable para propagar el estado a instalaciones conocidas; su finalidad, acceso, retención y eliminación DEBEN estar definidos.
 
 Las alertas de bienestar DEBEN basarse en reglas especificadas, explicables y comprobables mediante pruebas de borde y falsos positivos. NO DEBEN producir diagnósticos, puntajes clínicos ni decisiones automáticas de alto impacto.
 
@@ -157,6 +165,12 @@ La documentación retrospectiva no corrige una omisión del proceso. Si el códi
 - El versionado sigue SemVer: `MAJOR` elimina o redefine un principio; `MINOR` agrega una obligación material; `PATCH` aclara sin cambiar el sentido.
 - Una desviación informal no constituye una excepción. Si una regla necesita cambiar, primero se enmienda esta constitución.
 - El alcance del producto, los hitos académicos, el backlog, las herramientas de gestión y las responsabilidades del proyecto pertenecen a sus especificaciones y planes, no a esta constitución.
+
+## Registro de enmiendas
+
+| Versión | Fecha | Aprobación | Motivo | Impacto | Migración |
+| --- | --- | --- | --- | --- | --- |
+| 2.2.0 | 2026-09-04 | Equipo DuocMind, mediante aprobación explícita | Distinguir los datos indispensables de autenticación de las categorías opcionales y precisar el carácter irreversible y la propagación de una purga definitiva. | Refuerza privacidad por defecto, consentimiento granular, aislamiento por identidad y reglas de retención y eliminación, incluidos clientes desconectados y marcadores mínimos, sin imponer autenticación como requisito general del producto. | No requiere migración de código ni de datos; las especificaciones y planes posteriores deberán aplicar la regla antes de implementar. |
 
 ## Referencia de contexto
 
