@@ -2,176 +2,130 @@
 
 | Campo | Valor |
 | --- | --- |
-| Versión | 2.2.0 |
+| Versión | 1.1.0 |
 | Estado | Activa |
-| Enfoque | Spec-Driven Development (SDD) |
-| Adoptada | 2026-09-03 |
-| Última enmienda | 2026-09-04 |
+| Adoptada | 2026-09-09 |
+| Última enmienda | 2026-09-10 |
+| Enfoque | Spec-Driven Development |
+| Alcance | Todo el proyecto `DuocMind/` |
 
-## Propósito
+## Propósito y autoridad
 
-Esta constitución gobierna cómo se especifica, diseña, implementa, prueba, integra y entrega el software de DuocMind. Sus reglas aplican a código, arquitectura, modelos y migraciones de datos, interfaces, automatizaciones, documentación técnica y configuración de entornos.
+Esta constitución fija los límites éticos, técnicos y operativos de DuocMind. Toda spec, plan, lista de tareas, implementación, migración y entrega DEBE cumplirla. En caso de conflicto, prevalece sobre cualquier otro artefacto del proyecto.
 
-El problema, los usuarios, el alcance funcional, la planificación académica y las evidencias del proyecto se documentan en sus respectivas especificaciones y planes. No son principios de ingeniería y, por lo tanto, no se duplican aquí.
+Los términos DEBE, NO DEBE y PUEDE expresan requisitos obligatorios, prohibiciones y opciones respectivamente.
 
-La guía APT se utiliza como contexto del producto. Sus instrucciones de formulario no son requisitos de desarrollo, y las tecnologías allí mencionadas —como React Native y Supabase— son selecciones iniciales que deberán confirmarse en el plan técnico o mediante una decisión de arquitectura.
+## I. Bienestar emocional no clínico
 
-Los términos **DEBE**, **NO DEBE** y **SOLO PUEDE** expresan obligaciones. Un cambio que incumpla cualquiera de los seis principios siguientes NO DEBE integrarse en la rama principal ni considerarse terminado.
+DuocMind apoya la organización académica y la reflexión emocional del estudiante; no presta atención clínica.
 
-## Principios innegociables
+- Una emoción sugerida DEBE presentarse como una orientación editable, nunca como diagnóstico, evaluación médica o verdad definitiva.
+- El estudiante DEBE conservar el control sobre la emoción registrada y poder corregir la sugerencia.
+- Los consejos, rachas y alertas DEBEN ser privados, prudentes y formulados en español claro y empático.
+- La aplicación NO DEBE prometer tratamiento, sustituir ayuda profesional ni contactar automáticamente a docentes, familiares, autoridades o servicios de emergencia.
+- Los recursos de bienestar DEBEN distinguir con claridad la orientación general de la ayuda profesional o de emergencia.
+- Toda funcionalidad emocional DEBE evaluarse también por el riesgo de culpa, alarma, estigma o dependencia que pueda producir.
 
-### I. Especificación primero y trazabilidad completa
+**Puerta de cumplimiento:** ninguna funcionalidad de bienestar se aprueba si presenta inferencias como diagnósticos, elimina la capacidad de corrección o comparte información sin una acción informada del estudiante.
 
-Ningún comportamiento DEBE implementarse sin una especificación revisada y aprobada. La especificación es la fuente de verdad sobre qué debe hacer el software; el código demuestra su implementación, pero no sustituye su definición.
+## II. Privacidad y protección de datos emocionales
 
-Cada especificación DEBE incluir, como mínimo:
+Los datos emocionales se consideran sensibles aunque la normativa aplicable no los clasifique expresamente de ese modo.
 
-- identificador estable, versión y estado;
-- objetivo, actores y escenarios de uso;
-- comportamiento esperado, reglas de negocio y exclusiones;
-- criterios de aceptación observables;
-- estados normales, alternativos, límite y de error;
-- datos tratados, permisos y restricciones de seguridad o privacidad;
-- requisitos de accesibilidad, rendimiento, compatibilidad y operación;
-- contratos o interfaces afectados;
-- estrategia de pruebas y evidencia esperada.
+- Se DEBE recolectar y conservar solo la información necesaria para un requisito aprobado.
+- Cada dato sensible DEBE tener finalidad, propietario, ubicación, periodo de conservación y mecanismo de eliminación definidos antes de persistirse.
+- Hasta completar las revisiones de seguridad correspondientes solo se usarán cuentas y datos sintéticos.
+- Los datos personales o emocionales locales DEBEN cifrarse con SQLCipher antes de realizar pruebas con información real.
+- Expo SecureStore se reserva para sesiones y secretos pequeños; no sustituye el almacenamiento estructurado de SQLite.
+- En el cliente solo se permiten `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Las claves `secret`, `service_role`, contraseñas y tokens administrativos NO DEBEN incluirse en el bundle, el repositorio, los logs ni CI.
+- Toda tabla remota expuesta DEBE usar RLS, grants mínimos explícitos, políticas separadas por operación y aislamiento basado en `auth.uid()`.
+- Los logs, errores, métricas y datos de prueba NO DEBEN revelar respuestas emocionales, sesiones ni credenciales.
+- Todo cambio remoto DEBE realizarse mediante una migración versionada, revisable y verificable.
 
-Todo requisito DEBE mantener trazabilidad bidireccional:
+**Puerta de cumplimiento:** una funcionalidad que maneje datos sensibles no avanza sin modelo de amenazas proporcional, reglas de acceso, pruebas de aislamiento y estrategia de recuperación o eliminación.
 
-`especificación → criterio de aceptación → tarea → cambio → prueba → resultado`
+## III. Desarrollo Spec-Driven
 
-Si durante la implementación se descubre una diferencia, el trabajo DEBE detenerse y la especificación DEBE actualizarse y aprobarse antes de continuar. Para una corrección urgente se admite una especificación abreviada, pero esta también DEBE existir y aprobarse antes de integrar el cambio.
+Cada incremento vive en `specs/NNN-feature-name/` y sigue, sin saltos, el flujo:
 
-**Puerta de cumplimiento:** una tarea no pasa a desarrollo sin especificación aprobada; un cambio no se integra si no identifica la especificación, los criterios satisfechos y las pruebas que los demuestran.
+`spec.md → plan.md → tasks.md → implementación`
 
-### II. Arquitectura modular y dependencias controladas
+- `spec.md` define problema, alcance, requisitos, casos límite y criterios de aceptación observables.
+- `plan.md` se crea después de aprobar la spec y define arquitectura, interfaces, datos, seguridad, migraciones, riesgos y pruebas.
+- `tasks.md` se crea después de aprobar el plan y lo divide en tareas atómicas, ordenadas y trazables con el formato `- [ ] T001 Descripción`.
+- La implementación solo comienza después de aprobar la spec, el plan y las tareas.
+- Se implementa una tarea por vez. Una tarea parcial o bloqueada permanece `[ ]` y documenta el motivo.
+- Una tarea solo cambia a `[x]` después de completar el cambio, ejecutar su prueba específica y confirmar que no dejó errores.
+- El código y la actualización del checkbox DEBEN entregarse juntos.
+- La trazabilidad mínima es: requisito → criterio de aceptación → decisión de plan → tarea → cambio → prueba → resultado.
 
-El software DEBE separar presentación, lógica de aplicación o dominio y acceso a datos o servicios externos. Las dependencias DEBEN seguir límites explícitos y permitir que la lógica de negocio se pruebe sin iniciar la interfaz, la red ni la base de datos.
+**Puerta de cumplimiento:** no se acepta código retrospectivamente justificado con una spec, un plan o tareas creados después de la implementación.
 
-En particular:
+## IV. Arquitectura modular y offline-first
 
-- las pantallas y componentes visuales NO DEBEN contener reglas de negocio ni acceder directamente a la base de datos;
-- las reglas sensibles, como la detección de patrones para alertas, DEBEN residir en módulos aislados, deterministas y comprobables;
-- cada módulo DEBE tener una responsabilidad clara y contratos de entrada, salida y error definidos;
-- NO DEBEN existir dependencias circulares ni acceso a detalles internos de otro módulo;
-- los contratos entre aplicación, backend, base de datos y proveedores DEBEN versionarse y probarse;
-- las decisiones estructurales relevantes DEBEN registrarse mediante una decisión de arquitectura (ADR);
-- una dependencia externa nueva SOLO PUEDE incorporarse tras evaluar necesidad, mantenimiento, licencia, seguridad, tamaño e impacto operativo.
+El sistema se diseña para conservar su utilidad esencial durante conexiones inestables y para aislar el dominio de la infraestructura.
 
-La arquitectura DEBE favorecer cambios locales y reversibles. No se aceptan abstracciones, servicios o infraestructura anticipada sin un caso de uso especificado que los necesite.
+- El código DEBE organizarse por funcionalidades: `auth`, `agenda`, `emotions`, `resources` y `sync`, más capacidades realmente compartidas en `shared`.
+- Las pantallas NO DEBEN consultar Supabase ni SQLite directamente; acceden a casos de uso y contratos de repositorio.
+- Android es la única plataforma distribuible del MVP. Web PUEDE utilizarse como previsualización online del mismo proyecto Expo, pero no acredita garantías offline ni comportamiento nativo.
+- Los contratos y casos de uso DEBEN compartirse entre plataformas. En web, los repositorios pueden usar Supabase de desarrollo con datos sintéticos; en Android, deben usar persistencia local y sincronización.
+- La sesión web DEBE quedar separada del almacenamiento nativo en SecureStore.
+- Agenda y emociones DEBEN permitir lectura y escritura sin conexión después de un primer acceso válido en línea.
+- La biblioteca básica de bienestar DEBE distribuirse con la aplicación y funcionar offline.
+- Una escritura offline DEBE guardar el dato local y su operación de salida dentro de la misma transacción SQLite.
+- Las operaciones sincronizables usan los estados `pending`, `syncing`, `synced`, `failed` y `conflict`; un fallo de red nunca elimina información local confirmada.
+- Una modificación concurrente NO DEBE sobrescribirse silenciosamente: ambas versiones se conservan hasta que el estudiante elija y esa decisión genera una nueva operación.
+- Solo puede existir un check-in emocional activo por usuario y fecha local.
+- La sincronización se intenta al abrir la aplicación, volver al primer plano, recuperar conexión o solicitar reintento manual. No se promete ejecución si Android cerró la app.
+- Los esquemas local y remoto, la outbox, el versionado y la resolución de conflictos se especificarán en la Spec 002.
 
-El stack DEBE mantenerse tan pequeño como permita la especificación. Antes de agregar una biblioteca, servicio, framework adicional o segundo mecanismo para una capacidad ya existente, se DEBE demostrar que el stack aprobado no resuelve la necesidad. Se prefieren las capacidades de la plataforma y las dependencias ya adoptadas; dos herramientas con la misma responsabilidad requieren una justificación técnica explícita.
+**Puerta de cumplimiento:** un recorrido offline no se aprueba si puede perder datos, depender de una pantalla conectada directamente al backend o ocultar un conflicto.
 
-El código fuente, los identificadores y los nombres de archivos, módulos, tipos, funciones, APIs y campos de datos DEBEN escribirse en inglés. Los comentarios técnicos dentro del código y la documentación técnica del proyecto DEBEN escribirse en español. Los nombres impuestos por protocolos, bibliotecas o servicios externos conservan su forma oficial.
+## V. Calidad, accesibilidad y pruebas automatizadas
 
-**Puerta de cumplimiento:** todo cambio arquitectónico incluye diagrama o descripción de límites, ADR cuando corresponda y pruebas de los contratos afectados; ninguna dependencia nueva se integra sin justificación documentada.
+La calidad es una propiedad verificable del producto, no una fase posterior.
 
-### III. Datos, privacidad y seguridad durante todo el ciclo de vida
+- TypeScript DEBE operar en modo estricto y los datos no confiables se validan en los límites del sistema.
+- Todo criterio de aceptación DEBE tener al menos una prueba automatizada o una comprobación reproducible identificada.
+- La lógica de dominio se cubre con pruebas unitarias; persistencia, migraciones, sincronización, RLS y conflictos con pruebas de integración; la interfaz con pruebas de comportamiento y accesibilidad; los recorridos críticos aprobados con pruebas E2E.
+- Toda corrección DEBE incluir una prueba que reproduzca el defecto y evite su regresión.
+- La interfaz DEBE contemplar lectores de pantalla, contraste, escalado de texto, objetivos táctiles adecuados y estados comprensibles de carga, error, vacío, offline y conflicto.
+- Las pruebas DEBEN controlar reloj, red, cuentas y datos, y no depender de información personal real.
+- Un cambio de infraestructura nativa DEBE verificarse en Android, y cada spec DEBE incluir una validación Android antes de cerrarse. La previsualización web no sustituye esas pruebas.
+- Una verificación fallida NO DEBE ocultarse deshabilitando pruebas, relajando tipos o actualizando snapshots sin revisar el comportamiento.
 
-Todo dato DEBE contar con esquema, validación, finalidad, clasificación, responsable, política de acceso, retención y eliminación definidas antes de persistirse. Los registros emocionales y las inferencias relacionadas DEBEN clasificarse internamente como información de riesgo alto y tratarse como potenciales datos personales sensibles aunque el producto no sea clínico.
+**Puerta de cumplimiento:** ninguna tarea se marca completada y ningún PR se integra mientras falle su prueba específica o la validación obligatoria aplicable.
 
-Cuando una especificación aprobada establezca autenticación obligatoria, esta DEBE identificar y minimizar los datos de identidad, credenciales, sesión y seguridad estrictamente indispensables para autenticar y proteger el acceso, junto con la evidencia mínima indispensable para demostrar la aceptación del aviso aplicable. Antes de transmitirlos o crear la cuenta, la persona usuaria DEBE recibir un aviso claro y aceptar expresamente ese tratamiento. La evidencia de esa aceptación DEBE limitarse a su versión, alcance, finalidad, decisión, instante e identificadores técnicos mínimos, y NO autoriza ningún tratamiento de contenido. Esta regla regula el tratamiento de esos datos y NO convierte la autenticación obligatoria en un requisito general del producto; esa decisión pertenece a la especificación correspondiente.
+## VI. Entregas reproducibles mediante GitHub y migraciones
 
-Los datos que no sean indispensables para la autenticación, su seguridad, la evidencia mínima del aviso o una solicitud de privacidad iniciada expresamente por la persona usuaria DEBEN organizarse en categorías opcionales de tratamiento o sincronización. Cada categoría de contenido DEBE comenzar desactivada y requerir una autorización independiente, explícita y revocable; crear una cuenta o iniciar sesión NO DEBE activar por sí solo ninguna categoría opcional. Los datos locales y remotos DEBEN aislarse según la identidad autenticada, y el acceso a cada categoría autorizada DEBE verificarse en el límite confiable.
+El repositorio y su historial son la fuente auditable de cada entrega.
 
-El desarrollo DEBE aplicar, como mínimo:
+- `main` representa entregas estables y `dev` la integración. Las ramas de trabajo siguen `feature/*`, `fix/*`, `docs/*` o `chore/*` y parten de `dev`.
+- Los cambios llegan a `dev` y luego a `main` mediante pull requests; `main` requiere CI verde y al menos una aprobación.
+- `dev` y `main` DEBEN bloquear force-push.
+- CI DEBE usar Node 24, `npm ci` y `npm run validate` sin acceder a datos reales ni modificar Supabase.
+- `package-lock.json`, configuración, migraciones y documentación necesaria DEBEN versionarse para reproducir el resultado.
+- Las dependencias se actualizan manualmente en cambios pequeños y revisados. No se configura Dependabot.
+- Todo cambio remoto se entrega como migración versionada con verificación posterior y estrategia de reversión o recuperación documentada en el plan.
+- El entorno cloud actual de Supabase es solo de desarrollo hasta que una spec aprobada defina la promoción a otro entorno.
 
-- minimización de datos y privacidad por defecto;
-- autenticación y autorización aplicadas en el límite confiable, nunca solo en la interfaz cliente;
-- mínimo privilegio y aislamiento entre usuarios;
-- validación y normalización de toda entrada en los límites del sistema;
-- cifrado en tránsito y protección adecuada de datos persistidos;
-- mensajes de error que no revelen información interna o sensible;
-- secretos fuera del código, repositorio, compilaciones y registros;
-- registros técnicos sin contenido emocional ni otros datos sensibles;
-- datos sintéticos o realmente anonimizados en desarrollo, pruebas, demostraciones y evidencias.
+**Puerta de cumplimiento:** no se considera reproducible una entrega que dependa de cambios manuales no versionados, herramientas globales no declaradas o secretos personales.
 
-Las migraciones DEBEN estar versionadas, probadas y acompañadas por una estrategia de recuperación cuando puedan perder o transformar datos. Una operación destructiva sobre datos NO DEBE ejecutarse sin validación del objetivo y un mecanismo de reversión o recuperación aprobado durante el plazo de recuperación aplicable. Cuando una política aprobada exija la eliminación definitiva, la purga SOLO PUEDE ejecutarse después de vencer el plazo de recuperación aprobado; desde ese momento DEBE ser irreversible y NO DEBE conservar copias ni respaldos fuera de la política de retención aplicable.
+## Ciclo de aprobación
 
-En sistemas con clientes desconectados, la especificación DEBE distinguir entre una orden todavía no recibida y una purga ya confirmada. Una copia que conozca una eliminación vencida pero no pueda descartar de forma confiable una cancelación DEBE permanecer inaccesible y aislada hasta verificar el estado; después DEBE purgarse o restaurarse sin extender el acceso. Un cliente que nunca recibió la orden DEBE consultarla y aplicarla antes de su siguiente operación remota. SOLO PUEDE conservarse después de la purga un marcador mínimo no reversible, sin contenido, cuando sea indispensable para propagar el estado a instalaciones conocidas; su finalidad, acceso, retención y eliminación DEBEN estar definidos.
+1. La spec parte en estado `BORRADOR`; se revisa y se aprueba explícitamente.
+2. Con la spec aprobada se redacta y aprueba `plan.md`.
+3. Con el plan aprobado se redacta y aprueba `tasks.md`.
+4. La implementación avanza tarea por tarea y registra la verificación antes de cada `[x]`.
+5. El incremento se considera verificado cuando cumple sus criterios, pruebas, controles de seguridad, documentación y validación de CI aplicables.
 
-Las alertas de bienestar DEBEN basarse en reglas especificadas, explicables y comprobables mediante pruebas de borde y falsos positivos. NO DEBEN producir diagnósticos, puntajes clínicos ni decisiones automáticas de alto impacto.
+La aprobación de un artefacto no aprueba automáticamente el siguiente ni autoriza trabajo fuera de su alcance.
 
-Un piloto con datos personales reales SOLO PUEDE habilitarse después de una revisión de privacidad, amenazas, base de licitud y autorización institucional aplicable. Estos controles DEBEN mantenerse en una especificación de seguridad y privacidad actualizada conforme a la normativa vigente.
+## Gobierno y enmiendas
 
-**Puerta de cumplimiento:** todo cambio que lea, escriba, derive, comparta o elimine datos incluye revisión de amenazas y privacidad, pruebas de autorización y aislamiento, y verificación de migraciones y registros.
+- Una modificación de esta constitución requiere una propuesta explícita, impacto sobre specs activas, aprobación y registro de fecha y versión.
+- Se usa versionado semántico: MAJOR para cambios incompatibles de principios o gobierno; MINOR para nuevos principios o ampliaciones normativas; PATCH para aclaraciones sin cambio de intención.
+- Toda revisión de una spec o plan DEBE comprobar conformidad con la versión vigente de esta constitución.
+- Una excepción temporal debe identificar alcance, riesgo, responsable, mitigación y fecha de expiración; no puede debilitar privacidad, consentimiento ni aislamiento entre usuarios.
 
-### IV. Calidad verificable y pruebas automatizadas
-
-Cada criterio de aceptación DEBE corresponder a una o más pruebas. La estrategia mínima es:
-
-- pruebas unitarias para reglas de dominio, transformaciones y validaciones;
-- pruebas de integración para persistencia, migraciones, APIs y servicios externos;
-- pruebas de extremo a extremo para los recorridos críticos del usuario;
-- pruebas específicas de seguridad, accesibilidad, rendimiento y recuperación cuando el riesgo o la especificación lo exijan.
-
-Toda corrección de defecto DEBE incluir primero una prueba que reproduzca la falla y luego demostrar que dejó de ocurrir. Las pruebas DEBEN ser deterministas, independientes y repetibles; una prueba inestable no puede ignorarse indefinidamente y requiere responsable, tarea de corrección y plazo.
-
-La integración continua DEBE ejecutar, según el alcance del cambio, formato, análisis estático, verificación de tipos, pruebas automatizadas, compilación y controles de dependencias o seguridad. Un porcentaje de cobertura por sí solo NO DEBE utilizarse como evidencia suficiente de calidad.
-
-La Definición de Terminado exige código revisado, criterios satisfechos, CI aprobada, documentación sincronizada y ausencia de defectos críticos o altos conocidos. La escala de severidad y los umbrales medibles se definen en el plan de calidad.
-
-**Puerta de cumplimiento:** una prueba obligatoria o un control de CI SOLO PUEDE omitirse temporalmente mediante una excepción técnica documentada que identifique responsable, riesgo aceptado y fecha de corrección; sin esa excepción, el cambio NO DEBE integrarse.
-
-### V. UX, accesibilidad, rendimiento y resiliencia como requisitos técnicos
-
-La interfaz DEBE implementarse desde un flujo y criterios de interacción aprobados. Cada recorrido DEBE especificar y construir sus estados de carga, vacío, éxito, error, permisos denegados, datos inválidos y conectividad limitada o ausente cuando aplique.
-
-Cada componente interactivo DEBE ofrecer semántica y etiquetas para tecnologías de asistencia, orden de foco comprensible, texto escalable, contraste suficiente y objetivos táctiles adecuados. La información NO DEBE depender solo del color, el movimiento o el sonido. Los textos de interfaz, validaciones, errores visibles, etiquetas de accesibilidad y mensajes al usuario DEBEN escribirse en español, salvo que una especificación aprobada incorpore otro idioma. Los mensajes relacionados con bienestar DEBEN ser claros, empáticos, no alarmistas y consistentes con los límites no clínicos.
-
-Cada especificación DEBE definir presupuestos medibles para los aspectos relevantes de rendimiento y resiliencia, como inicio, respuesta de interacción, consumo de red, reintentos, tiempos de espera y recuperación ante fallos. La validación DEBE realizarse en dispositivos y condiciones representativas del entorno Android objetivo.
-
-La telemetría SOLO PUEDE recopilar información necesaria, documentada y compatible con el principio de privacidad; nunca debe incluir contenido emocional ni datos sensibles.
-
-**Puerta de cumplimiento:** un recorrido crítico no se considera terminado sin revisión de accesibilidad, mediciones de rendimiento, pruebas de estados alternativos y evidencia de recuperación frente a los fallos especificados.
-
-### VI. Integración controlada y entrega reproducible
-
-Git DEBE ser la fuente de verdad de todos los artefactos técnicos versionables. La rama principal DEBE mantenerse protegida y en estado integrable. Todo cambio DEBE ingresar mediante una revisión que:
-
-- esté vinculada a su especificación y tareas;
-- tenga un alcance pequeño y coherente;
-- describa comportamiento, riesgos, pruebas y evidencia;
-- identifique migraciones, cambios de contrato y estrategia de reversión;
-- sea aprobada por al menos una persona distinta de su autor;
-- complete satisfactoriamente los controles automáticos requeridos.
-
-Un checkout limpio DEBE poder instalar dependencias, compilar y ejecutar las pruebas mediante instrucciones versionadas. Las versiones del entorno y las dependencias directas DEBEN fijarse mediante archivos de configuración y bloqueo; las variables necesarias DEBEN documentarse con ejemplos sin secretos.
-
-Código, contratos, documentación, ADR, migraciones y notas de versión DEBEN actualizarse en el mismo cambio cuando estén relacionados. Toda entrega DEBE poseer una versión identificable, artefactos trazables al cambio que los generó y un procedimiento de despliegue y reversión acorde con su riesgo.
-
-**Puerta de cumplimiento:** otra persona del equipo debe poder reproducir la compilación y las pruebas desde un entorno limpio usando únicamente el repositorio y las instrucciones aprobadas.
-
-## Flujo obligatorio de Spec-Driven Development
-
-Todo cambio seguirá este orden:
-
-1. **Especificación:** definir comportamiento, límites, criterios y requisitos no funcionales.
-2. **Aclaración:** resolver contradicciones, decisiones abiertas y casos límite.
-3. **Plan técnico:** definir arquitectura, contratos, datos, riesgos y estrategia de pruebas.
-4. **Tareas:** descomponer el plan en unidades pequeñas, ordenadas y trazables.
-5. **Implementación:** construir cada tarea junto con sus pruebas y documentación.
-6. **Verificación e integración:** comprobar criterios, revisar el cambio, aprobar CI y conservar evidencia.
-
-Los documentos pueden usar los estados `BORRADOR`, `EN REVISIÓN`, `APROBADA`, `IMPLEMENTADA` y `VERIFICADA`. No se permite declarar un estado posterior si la puerta anterior no se ha satisfecho.
-
-La documentación retrospectiva no corrige una omisión del proceso. Si el código y la especificación difieren, el cambio permanece incompleto hasta resolver la discrepancia.
-
-## Gobernanza de ingeniería
-
-- Esta constitución prevalece sobre especificaciones, planes, tareas y decisiones técnicas. La normativa aplicable prevalece sobre esta constitución.
-- Cada especificación y revisión de cambio DEBE incluir una comprobación explícita de los seis principios.
-- Una enmienda DEBE realizarse mediante revisión versionada, explicar motivo e impacto y definir la migración del trabajo existente. Requiere aprobación explícita de todo el equipo y no puede ser revisada solo por quien la propone.
-- El versionado sigue SemVer: `MAJOR` elimina o redefine un principio; `MINOR` agrega una obligación material; `PATCH` aclara sin cambiar el sentido.
-- Una desviación informal no constituye una excepción. Si una regla necesita cambiar, primero se enmienda esta constitución.
-- El alcance del producto, los hitos académicos, el backlog, las herramientas de gestión y las responsabilidades del proyecto pertenecen a sus especificaciones y planes, no a esta constitución.
-
-## Registro de enmiendas
-
-| Versión | Fecha | Aprobación | Motivo | Impacto | Migración |
-| --- | --- | --- | --- | --- | --- |
-| 2.2.0 | 2026-09-04 | Equipo DuocMind, mediante aprobación explícita | Distinguir los datos indispensables de autenticación de las categorías opcionales y precisar el carácter irreversible y la propagación de una purga definitiva. | Refuerza privacidad por defecto, consentimiento granular, aislamiento por identidad y reglas de retención y eliminación, incluidos clientes desconectados y marcadores mínimos, sin imponer autenticación como requisito general del producto. | No requiere migración de código ni de datos; las especificaciones y planes posteriores deberán aplicar la regla antes de implementar. |
-
-## Referencia de contexto
-
-- [Guía de definición del Proyecto APT](<../../Fase 1/Evidencias Grupales/1.5_GuiaEstudiante_Fase 1_Definicion Proyecto APT (Español).docx>)
+**Versión vigente:** 1.1.0 — adoptada el 2026-09-09 y enmendada el 2026-09-10 para incorporar la previsualización web de desarrollo.
