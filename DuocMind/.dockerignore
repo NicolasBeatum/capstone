@@ -1,0 +1,10 @@
+.git
+.expo
+node_modules
+dist
+coverage
+*.log
+.env
+.env.*
+android
+ios
