@@ -3,8 +3,9 @@
 | Campo | Valor |
 | --- | --- |
 | Versión | 0.1.0 |
-| Estado | BORRADOR |
+| Estado | APROBADA — implementación abierta |
 | Fecha | 2026-09-20 |
+| Aprobación | 2026-09-20, solicitud explícita de implementar la Spec 002 vigente |
 | Constitución | 2.0.0 |
 | Plataforma | Android; previsualización web de desarrollo |
 
@@ -74,4 +75,4 @@ Como integrante del equipo, quiero abrir la app y ver si puede comunicarse con e
 - Una URL válida con un proyecto inaccesible o una clave publicable incorrecta no debe mostrar «Conectado»; el resultado debe orientar al equipo sin revelar credenciales.
 - La pérdida de red de esta comprobación no representa la futura capacidad offline de agenda o emociones.
 
-Este documento permanece en **BORRADOR** hasta su aprobación explícita. Después se redactarán `plan.md` y `tasks.md` en ese orden. No hay implementación ni prueba de conexión real en esta etapa.
+La Spec 002 fue aprobada por la solicitud explícita del usuario de implementar el plan que sigue su contenido vigente. `plan.md` y `tasks.md` se redactan en ese orden antes de implementar. La spec permanece abierta hasta verificar todos sus criterios, incluida la conexión real y la ejecución Android.

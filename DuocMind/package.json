@@ -15,6 +15,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@react-native-community/netinfo": "12.0.1",
+    "@supabase/supabase-js": "2.116.0",
     "expo": "57.0.22",
     "expo-constants": "57.0.18",
     "expo-linking": "57.0.10",
@@ -25,6 +27,7 @@
     "react-native": "0.86.3",
     "react-native-safe-area-context": "5.7.0",
     "react-native-screens": "4.26.0",
+    "react-native-url-polyfill": "4.0.0",
     "react-native-web": "0.21.0"
   },
   "devDependencies": {
