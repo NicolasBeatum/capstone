@@ -90,9 +90,11 @@ Las tareas deben indicar dependencias y verificación cuando no sean evidentes. 
 
 El cambio de implementación y la actualización de su checkbox se entregan juntos. No se empieza una tarea dependiente mientras la anterior continúe incompleta. No se crean `plan.md` y `tasks.md` como formalidad retrospectiva después de escribir el código.
 
+La regularización histórica del commit `6043772` es una excepción autorizada y acotada, registrada en el plan de la Spec 001. No modifica el orden exigido para los incrementos siguientes ni acredita aprobaciones previas inexistentes.
+
 ## Organización del código
 
-Cuando la Spec 001 sea implementada, el código se organizará por funcionalidades:
+El commit inicial de la Spec 001 contiene únicamente rutas en `src/app/`. La organización objetivo para incrementos posteriores es:
 
 ```text
 src/
@@ -172,7 +174,7 @@ src/
 - Toda corrección comienza con una prueba que reproduce el defecto y termina con una prueba de regresión.
 - Las pruebas usan reloj, red, cuentas y datos controlados. Nunca usan experiencias emocionales ni credenciales reales.
 - No se deshabilitan pruebas ni se actualizan snapshots solo para obtener un resultado verde.
-- Se ejecuta primero la prueba más cercana al cambio y luego `npm run validate` cuando exista el scaffold.
+- Se ejecuta primero la prueba más cercana al cambio y luego `npm run validate` cuando ese script haya sido implementado.
 - Siempre se informa qué comandos se ejecutaron, cuáles no y sus resultados reales.
 
 Una tarea está terminada únicamente cuando satisface su criterio, sus pruebas pasan, la documentación relacionada está sincronizada, no introduce secretos y su checkbox se marca en `tasks.md`.
@@ -189,22 +191,17 @@ Una tarea está terminada únicamente cuando satisface su criterio, sus pruebas 
 - GitHub Actions no accede a datos reales ni modifica Supabase durante la validación ordinaria.
 - No se utiliza Dependabot; las dependencias se actualizan manualmente mediante cambios pequeños, revisados y verificados por CI.
 
-## Comandos previstos
+## Comandos del proyecto
 
-`DuocMind/` todavía no contiene scaffold ni `package.json`. La Spec 001 define estos comandos como contrato futuro; no debe afirmarse que funcionan antes de implementarla:
+`DuocMind/` ya contiene el scaffold y `package.json`. Los comandos disponibles y su verificación actual son:
 
-| Objetivo | Comando |
-| --- | --- |
-| Iniciar Expo | `npm run start` |
-| Ejecutar Android | `npm run android` |
-| Previsualizar en navegador | `npm run web` |
-| Verificar formato | `npm run format:check` |
-| Verificar estilo | `npm run lint` |
-| Verificar tipos | `npm run typecheck` |
-| Ejecutar pruebas | `npm run test` |
-| Ejecutar pruebas en CI | `npm run test:ci` |
-| Revisar salud del proyecto | `npm run doctor` |
-| Validación completa | `npm run validate` |
-| Enlazar Supabase dev | `npm run supabase:link` |
+| Objetivo | Comando | Estado |
+| --- | --- | --- |
+| Iniciar Expo | `npm run start` | Declarado; sin prueba independiente. |
+| Ejecutar Android | `npm run android` | Declarado; prueba Android pendiente. |
+| Previsualizar en navegador | `npm run web` | Verificado localmente y mediante Compose. |
+| Verificar tipos | `npm run typecheck` | Verificado. |
+
+`format:check`, `lint`, `test`, `test:ci`, `doctor`, `validate` y `supabase:link` aún no existen. Se planificarán en incrementos posteriores conforme a la constitución.
 
 Si un comando falta, se registra como trabajo pendiente en la spec correspondiente; no se reemplaza silenciosamente por una instalación global o una descarga no fijada.

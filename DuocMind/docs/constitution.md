@@ -2,10 +2,10 @@
 
 | Campo | Valor |
 | --- | --- |
-| Versión | 1.1.0 |
+| Versión | 1.2.0 |
 | Estado | Activa |
 | Adoptada | 2026-09-09 |
-| Última enmienda | 2026-09-10 |
+| Última enmienda | 2026-09-20 |
 | Enfoque | Spec-Driven Development |
 | Alcance | Todo el proyecto `DuocMind/` |
 
@@ -65,6 +65,7 @@ Cada incremento vive en `specs/NNN-feature-name/` y sigue, sin saltos, el flujo:
 
 El sistema se diseña para conservar su utilidad esencial durante conexiones inestables y para aislar el dominio de la infraestructura.
 
+- Toda solución DEBE ser proporcional al requisito aprobado: preferir la implementación más simple que cumpla sus criterios y no anticipar abstracciones, dependencias o infraestructura sin una necesidad concreta. Esto no reduce los controles exigidos de privacidad, seguridad, accesibilidad y verificación.
 - El código DEBE organizarse por funcionalidades: `auth`, `agenda`, `emotions`, `resources` y `sync`, más capacidades realmente compartidas en `shared`.
 - Las pantallas NO DEBEN consultar Supabase ni SQLite directamente; acceden a casos de uso y contratos de repositorio.
 - Android es la única plataforma distribuible del MVP. Web PUEDE utilizarse como previsualización online del mismo proyecto Expo, pero no acredita garantías offline ni comportamiento nativo.
@@ -128,4 +129,4 @@ La aprobación de un artefacto no aprueba automáticamente el siguiente ni autor
 - Toda revisión de una spec o plan DEBE comprobar conformidad con la versión vigente de esta constitución.
 - Una excepción temporal debe identificar alcance, riesgo, responsable, mitigación y fecha de expiración; no puede debilitar privacidad, consentimiento ni aislamiento entre usuarios.
 
-**Versión vigente:** 1.1.0 — adoptada el 2026-09-09 y enmendada el 2026-09-10 para incorporar la previsualización web de desarrollo.
+**Versión vigente:** 1.2.0 — enmendada el 2026-09-20 para exigir soluciones proporcionales al requisito aprobado. Aplica a la Spec 001 y a incrementos posteriores; no cambia los criterios de aceptación de la Spec 001.
