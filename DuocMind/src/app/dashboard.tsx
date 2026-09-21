@@ -24,10 +24,7 @@ export default function DashboardScreen() {
   ];
 
   const handleTestPress = () => {
-    Alert.alert(
-      'Test de Estrés Académico',
-      'El módulo de evaluación periódica está programado para una próxima fase de implementación.'
-    );
+    router.push('/stress-test');
   };
 
   return (
@@ -132,15 +129,15 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* Banner de Test de Estrés */}
+        {/* Banner de Test Emocional */}
         <View style={styles.testBanner}>
           <View style={styles.testBannerContent}>
             <View style={styles.testBadge}>
-              <Text style={styles.testBadgeText}>EVALUACIÓN PERIÓDICA</Text>
+              <Text style={styles.testBadgeText}>EVALUACIÓN DEL DÍA</Text>
             </View>
-            <Text style={styles.testBannerTitle}>Test de Estrés Académico</Text>
+            <Text style={styles.testBannerTitle}>Test emocional</Text>
             <Text style={styles.testBannerDesc}>
-              Mide tu sobrecarga cognitiva en 3 minutos.
+              Identifica tu emoción del día en pocos minutos.
             </Text>
           </View>
           <TouchableOpacity

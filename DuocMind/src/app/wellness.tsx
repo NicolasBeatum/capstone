@@ -1,20 +1,19 @@
 import React from 'react';
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { BottomNav } from '../shared/components/BottomNav';
 
 export default function WellnessScreen() {
+  const router = useRouter();
+
   const handleStartTest = () => {
-    Alert.alert(
-      'Test de Estrés Académico',
-      'El módulo del test se encuentra en desarrollo para la siguiente iteración de evaluación.'
-    );
+    router.push('/stress-test');
   };
 
   const tips = [
@@ -72,16 +71,15 @@ export default function WellnessScreen() {
             </View>
             <View style={styles.heroTextGroup}>
               <Text style={styles.heroEyebrow}>AUTOEVALUACIÓN GUIADA</Text>
-              <Text style={styles.heroTitle}>Test de Estrés Académico</Text>
+              <Text style={styles.heroTitle}>Test emocional</Text>
               <Text style={styles.heroDesc}>
-                Evalúa tu nivel actual de carga cognitiva y emocional para recibir recomendaciones
-                ajustadas a tu estado.
+                Identifica tu emoción del día y recibe una mirada rápida sobre tu estado general.
               </Text>
 
               <View style={styles.heroMetaRow}>
-                <Text style={styles.heroMetaItem}>⏱ 5 min</Text>
+                <Text style={styles.heroMetaItem}>⏱ 3 min</Text>
                 <Text style={styles.heroMetaBullet}>•</Text>
-                <Text style={styles.heroMetaItem}>10 preguntas</Text>
+                <Text style={styles.heroMetaItem}>4 preguntas</Text>
               </View>
             </View>
           </View>
