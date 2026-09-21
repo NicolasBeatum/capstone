@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { AppHeader } from '../shared/components/AppHeader';
 import { BottomNav } from '../shared/components/BottomNav';
 
 interface CheckinHistoryItem {
@@ -69,19 +70,8 @@ export default function CheckinScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarInitial}>CM</Text>
-              </View>
-              <View>
-                <Text style={styles.screenTitle}>Check-in Emocional</Text>
-                <Text style={styles.screenSubtitle}>Espacio de autoobservación</Text>
-              </View>
-            </View>
-            <Text style={styles.quoteIcon}>”</Text>
-          </View>
+          {/* Header con Avatar y Menú de Perfil */}
+          <AppHeader title="Check-in Emocional" subtitle="Espacio de autoobservación" />
 
           {/* Tarjeta Interactiva de Check-in */}
           <View style={styles.checkinCard}>

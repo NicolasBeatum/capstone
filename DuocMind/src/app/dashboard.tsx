@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { AppHeader } from '../shared/components/AppHeader';
 import { BottomNav } from '../shared/components/BottomNav';
 
 type MoodType = 'Calmo' | 'Estresado' | 'Alegre' | 'Cansado';
@@ -36,22 +37,8 @@ export default function DashboardScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header persistente con Avatar */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.avatarWrapper}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarInitial}>CM</Text>
-              </View>
-              <View style={styles.onlineBadge} />
-            </View>
-            <View>
-              <Text style={styles.appTitle}>Equilibrio Académico</Text>
-              <Text style={styles.appSubtitle}>"Un paso a la vez"</Text>
-            </View>
-          </View>
-          <Text style={styles.quoteIcon}>”</Text>
-        </View>
+        {/* Header persistente con Avatar y Menú de Perfil */}
+        <AppHeader title="Equilibrio Académico" subtitle='"Un paso a la vez"' />
 
         {/* Card: Check-in Rápido de Ánimo */}
         <View style={styles.moodCard}>

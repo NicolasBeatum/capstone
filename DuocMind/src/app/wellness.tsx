@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { AppHeader } from '../shared/components/AppHeader';
 import { BottomNav } from '../shared/components/BottomNav';
 
 export default function WellnessScreen() {
@@ -50,19 +51,8 @@ export default function WellnessScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header con Avatar */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarInitial}>CM</Text>
-            </View>
-            <View>
-              <Text style={styles.screenTitle}>Centro de Bienestar</Text>
-              <Text style={styles.screenSubtitle}>Herramientas y descanso</Text>
-            </View>
-          </View>
-          <Text style={styles.quoteIcon}>”</Text>
-        </View>
+        {/* Header con Avatar y Menú de Perfil */}
+        <AppHeader title="Centro de Bienestar" subtitle="Herramientas y descanso" />
 
         {/* Tarjeta Principal de Autoevaluación Guiada */}
         <View style={styles.heroCard}>
