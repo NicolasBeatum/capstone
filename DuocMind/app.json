@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "DuocMind",
+    "slug": "duocmind",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "duocmind",
+    "userInterfaceStyle": "automatic",
+    "platforms": ["android", "web"],
+    "android": {
+      "package": "com.duocmind.app",
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
