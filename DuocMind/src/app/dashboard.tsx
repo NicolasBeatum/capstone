@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { BottomNav } from './_components/BottomNav';
+import { BottomNav } from '../shared/components/BottomNav';
 
 type MoodType = 'Calmo' | 'Estresado' | 'Alegre' | 'Cansado';
 

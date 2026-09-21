@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { BottomNav } from './_components/BottomNav';
+import { BottomNav } from '../shared/components/BottomNav';
 
 export default function WellnessScreen() {
   const handleStartTest = () => {
