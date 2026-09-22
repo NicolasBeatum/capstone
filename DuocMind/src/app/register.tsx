@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { styles } from './register.styles';
+import { styles } from '../shared/styles/register.styles';
 import { useRouter } from 'expo-router';
 
 export default function RegisterScreen() {

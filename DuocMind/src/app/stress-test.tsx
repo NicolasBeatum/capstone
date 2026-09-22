@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { styles } from './stress-test.styles';
+import { styles } from '../shared/styles/stress-test.styles';
 import { useRouter } from 'expo-router';
 import { BottomNav } from '../shared/components/BottomNav';
 

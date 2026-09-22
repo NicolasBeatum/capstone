@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { styles } from './dashboard.styles';
+import { styles } from '../shared/styles/dashboard.styles';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../shared/theme';
 import { AppHeader } from '../shared/components/AppHeader';

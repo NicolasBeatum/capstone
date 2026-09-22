@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { styles } from './login.styles';
+import { styles } from '../shared/styles/login.styles';
 import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {

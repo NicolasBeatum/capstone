@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { styles } from './index.styles';
+import { styles } from '../shared/styles/index.styles';
 import { useRouter } from 'expo-router';
 
 import {

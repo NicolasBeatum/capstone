@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { styles } from './wellness.styles';
+import { styles } from '../shared/styles/wellness.styles';
 import { AppHeader } from '../shared/components/AppHeader';
 import { useRouter } from 'expo-router';
 import { BottomNav } from '../shared/components/BottomNav';

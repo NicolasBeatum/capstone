@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { styles } from './checkin.styles';
+import { styles } from '../shared/styles/checkin.styles';
 import { AppHeader } from '../shared/components/AppHeader';
 import { BottomNav } from '../shared/components/BottomNav';
 
