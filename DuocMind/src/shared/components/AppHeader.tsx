@@ -3,12 +3,13 @@ import {
   Alert,
   Modal,
   Pressable,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { styles } from './AppHeader.styles';
 import { useRouter } from 'expo-router';
+import { useTheme } from '../theme';
 
 interface AppHeaderProps {
   title: string;
@@ -17,14 +18,12 @@ interface AppHeaderProps {
 
 export function AppHeader({ title, subtitle }: AppHeaderProps) {
   const router = useRouter();
+  const theme = useTheme();
   const [menuVisible, setMenuVisible] = useState(false);
 
   const handleSettings = () => {
     setMenuVisible(false);
-    Alert.alert(
-      'Configuración',
-      'Ajustes de perfil y preferencias de notificaciones.'
-    );
+    Alert.alert('Configuración', 'Ajustes de perfil y preferencias de notificaciones.');
   };
 
   const handleLogout = () => {
@@ -49,55 +48,75 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
         </TouchableOpacity>
 
         <View>
-          <Text style={styles.appTitle}>{title}</Text>
-          <Text style={styles.appSubtitle}>{subtitle}</Text>
+          <Text style={[styles.appTitle, { color: theme.textPrimary }]}>{title}</Text>
+          <Text style={[styles.appSubtitle, { color: theme.textMuted }]}>{subtitle}</Text>
         </View>
       </View>
 
-      <Text style={styles.quoteIcon}>”</Text>
+      <Text style={[styles.quoteIcon, { color: theme.textMuted }]}>"</Text>
 
-      {/* Menú desplegable flotante de usuario */}
+      {/* Menú desplegable flotante — Glassmorphism */}
       <Modal
         visible={menuVisible}
         transparent
         animationType="fade"
         onRequestClose={() => setMenuVisible(false)}
       >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setMenuVisible(false)}
-        >
-          <Pressable style={styles.dropdownCard} onPress={(e) => e.stopPropagation()}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setMenuVisible(false)}>
+          <Pressable
+            style={[
+              styles.dropdownCard,
+              {
+                backgroundColor: theme.isDark
+                  ? 'rgba(15, 26, 46, 0.82)'
+                  : 'rgba(255, 255, 255, 0.72)',
+                borderColor: theme.glassBorder,
+              },
+            ]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            {/* Línea especular de vidrio */}
+            <View style={styles.glassShine} />
+
             {/* Cabecera del perfil */}
-            <View style={styles.profileHeader}>
+            <View style={[styles.profileHeader, { borderBottomColor: theme.divider }]}>
               <View style={styles.dropdownAvatar}>
                 <Text style={styles.dropdownAvatarInitial}>CM</Text>
               </View>
               <View style={styles.profileTexts}>
-                <Text style={styles.profileName}>Camila Mora</Text>
-                <Text style={styles.profileEmail}>c.mora@universidad.edu</Text>
+                <Text style={[styles.profileName, { color: theme.textPrimary }]}>
+                  Camila Mora
+                </Text>
+                <Text style={[styles.profileEmail, { color: theme.textMuted }]}>
+                  c.mora@universidad.edu
+                </Text>
               </View>
             </View>
 
-            <View style={styles.dropdownDivider} />
+            <View style={[styles.dropdownDivider, { backgroundColor: theme.border }]} />
 
-            {/* Opciones del menú */}
+            {/* Configuración */}
             <TouchableOpacity
-              style={styles.menuItem}
+              style={[styles.menuItem, { backgroundColor: 'transparent' }]}
               onPress={handleSettings}
               activeOpacity={0.7}
             >
               <Text style={styles.menuItemIcon}>⚙️</Text>
-              <Text style={styles.menuItemLabel}>Configuración</Text>
+              <Text style={[styles.menuItemLabel, { color: theme.textSecondary }]}>
+                Configuración
+              </Text>
             </TouchableOpacity>
 
+            {/* Cerrar sesión */}
             <TouchableOpacity
               style={[styles.menuItem, styles.logoutItem]}
               onPress={handleLogout}
               activeOpacity={0.7}
             >
               <Text style={styles.menuItemIcon}>🚪</Text>
-              <Text style={styles.logoutLabel}>Cerrar sesión</Text>
+              <Text style={[styles.logoutLabel, { color: theme.danger }]}>
+                Cerrar sesión
+              </Text>
             </TouchableOpacity>
           </Pressable>
         </Pressable>
@@ -105,146 +124,3 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    position: 'relative',
-    zIndex: 10,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatarWrapper: {
-    position: 'relative',
-    marginRight: 12,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#1a2b44',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#f3e7a0',
-  },
-  avatarInitial: {
-    color: '#f3e7a0',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  onlineBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#10b981',
-    borderWidth: 2,
-    borderColor: '#ffffff',
-  },
-  appTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1a2b44',
-  },
-  appSubtitle: {
-    fontSize: 12,
-    color: '#94a3b8',
-    fontStyle: 'italic',
-  },
-  quoteIcon: {
-    fontSize: 28,
-    color: '#cbd5e1',
-    fontWeight: 'bold',
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.25)',
-  },
-  dropdownCard: {
-    position: 'absolute',
-    top: 75,
-    left: 20,
-    width: 230,
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-    paddingVertical: 6,
-  },
-  dropdownAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#1a2b44',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  dropdownAvatarInitial: {
-    color: '#f3e7a0',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  profileTexts: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1a2b44',
-  },
-  profileEmail: {
-    fontSize: 10,
-    color: '#94a3b8',
-    marginTop: 1,
-  },
-  dropdownDivider: {
-    height: 1,
-    backgroundColor: '#f1f5f9',
-    marginVertical: 8,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-  },
-  menuItemIcon: {
-    fontSize: 14,
-    marginRight: 10,
-  },
-  menuItemLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#334155',
-  },
-  logoutItem: {
-    marginTop: 2,
-  },
-  logoutLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#e11d48',
-  },
-});
-

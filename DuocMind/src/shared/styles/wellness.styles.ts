@@ -1,0 +1,195 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f9f9f7',
+  },
+  scrollContent: {
+    padding: 20,
+    paddingTop: 30,
+    paddingBottom: 24,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#1a2b44',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#f3e7a0',
+    marginRight: 12,
+  },
+  avatarInitial: {
+    color: '#f3e7a0',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  screenTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a2b44',
+  },
+  screenSubtitle: {
+    fontSize: 12,
+    color: '#94a3b8',
+  },
+  quoteIcon: {
+    fontSize: 28,
+    color: '#cbd5e1',
+    fontWeight: 'bold',
+  },
+  heroCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 18,
+    borderLeftWidth: 4,
+    borderLeftColor: '#1a2b44',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  heroHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  heroIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: '#fbf6dc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  heroIconText: {
+    fontSize: 20,
+  },
+  heroTextGroup: {
+    flex: 1,
+  },
+  heroEyebrow: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#d4b43c',
+    letterSpacing: 0.5,
+  },
+  heroTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1a2b44',
+    marginTop: 2,
+  },
+  heroDesc: {
+    fontSize: 11,
+    color: '#64748b',
+    marginTop: 4,
+    lineHeight: 16,
+  },
+  heroMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  heroMetaItem: {
+    fontSize: 10,
+    color: '#94a3b8',
+    fontWeight: '600',
+  },
+  heroMetaBullet: {
+    fontSize: 10,
+    color: '#cbd5e1',
+    marginHorizontal: 6,
+  },
+  heroButton: {
+    backgroundColor: '#1a2b44',
+    borderRadius: 14,
+    height: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+  },
+  heroButtonText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+    marginRight: 6,
+  },
+  heroButtonArrow: {
+    color: '#ffffff',
+    fontSize: 14,
+  },
+  tipsSection: {
+    marginBottom: 10,
+  },
+  tipsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  tipsTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1a2b44',
+  },
+  tipsBadge: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#d4b43c',
+  },
+  tipsList: {
+    gap: 10,
+  },
+  tipCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  tipIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  tipIconText: {
+    fontSize: 18,
+  },
+  tipContent: {
+    flex: 1,
+  },
+  tipTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1a2b44',
+  },
+  tipDesc: {
+    fontSize: 11,
+    color: '#64748b',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+});
