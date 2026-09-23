@@ -182,7 +182,7 @@ export default function DashboardScreen() {
                 { backgroundColor: frostedCardBg, borderColor: frostedCardBorder },
               ]}
             >
-              <Text style={[styles.weekBadgeText, { color: theme.textSecondary }]}>
+              <Text style={[styles.weekBadgeText, { color: theme.textPrimary }]>
                 Semana 8
               </Text>
             </View>
@@ -209,7 +209,7 @@ export default function DashboardScreen() {
               <Text style={[styles.gaugeTitle, { color: theme.textPrimary }]}>
                 Carga Académica
               </Text>
-              <Text style={[styles.gaugeStatus, { color: theme.textMuted }]}>
+              <Text style={[styles.gaugeStatus, { color: theme.textPrimary }]}> 
                 3 entregas cerca
               </Text>
             </View>
@@ -234,7 +234,7 @@ export default function DashboardScreen() {
               <Text style={[styles.gaugeTitle, { color: theme.textPrimary }]}>
                 Nivel de Energía
               </Text>
-              <Text style={[styles.gaugeStatus, { color: theme.textMuted }]}>
+              <Text style={[styles.gaugeStatus, { color: theme.textPrimary }]}> 
                 Requiere pausa
               </Text>
             </View>
@@ -280,7 +280,7 @@ export default function DashboardScreen() {
             <Text style={[styles.testBannerTitle, { color: theme.textPrimary }]}>
               Test de Estrés Académico
             </Text>
-            <Text style={[styles.testBannerDesc, { color: theme.textSecondary }]}>
+            <Text style={[styles.testBannerDesc, { color: theme.textPrimary }]}>
               Mide tu sobrecarga cognitiva en 3 minutos.
             </Text>
           </View>
