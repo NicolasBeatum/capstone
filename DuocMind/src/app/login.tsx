@@ -1,0 +1,1 @@
+C:/Users/hansi/Desktop/DuocMind/Duocmind-Hans/capstone/DuocMind/src/app/views/auth/login.tsx
