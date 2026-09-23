@@ -26,11 +26,11 @@ export default function RegisterScreen() {
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden.');
+      Alert.alert('Error', 'Las contrase├▒as no coinciden.');
       return;
     }
     if (!acceptTerms) {
-      Alert.alert('Términos', 'Debes aceptar los términos y condiciones para continuar.');
+      Alert.alert('T├®rminos', 'Debes aceptar los t├®rminos y condiciones para continuar.');
       return;
     }
     router.push('/dashboard');
@@ -56,9 +56,9 @@ export default function RegisterScreen() {
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.push('/login')}
-            accessibilityLabel="Volver al inicio de sesión"
+            accessibilityLabel="Volver al inicio de sesi├│n"
           >
-            <Text style={styles.backArrow}>←</Text>
+            <Text style={styles.backArrow}>ÔåÉ</Text>
           </TouchableOpacity>
           <Text style={styles.topBarTitle}>CREAR CUENTA</Text>
           <View style={styles.topBarSpacer} />
@@ -67,24 +67,24 @@ export default function RegisterScreen() {
         {/* Tarjeta de Bienvenida */}
         <View style={styles.welcomeCard}>
           <View style={styles.badgePill}>
-            <Text style={styles.badgeIcon}>🌿</Text>
+            <Text style={styles.badgeIcon}>­ƒî┐</Text>
             <Text style={styles.badgeText}>Espacio Sereno</Text>
           </View>
           <Text style={styles.welcomeTitle}>Crea tu Cuenta</Text>
           <Text style={styles.welcomeSubtitle}>
-            Empieza a balancear tu vida académica y emocional hoy mismo.
+            Empieza a balancear tu vida acad├®mica y emocional hoy mismo.
           </Text>
         </View>
 
         {/* Micro-banner de comunidad */}
         <View style={styles.communityBanner}>
           <View style={styles.communityIconContainer}>
-            <Text style={styles.communityIcon}>🎓</Text>
+            <Text style={styles.communityIcon}>­ƒÄô</Text>
           </View>
           <View style={styles.communityTextContainer}>
             <Text style={styles.communityTitle}>Comunidad Consciente</Text>
             <Text style={styles.communitySubtitle}>
-              Únete a más de 12,000 estudiantes que priorizan su bienestar.
+              ├Ünete a m├ís de 12,000 estudiantes que priorizan su bienestar.
             </Text>
           </View>
         </View>
@@ -93,9 +93,9 @@ export default function RegisterScreen() {
         <View style={styles.formCard}>
           {/* Correo */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Correo Electrónico Institucional</Text>
+            <Text style={styles.label}>Correo Electr├│nico Institucional</Text>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLeadingIcon}>🎓</Text>
+              <Text style={styles.inputLeadingIcon}>­ƒÄô</Text>
               <TextInput
                 style={styles.input}
                 placeholder="tu.correo@universidad.edu"
@@ -108,14 +108,14 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          {/* Contraseña */}
+          {/* Contrase├▒a */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Contraseña</Text>
+            <Text style={styles.label}>Contrase├▒a</Text>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLeadingIcon}>🔒</Text>
+              <Text style={styles.inputLeadingIcon}>­ƒöÆ</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Crea una contraseña segura"
+                placeholder="Crea una contrase├▒a segura"
                 placeholderTextColor="#94a3b8"
                 secureTextEntry={!showPassword}
                 value={password}
@@ -125,11 +125,11 @@ export default function RegisterScreen() {
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeButton}
               >
-                <Text style={styles.eyeIcon}>{showPassword ? '👁' : '🙈'}</Text>
+                <Text style={styles.eyeIcon}>{showPassword ? '­ƒæü' : '­ƒÖê'}</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Checklist de requisitos de contraseña */}
+            {/* Checklist de requisitos de contrase├▒a */}
             <View style={styles.strengthBox}>
               <View style={styles.strengthHeader}>
                 <Text style={styles.strengthLabel}>Fortaleza de seguridad</Text>
@@ -155,48 +155,48 @@ export default function RegisterScreen() {
               <View style={styles.reqGrid}>
                 <View style={styles.reqItem}>
                   <Text style={[styles.reqIcon, hasMinLength && styles.reqPassed]}>
-                    {hasMinLength ? '✓' : '○'}
+                    {hasMinLength ? 'Ô£ô' : 'Ôùï'}
                   </Text>
                   <Text style={[styles.reqText, hasMinLength && styles.reqPassedText]}>
-                    Mínimo 8 carac.
+                    M├¡nimo 8 carac.
                   </Text>
                 </View>
                 <View style={styles.reqItem}>
                   <Text style={[styles.reqIcon, hasNumber && styles.reqPassed]}>
-                    {hasNumber ? '✓' : '○'}
+                    {hasNumber ? 'Ô£ô' : 'Ôùï'}
                   </Text>
                   <Text style={[styles.reqText, hasNumber && styles.reqPassedText]}>
-                    Un número
+                    Un n├║mero
                   </Text>
                 </View>
                 <View style={styles.reqItem}>
                   <Text style={[styles.reqIcon, hasUppercase && styles.reqPassed]}>
-                    {hasUppercase ? '✓' : '○'}
+                    {hasUppercase ? 'Ô£ô' : 'Ôùï'}
                   </Text>
                   <Text style={[styles.reqText, hasUppercase && styles.reqPassedText]}>
-                    Una mayúscula
+                    Una may├║scula
                   </Text>
                 </View>
                 <View style={styles.reqItem}>
                   <Text style={[styles.reqIcon, hasSymbol && styles.reqPassed]}>
-                    {hasSymbol ? '✓' : '○'}
+                    {hasSymbol ? 'Ô£ô' : 'Ôùï'}
                   </Text>
                   <Text style={[styles.reqText, hasSymbol && styles.reqPassedText]}>
-                    Un símbolo (@, #)
+                    Un s├¡mbolo (@, #)
                   </Text>
                 </View>
               </View>
             </View>
           </View>
 
-          {/* Confirmar Contraseña */}
+          {/* Confirmar Contrase├▒a */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Confirmación de Contraseña</Text>
+            <Text style={styles.label}>Confirmaci├│n de Contrase├▒a</Text>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLeadingIcon}>✓</Text>
+              <Text style={styles.inputLeadingIcon}>Ô£ô</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Repite tu contraseña"
+                placeholder="Repite tu contrase├▒a"
                 placeholderTextColor="#94a3b8"
                 secureTextEntry={!showPassword}
                 value={confirmPassword}
@@ -205,40 +205,40 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          {/* Checkbox Términos */}
+          {/* Checkbox T├®rminos */}
           <TouchableOpacity
             style={styles.termsRow}
             onPress={() => setAcceptTerms(!acceptTerms)}
             activeOpacity={0.8}
           >
             <View style={[styles.checkbox, acceptTerms && styles.checkboxActive]}>
-              {acceptTerms && <Text style={styles.checkboxCheck}>✓</Text>}
+              {acceptTerms && <Text style={styles.checkboxCheck}>Ô£ô</Text>}
             </View>
             <Text style={styles.termsText}>
-              Acepto los términos de servicio y las políticas de privacidad de Equilibrio Académico.
+              Acepto los t├®rminos de servicio y las pol├¡ticas de privacidad de Equilibrio Acad├®mico.
             </Text>
           </TouchableOpacity>
 
-          {/* Botón Crear Cuenta */}
+          {/* Bot├│n Crear Cuenta */}
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={handleRegister}
             activeOpacity={0.85}
           >
             <Text style={styles.primaryButtonText}>Crear Cuenta</Text>
-            <Text style={styles.buttonArrow}>→</Text>
+            <Text style={styles.buttonArrow}>ÔåÆ</Text>
           </TouchableOpacity>
         </View>
 
         {/* Footer */}
         <View style={styles.footerContainer}>
           <Text style={styles.footerText}>
-            ¿Ya tienes una cuenta?{' '}
+            ┬┐Ya tienes una cuenta?{' '}
             <Text
               style={styles.loginLink}
               onPress={() => router.push('/login')}
             >
-              Inicia sesión
+              Inicia sesi├│n
             </Text>
           </Text>
         </View>

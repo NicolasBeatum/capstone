@@ -20,7 +20,7 @@ export default function LoginScreen() {
 
   const handleLogin = () => {
     if (!email || !password) {
-      Alert.alert('Campos requeridos', 'Por favor ingresa tu correo y contraseña.');
+      Alert.alert('Campos requeridos', 'Por favor ingresa tu correo y contrase├▒a.');
       return;
     }
     router.push('/dashboard');
@@ -28,8 +28,8 @@ export default function LoginScreen() {
 
   const handleForgotPassword = () => {
     Alert.alert(
-      'Recuperación de contraseña',
-      'Se ha enviado un enlace de recuperación a tu correo institucional.'
+      'Recuperaci├│n de contrase├▒a',
+      'Se ha enviado un enlace de recuperaci├│n a tu correo institucional.'
     );
   };
 
@@ -46,15 +46,15 @@ export default function LoginScreen() {
         {/* Banner de Bienvenida */}
         <View style={styles.bannerCard}>
           <View style={styles.iconCircle}>
-            <Text style={styles.iconText}>🌿</Text>
+            <Text style={styles.iconText}>­ƒî┐</Text>
           </View>
           <Text style={styles.bannerTitle}>Bienvenido de nuevo</Text>
           <Text style={styles.bannerSubtitle}>
-            Tu espacio para cultivar serenidad y rendimiento académico.
+            Tu espacio para cultivar serenidad y rendimiento acad├®mico.
           </Text>
           <View style={styles.badgePill}>
             <View style={styles.badgeDot} />
-            <Text style={styles.badgeText}>Pausa consciente • Enfoque sereno</Text>
+            <Text style={styles.badgeText}>Pausa consciente ÔÇó Enfoque sereno</Text>
           </View>
         </View>
 
@@ -64,7 +64,7 @@ export default function LoginScreen() {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Correo institucional</Text>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLeadingIcon}>✉</Text>
+              <Text style={styles.inputLeadingIcon}>Ô£ë</Text>
               <TextInput
                 style={styles.input}
                 placeholder="ejemplo@universidad.edu"
@@ -77,19 +77,19 @@ export default function LoginScreen() {
             </View>
           </View>
 
-          {/* Campo Contraseña */}
+          {/* Campo Contrase├▒a */}
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
-              <Text style={styles.label}>Contraseña</Text>
+              <Text style={styles.label}>Contrase├▒a</Text>
               <TouchableOpacity onPress={handleForgotPassword}>
-                <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+                <Text style={styles.forgotPasswordText}>┬┐Olvidaste tu contrase├▒a?</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLeadingIcon}>🔒</Text>
+              <Text style={styles.inputLeadingIcon}>­ƒöÆ</Text>
               <TextInput
                 style={styles.input}
-                placeholder="••••••••"
+                placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó"
                 placeholderTextColor="#94a3b8"
                 secureTextEntry={!showPassword}
                 value={password}
@@ -99,25 +99,25 @@ export default function LoginScreen() {
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeButton}
               >
-                <Text style={styles.eyeIcon}>{showPassword ? '👁' : '🙈'}</Text>
+                <Text style={styles.eyeIcon}>{showPassword ? '­ƒæü' : '­ƒÖê'}</Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Botón de Inicio */}
+          {/* Bot├│n de Inicio */}
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={handleLogin}
             activeOpacity={0.85}
           >
-            <Text style={styles.primaryButtonText}>Iniciar Sesión</Text>
-            <Text style={styles.buttonArrow}>→</Text>
+            <Text style={styles.primaryButtonText}>Iniciar Sesi├│n</Text>
+            <Text style={styles.buttonArrow}>ÔåÆ</Text>
           </TouchableOpacity>
 
           {/* Separador */}
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>O CONTINÚA CON</Text>
+            <Text style={styles.dividerText}>O CONTIN├ÜA CON</Text>
             <View style={styles.dividerLine} />
           </View>
 
@@ -136,7 +136,7 @@ export default function LoginScreen() {
             onPress={() => router.push('/dashboard')}
             activeOpacity={0.8}
           >
-            <Text style={styles.ssoIcon}>🏛</Text>
+            <Text style={styles.ssoIcon}>­ƒÅø</Text>
             <Text style={styles.ssoButtonText}>Portal Universitario (SSO)</Text>
           </TouchableOpacity>
         </View>
@@ -144,16 +144,16 @@ export default function LoginScreen() {
         {/* Enlace a Registro */}
         <View style={styles.footerContainer}>
           <Text style={styles.footerText}>
-            ¿No tienes cuenta?{' '}
+            ┬┐No tienes cuenta?{' '}
             <Text
               style={styles.registerLink}
               onPress={() => router.push('/register')}
             >
-              Regístrate aquí
+              Reg├¡strate aqu├¡
             </Text>
           </Text>
           <View style={styles.securityBadge}>
-            <Text style={styles.shieldIcon}>🛡</Text>
+            <Text style={styles.shieldIcon}>­ƒøí</Text>
             <Text style={styles.securityText}>
               Entorno protegido y libre de distracciones
             </Text>

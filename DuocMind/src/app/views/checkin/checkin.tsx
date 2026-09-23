@@ -29,17 +29,17 @@ export default function CheckinScreen() {
     {
       id: '1',
       timeLabel: 'Ayer',
-      note: 'Tranquilo, buena energía tras descansar',
+      note: 'Tranquilo, buena energ├¡a tras descansar',
       score: 8,
-      moodIcon: '😊',
+      moodIcon: '­ƒÿè',
       isPositive: true,
     },
     {
       id: '2',
-      timeLabel: 'Hace 2 días',
-      note: 'Ligeramente estresado por entrega de Física',
+      timeLabel: 'Hace 2 d├¡as',
+      note: 'Ligeramente estresado por entrega de F├¡sica',
       score: 5,
-      moodIcon: '😐',
+      moodIcon: '­ƒÿÉ',
       isPositive: false,
     },
   ]);
@@ -47,16 +47,16 @@ export default function CheckinScreen() {
   const handleSave = () => {
     const newItem: CheckinHistoryItem = {
       id: Date.now().toString(),
-      timeLabel: 'Recién registrado',
-      note: notes.trim() || 'Check-in guardado con éxito',
+      timeLabel: 'Reci├®n registrado',
+      note: notes.trim() || 'Check-in guardado con ├®xito',
       score: stressScore,
-      moodIcon: stressScore >= 7 ? '😊' : stressScore >= 5 ? '😐' : '😫',
+      moodIcon: stressScore >= 7 ? '­ƒÿè' : stressScore >= 5 ? '­ƒÿÉ' : '­ƒÿ½',
       isPositive: stressScore >= 6,
     };
 
     setHistory([newItem, ...history]);
     setNotes('');
-    Alert.alert('¡Check-in guardado!', 'Tu estado emocional ha sido registrado con éxito.');
+    Alert.alert('┬íCheck-in guardado!', 'Tu estado emocional ha sido registrado con ├®xito.');
   };
 
   return (
@@ -70,13 +70,13 @@ export default function CheckinScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header con Avatar y Menú de Perfil */}
-          <AppHeader title="Check-in Emocional" subtitle="Espacio de autoobservación" />
+          {/* Header con Avatar y Men├║ de Perfil */}
+          <AppHeader title="Check-in Emocional" subtitle="Espacio de autoobservaci├│n" />
 
           {/* Tarjeta Interactiva de Check-in */}
           <View style={styles.checkinCard}>
             <Text style={styles.cardQuestion}>
-              ¿Cómo te sientes respecto a tu carga académica hoy?
+              ┬┐C├│mo te sientes respecto a tu carga acad├®mica hoy?
             </Text>
             <Text style={styles.cardHelpText}>
               Toma 3 respiraciones profundas antes de responder.
@@ -85,8 +85,8 @@ export default function CheckinScreen() {
             {/* Selector de Puntaje 1-10 */}
             <View style={styles.scaleContainer}>
               <View style={styles.scaleLabels}>
-                <Text style={styles.scaleExtremesOverwhelmed}>😫 Abrumado (1)</Text>
-                <Text style={styles.scaleExtremesCalm}>Bajo control (10) 😊</Text>
+                <Text style={styles.scaleExtremesOverwhelmed}>­ƒÿ½ Abrumado (1)</Text>
+                <Text style={styles.scaleExtremesCalm}>Bajo control (10) ­ƒÿè</Text>
               </View>
 
               <View style={styles.numbersGrid}>
@@ -125,10 +125,10 @@ export default function CheckinScreen() {
 
             {/* Campo de Notas */}
             <View style={styles.notesGroup}>
-              <Text style={styles.notesLabel}>Cuéntanos más... (opcional)</Text>
+              <Text style={styles.notesLabel}>Cu├®ntanos m├ís... (opcional)</Text>
               <TextInput
                 style={styles.notesInput}
-                placeholder="Escribe aquí qué materias o pensamientos están pesando más hoy..."
+                placeholder="Escribe aqu├¡ qu├® materias o pensamientos est├ín pesando m├ís hoy..."
                 placeholderTextColor="#94a3b8"
                 multiline
                 numberOfLines={3}
@@ -138,13 +138,13 @@ export default function CheckinScreen() {
               />
             </View>
 
-            {/* Botón Guardar */}
+            {/* Bot├│n Guardar */}
             <TouchableOpacity
               style={styles.saveButton}
               onPress={handleSave}
               activeOpacity={0.85}
             >
-              <Text style={styles.saveButtonIcon}>✓</Text>
+              <Text style={styles.saveButtonIcon}>Ô£ô</Text>
               <Text style={styles.saveButtonText}>Guardar Registro</Text>
             </TouchableOpacity>
           </View>
@@ -153,7 +153,7 @@ export default function CheckinScreen() {
           <View style={styles.historySection}>
             <View style={styles.historyHeader}>
               <Text style={styles.historyTitle}>Historial Reciente</Text>
-              <Text style={styles.historySubtitle}>Últimos 7 días</Text>
+              <Text style={styles.historySubtitle}>├Ültimos 7 d├¡as</Text>
             </View>
 
             <View style={styles.historyList}>
@@ -186,7 +186,7 @@ export default function CheckinScreen() {
           </View>
         </ScrollView>
 
-        {/* Navegación Inferior */}
+        {/* Navegaci├│n Inferior */}
         <BottomNav currentTab="checkin" />
       </View>
     </KeyboardAvoidingView>

@@ -17,23 +17,23 @@ const options = ['Nunca', 'Rara vez', 'A veces', 'Frecuentemente', 'Siempre'];
 const questions = [
   {
     id: 1,
-    title: '¿Con qué frecuencia te has sentido más dispuesto(a) para iniciar tus actividades académicas?',
-    helper: 'Considera tu disposición y energía para comenzar tareas o clases en las últimas semanas.',
+    title: '┬┐Con qu├® frecuencia te has sentido m├ís dispuesto(a) para iniciar tus actividades acad├®micas?',
+    helper: 'Considera tu disposici├│n y energ├¡a para comenzar tareas o clases en las ├║ltimas semanas.',
   },
   {
     id: 2,
-    title: '¿Con qué frecuencia te ha costado mantener la energía para continuar con tus responsabilidades?',
-    helper: 'Piensa en lo difícil que te resultó mantenerte enfocado y con ánimo para seguir.',
+    title: '┬┐Con qu├® frecuencia te ha costado mantener la energ├¡a para continuar con tus responsabilidades?',
+    helper: 'Piensa en lo dif├¡cil que te result├│ mantenerte enfocado y con ├ínimo para seguir.',
   },
   {
     id: 3,
-    title: '¿Con qué frecuencia te has sentido molesto(a) o frustrado(a) por obstáculos en tus trabajos o entregas?',
-    helper: 'Incluye la tensión que aparece ante dificultades, retrasos o exigencias académicas.',
+    title: '┬┐Con qu├® frecuencia te has sentido molesto(a) o frustrado(a) por obst├ículos en tus trabajos o entregas?',
+    helper: 'Incluye la tensi├│n que aparece ante dificultades, retrasos o exigencias acad├®micas.',
   },
   {
     id: 4,
-    title: '¿Con qué frecuencia la presión por tus responsabilidades te ha dificultado concentrarte?',
-    helper: 'Evalúa si la preocupación o la carga te ha afectado el foco y la calma.',
+    title: '┬┐Con qu├® frecuencia la presi├│n por tus responsabilidades te ha dificultado concentrarte?',
+    helper: 'Eval├║a si la preocupaci├│n o la carga te ha afectado el foco y la calma.',
   },
 ];
 
@@ -74,7 +74,7 @@ export default function StressTestScreen() {
 
   const handleContinue = () => {
     if (selectedAnswer === undefined) {
-      Alert.alert('Respuesta requerida', 'Selecciona una opción para continuar.');
+      Alert.alert('Respuesta requerida', 'Selecciona una opci├│n para continuar.');
       return;
     }
 
@@ -98,9 +98,9 @@ export default function StressTestScreen() {
     return (
       <View style={styles.safeArea}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Equilibrio Académico</Text>
+          <Text style={styles.headerTitle}>Equilibrio Acad├®mico</Text>
           <TouchableOpacity onPress={handleClose} activeOpacity={0.8}>
-            <Text style={styles.closeButton}>×</Text>
+            <Text style={styles.closeButton}>├ù</Text>
           </TouchableOpacity>
         </View>
 
@@ -123,7 +123,7 @@ export default function StressTestScreen() {
             />
             <Text style={styles.loadingTitle}>Analizando coincidencias</Text>
             <Text style={styles.loadingText}>
-              Estamos revisando tus respuestas para identificar la emoción predominante.
+              Estamos revisando tus respuestas para identificar la emoci├│n predominante.
             </Text>
           </View>
         </View>
@@ -137,26 +137,26 @@ export default function StressTestScreen() {
     return (
       <View style={styles.safeArea}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Equilibrio Académico</Text>
+          <Text style={styles.headerTitle}>Equilibrio Acad├®mico</Text>
           <TouchableOpacity onPress={handleClose} activeOpacity={0.8}>
-            <Text style={styles.closeButton}>×</Text>
+            <Text style={styles.closeButton}>├ù</Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.resultCard}>
             <View style={styles.resultHeaderRow}>
-              <Text style={styles.resultEyebrow}>ORIENTACIÓN</Text>
+              <Text style={styles.resultEyebrow}>ORIENTACI├ôN</Text>
               <View style={styles.badgeChip}>
                 <Text style={styles.badgeChipText}>RESULTADO</Text>
               </View>
             </View>
 
-            <Text style={styles.resultTitle}>Emoción predominante</Text>
+            <Text style={styles.resultTitle}>Emoci├│n predominante</Text>
 
             <View style={styles.resultEmotionPanel}>
               <View style={styles.resultMoodBadge}>
-                <Text style={styles.resultMoodBadgeText}>😄</Text>
+                <Text style={styles.resultMoodBadgeText}>­ƒÿä</Text>
               </View>
               <View style={styles.resultEmotionTextWrap}>
                 <Text style={styles.resultEmotionText}>Feliz</Text>
@@ -169,15 +169,15 @@ export default function StressTestScreen() {
               <Text style={styles.resultPercentLabel}>de coincidencia</Text>
             </View>
 
-            <Text style={styles.resultMessage}>¿Esta orientación coincide con cómo te sientes?</Text>
+            <Text style={styles.resultMessage}>┬┐Esta orientaci├│n coincide con c├│mo te sientes?</Text>
 
             <View style={styles.resultButtonsRow}>
               <TouchableOpacity style={styles.acceptButton} activeOpacity={0.85}>
-                <Text style={styles.acceptButtonText}>Sí, es acertado</Text>
+                <Text style={styles.acceptButtonText}>S├¡, es acertado</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.rejectButton} activeOpacity={0.85}>
-                <Text style={styles.rejectButtonText}>No coincide con cómo me siento</Text>
+                <Text style={styles.rejectButtonText}>No coincide con c├│mo me siento</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -191,9 +191,9 @@ export default function StressTestScreen() {
   return (
     <View style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Equilibrio Académico</Text>
+        <Text style={styles.headerTitle}>Equilibrio Acad├®mico</Text>
         <TouchableOpacity onPress={handleClose} activeOpacity={0.8}>
-          <Text style={styles.closeButton}>×</Text>
+          <Text style={styles.closeButton}>├ù</Text>
         </TouchableOpacity>
       </View>
 
