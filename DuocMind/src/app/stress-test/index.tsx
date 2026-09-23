@@ -1,0 +1,1 @@
+﻿import Comp from './views/tests/stress-test';\n\n// Diagnostic export: ensure router finds the view in views/ and helps debugging if undefined\n// eslint-disable-next-line no-console\nconsole.log('DEBUG: stress-test import', typeof Comp, Comp);\n\nexport default Comp;\n
