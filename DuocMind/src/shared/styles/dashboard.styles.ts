@@ -82,7 +82,6 @@ export const styles = StyleSheet.create({
   moodCardTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#ffffff',
     marginTop: 3,
   },
   todayPill: {

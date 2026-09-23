@@ -36,7 +36,7 @@ export default function DashboardScreen() {
   /* ── Tokens dinámicos de glassmorphism según tema ── */
   const moodCardBg = theme.isDark
     ? 'rgba(26, 43, 68, 0.75)'
-    : 'rgba(26, 43, 68, 0.90)';
+    : 'rgba(255, 255, 197, 0.75)'; // luz suave #FFFFC5 en modo claro (opacidad reducida)
 
   const frostedCardBg = theme.isDark
     ? 'rgba(255, 255, 255, 0.06)'
@@ -48,7 +48,7 @@ export default function DashboardScreen() {
 
   const testBannerBg = theme.isDark
     ? 'rgba(212, 180, 60, 0.12)'
-    : 'rgba(251, 246, 220, 0.75)';
+    : 'rgba(255,255,197,0.60)'; // ajustar banner para coincidir con nuevo tono (más suave)
 
   const testBannerBorder = theme.isDark
     ? 'rgba(243, 231, 160, 0.25)'
@@ -100,7 +100,7 @@ export default function DashboardScreen() {
           <View style={styles.moodCardHeader}>
             <View>
               <Text style={styles.moodCardEyebrow}>ESTADO ACTUAL</Text>
-              <Text style={styles.moodCardTitle}>¿Cómo te sientes hoy?</Text>
+              <Text style={[styles.moodCardTitle, { color: theme.textPrimary }]}>¿Cómo te sientes hoy?</Text>
             </View>
             <View
               style={[
@@ -130,7 +130,7 @@ export default function DashboardScreen() {
                     styles.moodPill,
                     {
                       backgroundColor: isSelected
-                        ? 'rgba(251, 246, 220, 0.96)'
+                                              ? 'rgba(255, 255, 197, 0.85)'
                         : moodPillBg,
                       borderColor: isSelected ? '#d4b43c' : moodPillBorder,
                       borderTopColor: isSelected
@@ -149,7 +149,7 @@ export default function DashboardScreen() {
                   <Text
                     style={[
                       styles.moodPillLabel,
-                      { color: isSelected ? '#1a2b44' : theme.textOnDarkMuted },
+                      { color: isSelected ? '#1a2b44' : theme.textPrimary },
                     ]}
                   >
                     {item.name}
