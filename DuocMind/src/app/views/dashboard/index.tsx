@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { styles } from '../shared/styles/dashboard.styles';
 import { useRouter } from 'expo-router';
-import { useTheme } from '../shared/theme';
-import { AppHeader } from '../shared/components/AppHeader';
-import { BottomNav } from '../shared/components/BottomNav';
+import { AppHeader } from '@/shared/components/AppHeader';
+import { BottomNav } from '@/shared/components/BottomNav';
+import { styles } from '@/shared/styles/dashboard.styles';
+import { useTheme } from '@/shared/theme';
 
 type MoodType = 'Calmo' | 'Estresado' | 'Alegre' | 'Cansado';
 
@@ -162,7 +162,7 @@ export default function DashboardScreen() {
           {/* Botón Check-in Detallado */}
           <TouchableOpacity
             style={styles.detailedButton}
-            onPress={() => router.push('/checkin')}
+            onPress={() => router.push('/views/checkin')}
             activeOpacity={0.85}
           >
             <Text style={styles.detailedButtonText}>Registrar Check-in Detallado</Text>

@@ -9,27 +9,27 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { styles } from '../../../shared/styles/login.styles';
 import { useRouter } from 'expo-router';
+import { styles } from '@/shared/styles/login.styles';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('c.mora@universidad.edu');
-  const [password, setPassword] = useState('EstudioSereno2025');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
     if (!email || !password) {
-      Alert.alert('Campos requeridos', 'Por favor ingresa tu correo y contrase├▒a.');
+      Alert.alert('Campos requeridos', 'Por favor ingresa tu correo y contraseña.');
       return;
     }
-    router.push('/dashboard');
+    router.push('/views/dashboard');
   };
 
   const handleForgotPassword = () => {
     Alert.alert(
-      'Recuperaci├│n de contrase├▒a',
-      'Se ha enviado un enlace de recuperaci├│n a tu correo institucional.'
+      'Recuperación de contraseña',
+      'Se ha enviado un enlace de recuperación a tu correo institucional.'
     );
   };
 
@@ -46,15 +46,15 @@ export default function LoginScreen() {
         {/* Banner de Bienvenida */}
         <View style={styles.bannerCard}>
           <View style={styles.iconCircle}>
-            <Text style={styles.iconText}>­ƒî┐</Text>
+            <Text style={styles.iconText}>🌿</Text>
           </View>
           <Text style={styles.bannerTitle}>Bienvenido de nuevo</Text>
           <Text style={styles.bannerSubtitle}>
-            Tu espacio para cultivar serenidad y rendimiento acad├®mico.
+            Tu espacio para cultivar serenidad y rendimiento académico.
           </Text>
           <View style={styles.badgePill}>
             <View style={styles.badgeDot} />
-            <Text style={styles.badgeText}>Pausa consciente ÔÇó Enfoque sereno</Text>
+            <Text style={styles.badgeText}>Pausa consciente • Enfoque sereno</Text>
           </View>
         </View>
 
@@ -64,7 +64,7 @@ export default function LoginScreen() {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Correo institucional</Text>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLeadingIcon}>Ô£ë</Text>
+              <Text style={styles.inputLeadingIcon}>✉</Text>
               <TextInput
                 style={styles.input}
                 placeholder="ejemplo@universidad.edu"
@@ -77,19 +77,19 @@ export default function LoginScreen() {
             </View>
           </View>
 
-          {/* Campo Contrase├▒a */}
+          {/* Campo Contraseña */}
           <View style={styles.inputGroup}>
             <View style={styles.labelRow}>
-              <Text style={styles.label}>Contrase├▒a</Text>
+              <Text style={styles.label}>Contraseña</Text>
               <TouchableOpacity onPress={handleForgotPassword}>
-                <Text style={styles.forgotPasswordText}>┬┐Olvidaste tu contrase├▒a?</Text>
+                <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLeadingIcon}>­ƒöÆ</Text>
+              <Text style={styles.inputLeadingIcon}>🔒</Text>
               <TextInput
                 style={styles.input}
-                placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó"
+                placeholder="••••••••"
                 placeholderTextColor="#94a3b8"
                 secureTextEntry={!showPassword}
                 value={password}
@@ -99,32 +99,32 @@ export default function LoginScreen() {
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeButton}
               >
-                <Text style={styles.eyeIcon}>{showPassword ? '­ƒæü' : '­ƒÖê'}</Text>
+                <Text style={styles.eyeIcon}>{showPassword ? '👁' : '🙈'}</Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Bot├│n de Inicio */}
+          {/* Botón de Inicio */}
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={handleLogin}
             activeOpacity={0.85}
           >
-            <Text style={styles.primaryButtonText}>Iniciar Sesi├│n</Text>
-            <Text style={styles.buttonArrow}>ÔåÆ</Text>
+            <Text style={styles.primaryButtonText}>Iniciar Sesión</Text>
+            <Text style={styles.buttonArrow}>→</Text>
           </TouchableOpacity>
 
           {/* Separador */}
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>O CONTIN├ÜA CON</Text>
+            <Text style={styles.dividerText}>O CONTINÚA CON</Text>
             <View style={styles.dividerLine} />
           </View>
 
           {/* Botones de inicio alternativo */}
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={() => router.push('/dashboard')}
+            onPress={() => router.push('/views/dashboard')}
             activeOpacity={0.8}
           >
             <Text style={styles.socialIcon}>G</Text>
@@ -133,10 +133,10 @@ export default function LoginScreen() {
 
           <TouchableOpacity
             style={styles.ssoButton}
-            onPress={() => router.push('/dashboard')}
+            onPress={() => router.push('/views/dashboard')}
             activeOpacity={0.8}
           >
-            <Text style={styles.ssoIcon}>­ƒÅø</Text>
+            <Text style={styles.ssoIcon}>🏛</Text>
             <Text style={styles.ssoButtonText}>Portal Universitario (SSO)</Text>
           </TouchableOpacity>
         </View>
@@ -144,16 +144,16 @@ export default function LoginScreen() {
         {/* Enlace a Registro */}
         <View style={styles.footerContainer}>
           <Text style={styles.footerText}>
-            ┬┐No tienes cuenta?{' '}
+            ¿No tienes cuenta?{' '}
             <Text
               style={styles.registerLink}
-              onPress={() => router.push('/register')}
+              onPress={() => router.push('/views/auth/register')}
             >
-              Reg├¡strate aqu├¡
+              Regístrate aquí
             </Text>
           </Text>
           <View style={styles.securityBadge}>
-            <Text style={styles.shieldIcon}>­ƒøí</Text>
+            <Text style={styles.shieldIcon}>🛡</Text>
             <Text style={styles.securityText}>
               Entorno protegido y libre de distracciones
             </Text>

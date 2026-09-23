@@ -5,40 +5,40 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { styles } from '../../../shared/styles/wellness.styles';
-import { AppHeader } from '../../../shared/components/AppHeader';
 import { useRouter } from 'expo-router';
-import { BottomNav } from '../../../shared/components/BottomNav';
+import { AppHeader } from '@/shared/components/AppHeader';
+import { BottomNav } from '@/shared/components/BottomNav';
+import { styles } from '@/shared/styles/wellness.styles';
 
 export default function WellnessScreen() {
   const router = useRouter();
 
   const handleStartTest = () => {
-    router.push('/stress-test');
+    router.push('/views/tests/stress-test');
   };
 
   const tips = [
     {
       id: 'pomodoro',
-      title: 'T├®cnica Pomodoro 25/5',
-      desc: 'Para d├¡as de alta carga cognitiva. Alterna trabajo concentrado con pausas sin pantallas.',
-      icon: 'ÔÅ▒',
+      title: 'Técnica Pomodoro 25/5',
+      desc: 'Para días de alta carga cognitiva. Alterna trabajo concentrado con pausas sin pantallas.',
+      icon: '⏱',
       bgColor: '#ffe4e6',
       iconColor: '#f43f5e',
     },
     {
       id: 'meditation',
-      title: 'Meditaci├│n Guiada (3 min)',
-      desc: 'Reduce la ansiedad pre-examen centrando tu atenci├│n en la respiraci├│n diafragm├ítica.',
-      icon: '­ƒºÿ',
+      title: 'Meditación Guiada (3 min)',
+      desc: 'Reduce la ansiedad pre-examen centrando tu atención en la respiración diafragmática.',
+      icon: '🧘',
       bgColor: '#fbf6dc',
       iconColor: '#1a2b44',
     },
     {
       id: 'sleep',
-      title: 'Higiene del Sue├▒o',
-      desc: 'Evita trasnochar repasando materia. La consolidaci├│n de la memoria ocurre en el sue├▒o profundo.',
-      icon: '­ƒîÖ',
+      title: 'Higiene del Sueño',
+      desc: 'Evita trasnochar repasando materia. La consolidación de la memoria ocurre en el sueño profundo.',
+      icon: '🌙',
       bgColor: '#e0e7ff',
       iconColor: '#4338ca',
     },
@@ -50,25 +50,25 @@ export default function WellnessScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header con Avatar y Men├║ de Perfil */}
+        {/* Header con Avatar y Menú de Perfil */}
         <AppHeader title="Centro de Bienestar" subtitle="Herramientas y descanso" />
 
-        {/* Tarjeta Principal de Autoevaluaci├│n Guiada */}
+        {/* Tarjeta Principal de Autoevaluación Guiada */}
         <View style={styles.heroCard}>
           <View style={styles.heroHeader}>
             <View style={styles.heroIconBox}>
-              <Text style={styles.heroIconText}>­ƒôï</Text>
+              <Text style={styles.heroIconText}>📋</Text>
             </View>
             <View style={styles.heroTextGroup}>
-              <Text style={styles.heroEyebrow}>AUTOEVALUACI├ôN GUIADA</Text>
+              <Text style={styles.heroEyebrow}>AUTOEVALUACIÓN GUIADA</Text>
               <Text style={styles.heroTitle}>Test emocional</Text>
               <Text style={styles.heroDesc}>
-                Identifica tu emoci├│n del d├¡a y recibe una mirada r├ípida sobre tu estado general.
+                Identifica tu emoción del día y recibe una mirada rápida sobre tu estado general.
               </Text>
 
               <View style={styles.heroMetaRow}>
-                <Text style={styles.heroMetaItem}>ÔÅ▒ 3 min</Text>
-                <Text style={styles.heroMetaBullet}>ÔÇó</Text>
+                <Text style={styles.heroMetaItem}>⏱ 3 min</Text>
+                <Text style={styles.heroMetaBullet}>•</Text>
                 <Text style={styles.heroMetaItem}>4 preguntas</Text>
               </View>
             </View>
@@ -80,11 +80,11 @@ export default function WellnessScreen() {
             activeOpacity={0.85}
           >
             <Text style={styles.heroButtonText}>Comenzar Test</Text>
-            <Text style={styles.heroButtonArrow}>ÔåÆ</Text>
+            <Text style={styles.heroButtonArrow}>→</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Secci├│n: Tips Personalizados */}
+        {/* Sección: Tips Personalizados */}
         <View style={styles.tipsSection}>
           <View style={styles.tipsHeader}>
             <Text style={styles.tipsTitle}>Tips Personalizados</Text>
@@ -107,7 +107,7 @@ export default function WellnessScreen() {
         </View>
       </ScrollView>
 
-      {/* Navegaci├│n Inferior */}
+      {/* Navegación Inferior */}
       <BottomNav currentTab="wellness" />
     </View>
   );

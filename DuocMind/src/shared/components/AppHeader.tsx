@@ -28,7 +28,7 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
 
   const handleLogout = () => {
     setMenuVisible(false);
-    router.push('/login');
+    router.push('/views/auth/login');
   };
 
   return (
