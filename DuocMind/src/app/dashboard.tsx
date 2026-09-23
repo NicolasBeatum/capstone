@@ -182,9 +182,6 @@ export default function DashboardScreen() {
                 { backgroundColor: frostedCardBg, borderColor: frostedCardBorder },
               ]}
             >
-              <Text style={[styles.weekBadgeText, { color: theme.textPrimary }]>
-                Semana 8
-              </Text>
             </View>
           </View>
 

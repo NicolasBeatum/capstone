@@ -1,1 +1,1 @@
-export { default } from './views/wellness/wellness';
+///export { default } from './views/wellness/wellness';
