@@ -9,21 +9,36 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { AppHeader } from '@/shared/components/AppHeader';
 import { BottomNav } from '@/shared/components/BottomNav';
+import { BellIcon, EmotionFace, LeafIcon } from '@/shared/components/icons';
 import { styles } from '@/shared/styles/checkin.styles';
+
+type MoodType = 'Calmo' | 'Estresado' | 'Alegre' | 'Cansado';
+
+/* Puntaje asociado a cada ánimo para el historial */
+const MOOD_SCORES: Record<MoodType, number> = {
+  Calmo: 8,
+  Alegre: 9,
+  Cansado: 6,
+  Estresado: 4,
+};
+
+const MOOD_OPTIONS: MoodType[] = ['Calmo', 'Estresado', 'Alegre', 'Cansado'];
+
+const EMOTION_TAGS = ['Emocionado', 'Contento', 'Motivado', 'Esperanzado', 'Tranquilo'];
 
 interface CheckinHistoryItem {
   id: string;
   timeLabel: string;
   note: string;
   score: number;
-  moodIcon: string;
+  mood: MoodType;
   isPositive: boolean;
 }
 
 export default function CheckinScreen() {
-  const [stressScore, setStressScore] = useState<number>(7);
+  const [selectedMood, setSelectedMood] = useState<MoodType>('Alegre');
+  const [selectedTags, setSelectedTags] = useState<string[]>(['Contento', 'Motivado']);
   const [notes, setNotes] = useState<string>('');
   const [history, setHistory] = useState<CheckinHistoryItem[]>([
     {
@@ -31,7 +46,7 @@ export default function CheckinScreen() {
       timeLabel: 'Ayer',
       note: 'Tranquilo, buena energía tras descansar',
       score: 8,
-      moodIcon: '😊',
+      mood: 'Alegre',
       isPositive: true,
     },
     {
@@ -39,19 +54,27 @@ export default function CheckinScreen() {
       timeLabel: 'Hace 2 días',
       note: 'Ligeramente estresado por entrega de Física',
       score: 5,
-      moodIcon: '😐',
+      mood: 'Estresado',
       isPositive: false,
     },
   ]);
 
+  const toggleTag = (tag: string) => {
+    setSelectedTags((current) =>
+      current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]
+    );
+  };
+
   const handleSave = () => {
+    const score = MOOD_SCORES[selectedMood];
+    const detail = notes.trim() || `Sensaciones: ${selectedTags.join(', ')}`;
     const newItem: CheckinHistoryItem = {
       id: Date.now().toString(),
       timeLabel: 'Recién registrado',
-      note: notes.trim() || 'Check-in guardado con éxito',
-      score: stressScore,
-      moodIcon: stressScore >= 7 ? '😊' : stressScore >= 5 ? '😐' : '😫',
-      isPositive: stressScore >= 6,
+      note: detail,
+      score,
+      mood: selectedMood,
+      isPositive: score >= 6,
     };
 
     setHistory([newItem, ...history]);
@@ -70,57 +93,83 @@ export default function CheckinScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header con Avatar y Menú de Perfil */}
-          <AppHeader title="Check-in Emocional" subtitle="Espacio de autoobservación" />
+          {/* ── Header: saludo personalizado ── */}
+          <View style={styles.headerRow}>
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarInitials}>CM</Text>
+            </View>
+            <View style={styles.headerText}>
+              <Text style={styles.greetingTitle}>¿Cómo nos sentimos el día de hoy?</Text>
+              <Text style={styles.greetingSubtitle}>Espacio de autoobservación</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.bellButton}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Notificaciones"
+            >
+              <BellIcon size={20} />
+              <View style={styles.bellDot} />
+            </TouchableOpacity>
+          </View>
 
-          {/* Tarjeta Interactiva de Check-in */}
+          {/* ── Tarjeta de check-in ── */}
           <View style={styles.checkinCard}>
-            <Text style={styles.cardQuestion}>
-              ¿Cómo te sientes respecto a tu carga académica hoy?
-            </Text>
-            <Text style={styles.cardHelpText}>
-              Toma 3 respiraciones profundas antes de responder.
-            </Text>
-
-            {/* Selector de Puntaje 1-10 */}
-            <View style={styles.scaleContainer}>
-              <View style={styles.scaleLabels}>
-                <Text style={styles.scaleExtremesOverwhelmed}>😫 Abrumado (1)</Text>
-                <Text style={styles.scaleExtremesCalm}>Bajo control (10) 😊</Text>
+            <View style={styles.cardHeaderRow}>
+              <Text style={styles.cardQuestion}>¿Cómo nos sentimos el día de hoy?</Text>
+              <View style={styles.cardHeaderDecoration}>
+                <LeafIcon size={22} color="#d9c97e" />
               </View>
+            </View>
 
-              <View style={styles.numbersGrid}>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
-                  const isSelected = stressScore === num;
-                  return (
-                    <TouchableOpacity
-                      key={num}
+            {/* Selector de ánimo */}
+            <View style={styles.moodGrid}>
+              {MOOD_OPTIONS.map((mood) => {
+                const isSelected = selectedMood === mood;
+                return (
+                  <TouchableOpacity
+                    key={mood}
+                    style={[styles.moodCard, isSelected && styles.moodCardSelected]}
+                    onPress={() => setSelectedMood(mood)}
+                    activeOpacity={0.75}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Seleccionar estado ${mood}`}
+                    accessibilityState={{ selected: isSelected }}
+                  >
+                    <View style={styles.moodIcon}>
+                      <EmotionFace mood={mood} size={34} />
+                    </View>
+                    <Text
                       style={[
-                        styles.numberPill,
-                        isSelected && styles.numberPillActive,
+                        styles.moodLabel,
+                        isSelected && styles.moodLabelSelected,
                       ]}
-                      onPress={() => setStressScore(num)}
-                      activeOpacity={0.8}
                     >
-                      <Text
-                        style={[
-                          styles.numberPillText,
-                          isSelected && styles.numberPillTextActive,
-                        ]}
-                      >
-                        {num}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+                      {mood}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
 
-              <View style={styles.scoreResultRow}>
-                <Text style={styles.scoreResultLabel}>TU PUNTAJE ACTUAL:</Text>
-                <View style={styles.scorePill}>
-                  <Text style={styles.scorePillValue}>{stressScore} / 10</Text>
-                </View>
-              </View>
+            {/* Etiquetas de emociones */}
+            <View style={styles.tagsWrap}>
+              {EMOTION_TAGS.map((tag) => {
+                const isSelected = selectedTags.includes(tag);
+                return (
+                  <TouchableOpacity
+                    key={tag}
+                    style={[styles.tagPill, isSelected && styles.tagPillSelected]}
+                    onPress={() => toggleTag(tag)}
+                    activeOpacity={0.75}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Etiqueta ${tag}`}
+                    accessibilityState={{ selected: isSelected }}
+                  >
+                    <Text style={styles.tagPillText}>{tag}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             {/* Campo de Notas */}
@@ -129,7 +178,7 @@ export default function CheckinScreen() {
               <TextInput
                 style={styles.notesInput}
                 placeholder="Escribe aquí qué materias o pensamientos están pesando más hoy..."
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor="#b0a891"
                 multiline
                 numberOfLines={3}
                 value={notes}
@@ -144,45 +193,45 @@ export default function CheckinScreen() {
               onPress={handleSave}
               activeOpacity={0.85}
             >
-              <Text style={styles.saveButtonIcon}>✓</Text>
               <Text style={styles.saveButtonText}>Guardar Registro</Text>
+              <Text style={styles.saveButtonArrow}>→</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Historial Reciente */}
-          <View style={styles.historySection}>
-            <View style={styles.historyHeader}>
-              <Text style={styles.historyTitle}>Historial Reciente</Text>
-              <Text style={styles.historySubtitle}>Últimos 7 días</Text>
-            </View>
+          {/* ── Historial Reciente ── */}
+          <View style={styles.historyHeader}>
+            <Text style={styles.historyTitle}>Historial Reciente</Text>
+            <Text style={styles.historySubtitle}>Últimos 7 días</Text>
+          </View>
 
-            <View style={styles.historyList}>
-              {history.map((item) => (
-                <View key={item.id} style={styles.historyCard}>
-                  <View style={styles.historyCardLeft}>
-                    <View
-                      style={[
-                        styles.historyMoodBadge,
-                        item.isPositive
-                          ? styles.historyMoodBadgePositive
-                          : styles.historyMoodBadgeNeutral,
-                      ]}
-                    >
-                      <Text style={styles.historyEmoji}>{item.moodIcon}</Text>
-                    </View>
-                    <View style={styles.historyTexts}>
-                      <Text style={styles.historyDate}>{item.timeLabel}</Text>
-                      <Text style={styles.historyNote} numberOfLines={2}>
-                        {item.note}
-                      </Text>
-                    </View>
+          <View style={styles.historyList}>
+            {history.map((item) => (
+              <View key={item.id} style={styles.historyCard}>
+                <View style={styles.historyCardLeft}>
+                  <View
+                    style={[
+                      styles.historyMoodBadge,
+                      item.isPositive
+                        ? styles.historyMoodBadgePositive
+                        : styles.historyMoodBadgeNeutral,
+                    ]}
+                  >
+                    <EmotionFace
+                      mood={item.mood}
+                      size={26}
+                      fill={item.isPositive ? '#fff3cf' : '#ffe9dd'}
+                    />
                   </View>
-                  <View style={styles.historyScorePill}>
-                    <Text style={styles.historyScoreText}>{item.score}</Text>
+                  <View style={styles.historyTexts}>
+                    <Text style={styles.historyDate}>{item.timeLabel}</Text>
+                    <Text style={styles.historyNote} numberOfLines={2}>
+                      {item.note}
+                    </Text>
                   </View>
                 </View>
-              ))}
-            </View>
+                <Text style={styles.historyScore}>{item.score}</Text>
+              </View>
+            ))}
           </View>
         </ScrollView>
 

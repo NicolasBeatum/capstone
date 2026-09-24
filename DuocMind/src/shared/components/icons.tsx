@@ -11,12 +11,13 @@ const STROKE = 1.8;
 /* Caras de emociones estilo ilustración lineal */
 interface EmotionFaceProps extends IconProps {
   mood: 'Calmo' | 'Estresado' | 'Alegre' | 'Cansado';
+  fill?: string;
 }
 
-export function EmotionFace({ mood, size = 30, color = '#1a2b44' }: EmotionFaceProps) {
+export function EmotionFace({ mood, size = 30, color = '#1a2b44', fill = '#fff3cf' }: EmotionFaceProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Circle cx={12} cy={12} r={9.5} fill="#fff3cf" stroke={color} strokeWidth={STROKE} />
+      <Circle cx={12} cy={12} r={9.5} fill={fill} stroke={color} strokeWidth={STROKE} />
       {mood === 'Calmo' && (
         <>
           <Path d="M5.5 10 q2 -2 4 0" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
