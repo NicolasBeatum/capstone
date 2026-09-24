@@ -126,22 +126,22 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* ── Evaluación periódica ── */}
+        {/* ── Test diario ── */}
         <View style={styles.testBanner}>
           <View style={styles.testBannerContent}>
             <View style={styles.testBadge}>
-              <Text style={styles.testBadgeText}>EVALUACIÓN PERIÓDICA</Text>
+              <Text style={styles.testBadgeText}>TEST DIARIO</Text>
             </View>
-            <Text style={styles.testBannerTitle}>Test de Estrés Académico</Text>
+            <Text style={styles.testBannerTitle}>¡Realiza tu test diario!</Text>
             <Text style={styles.testBannerDesc}>
               Mide tu sobrecarga cognitiva en 3 minutos.
             </Text>
             <TouchableOpacity
               style={styles.testBannerButton}
-              onPress={() => router.push('/views/tests/stress-test')}
+              onPress={() => router.push('/views/tests/daily-test')}
               activeOpacity={0.85}
             >
-              <Text style={styles.testBannerButtonText}>Realizar test</Text>
+              <Text style={styles.testBannerButtonText}>Realizar test diario</Text>
               <Text style={styles.testBannerButtonArrow}>→</Text>
             </TouchableOpacity>
           </View>

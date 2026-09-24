@@ -14,7 +14,7 @@ export default function WellnessScreen() {
   const router = useRouter();
 
   const handleStartTest = () => {
-    router.push('/views/tests/stress-test');
+    router.push('/views/tests/daily-test');
   };
 
   const tips = [

@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { BottomNav } from '@/shared/components/BottomNav';
-import { styles } from '@/shared/styles/stress-test.styles';
+import { ClipboardIcon, SparkleIcon } from '@/shared/components/icons';
+import { styles } from '@/shared/styles/daily-test.styles';
 
 const options = ['Nunca', 'Rara vez', 'A veces', 'Frecuentemente', 'Siempre'];
 
@@ -37,7 +38,7 @@ const questions = [
   },
 ];
 
-export default function StressTestScreen() {
+export default function DailyTestScreen() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -98,7 +99,15 @@ export default function StressTestScreen() {
     return (
       <View style={styles.safeArea}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Equilibrio Académico</Text>
+          <View style={styles.headerIdentity}>
+            <View style={styles.headerAvatar}>
+              <Text style={styles.headerAvatarText}>CM</Text>
+            </View>
+            <View>
+              <Text style={styles.headerTitle}>Equilibrio Académico</Text>
+              <Text style={styles.headerSubtitle}>Test Diario</Text>
+            </View>
+          </View>
           <TouchableOpacity onPress={handleClose} activeOpacity={0.8}>
             <Text style={styles.closeButton}>×</Text>
           </TouchableOpacity>
@@ -137,7 +146,15 @@ export default function StressTestScreen() {
     return (
       <View style={styles.safeArea}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Equilibrio Académico</Text>
+          <View style={styles.headerIdentity}>
+            <View style={styles.headerAvatar}>
+              <Text style={styles.headerAvatarText}>CM</Text>
+            </View>
+            <View>
+              <Text style={styles.headerTitle}>Equilibrio Académico</Text>
+              <Text style={styles.headerSubtitle}>Test Diario</Text>
+            </View>
+          </View>
           <TouchableOpacity onPress={handleClose} activeOpacity={0.8}>
             <Text style={styles.closeButton}>×</Text>
           </TouchableOpacity>
@@ -191,7 +208,15 @@ export default function StressTestScreen() {
   return (
     <View style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Equilibrio Académico</Text>
+        <View style={styles.headerIdentity}>
+          <View style={styles.headerAvatar}>
+            <Text style={styles.headerAvatarText}>CM</Text>
+          </View>
+          <View>
+            <Text style={styles.headerTitle}>Equilibrio Académico</Text>
+            <Text style={styles.headerSubtitle}>Test Diario</Text>
+          </View>
+        </View>
         <TouchableOpacity onPress={handleClose} activeOpacity={0.8}>
           <Text style={styles.closeButton}>×</Text>
         </TouchableOpacity>
@@ -208,9 +233,16 @@ export default function StressTestScreen() {
             <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
           </View>
 
-          <View style={styles.questionWrap}>
-            <Text style={styles.questionText}>{currentQuestion.title}</Text>
-            <Text style={styles.helperText}>{currentQuestion.helper}</Text>
+          <View style={styles.questionRow}>
+            <View style={styles.questionWrap}>
+              <Text style={styles.questionText}>{currentQuestion.title}</Text>
+              <Text style={styles.helperText}>{currentQuestion.helper}</Text>
+            </View>
+            <View style={styles.questionIllustration}>
+              <SparkleIcon size={12} />
+              <ClipboardIcon size={52} />
+              <SparkleIcon size={9} color="#e8a93c" />
+            </View>
           </View>
 
           <View style={styles.optionsList}>
@@ -235,7 +267,7 @@ export default function StressTestScreen() {
 
           <TouchableOpacity style={styles.primaryButton} onPress={handleContinue} activeOpacity={0.9}>
             <Text style={styles.primaryButtonText}>
-              {currentStep === questions.length - 1 ? 'Finalizar' : 'Siguiente'}
+              {currentStep === questions.length - 1 ? 'Finalizar' : 'Siguiente'} →
             </Text>
           </TouchableOpacity>
         </View>
