@@ -9,21 +9,26 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { BottomNav } from '@/shared/components/BottomNav';
 import { BellIcon, EmotionFace, LeafIcon } from '@/shared/components/icons';
 import { styles } from '@/shared/styles/checkin.styles';
 
-type MoodType = 'Calmo' | 'Estresado' | 'Alegre' | 'Cansado';
+export type MoodType = 'Muy mal' | 'Mal' | 'Neutro' | 'Bien' | 'Muy bien';
 
-/* Puntaje asociado a cada ánimo para el historial */
+/* Puntaje asociado a cada ánimo para el historial (escala 1-5) */
 const MOOD_SCORES: Record<MoodType, number> = {
-  Calmo: 8,
-  Alegre: 9,
-  Cansado: 6,
-  Estresado: 4,
+  'Muy mal': 1,
+  Mal: 2,
+  Neutro: 3,
+  Bien: 4,
+  'Muy bien': 5,
 };
 
-const MOOD_OPTIONS: MoodType[] = ['Calmo', 'Estresado', 'Alegre', 'Cansado'];
+const MOOD_OPTIONS: MoodType[] = ['Muy mal', 'Mal', 'Neutro', 'Bien', 'Muy bien'];
+
+/* Ánimos que activan el sondeo inicial de ánimo y ansiedad */
+const isNegativeMood = (mood: MoodType) => mood === 'Muy mal' || mood === 'Mal';
 
 const EMOTION_TAGS = ['Emocionado', 'Contento', 'Motivado', 'Esperanzado', 'Tranquilo'];
 
@@ -37,7 +42,8 @@ interface CheckinHistoryItem {
 }
 
 export default function CheckinScreen() {
-  const [selectedMood, setSelectedMood] = useState<MoodType>('Alegre');
+  const router = useRouter();
+  const [selectedMood, setSelectedMood] = useState<MoodType>('Bien');
   const [selectedTags, setSelectedTags] = useState<string[]>(['Contento', 'Motivado']);
   const [notes, setNotes] = useState<string>('');
   const [history, setHistory] = useState<CheckinHistoryItem[]>([
@@ -45,16 +51,16 @@ export default function CheckinScreen() {
       id: '1',
       timeLabel: 'Ayer',
       note: 'Tranquilo, buena energía tras descansar',
-      score: 8,
-      mood: 'Alegre',
+      score: 5,
+      mood: 'Muy bien',
       isPositive: true,
     },
     {
       id: '2',
       timeLabel: 'Hace 2 días',
       note: 'Ligeramente estresado por entrega de Física',
-      score: 5,
-      mood: 'Estresado',
+      score: 2,
+      mood: 'Mal',
       isPositive: false,
     },
   ]);
@@ -74,11 +80,28 @@ export default function CheckinScreen() {
       note: detail,
       score,
       mood: selectedMood,
-      isPositive: score >= 6,
+      isPositive: score >= 4,
     };
 
     setHistory([newItem, ...history]);
     setNotes('');
+
+    if (isNegativeMood(selectedMood)) {
+      Alert.alert(
+        'Registro guardado',
+        'Nos preocupa cómo te sientes. ¿Quieres realizar un sondeo rápido de ánimo y ansiedad?',
+        [
+          { text: 'Ahora no', style: 'cancel' },
+          {
+            text: 'Realizar sondeo',
+            onPress: () =>
+              router.push(`/views/tests/daily-test?mood=${encodeURIComponent(selectedMood)}`),
+          },
+        ],
+      );
+      return;
+    }
+
     Alert.alert('¡Check-in guardado!', 'Tu estado emocional ha sido registrado con éxito.');
   };
 

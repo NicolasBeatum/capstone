@@ -113,7 +113,7 @@ export const styles = StyleSheet.create({
     marginBottom: 22,
   },
   moodCard: {
-    width: '23%',
+    width: '18%',
     alignItems: 'center',
     paddingVertical: 12,
     borderRadius: 18,

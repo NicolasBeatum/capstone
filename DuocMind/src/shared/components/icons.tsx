@@ -10,7 +10,7 @@ const STROKE = 1.8;
 
 /* Caras de emociones estilo ilustración lineal */
 interface EmotionFaceProps extends IconProps {
-  mood: 'Calmo' | 'Estresado' | 'Alegre' | 'Cansado';
+  mood: 'Muy mal' | 'Mal' | 'Neutro' | 'Bien' | 'Muy bien';
   fill?: string;
 }
 
@@ -18,31 +18,39 @@ export function EmotionFace({ mood, size = 30, color = '#1a2b44', fill = '#fff3c
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
       <Circle cx={12} cy={12} r={9.5} fill={fill} stroke={color} strokeWidth={STROKE} />
-      {mood === 'Calmo' && (
+      {mood === 'Muy mal' && (
         <>
-          <Path d="M5.5 10 q2 -2 4 0" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
-          <Path d="M14.5 10 q2 -2 4 0" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
-          <Path d="M9 15 q3 2.5 6 0" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+          <Path d="M5.5 9.5 L9.5 8" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+          <Path d="M18.5 9.5 L14.5 8" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+          <Circle cx={8} cy={11.5} r={1.1} fill={color} />
+          <Circle cx={16} cy={11.5} r={1.1} fill={color} />
+          <Path d="M7.5 17.5 q4.5 -3.5 9 0" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
         </>
       )}
-      {mood === 'Estresado' && (
+      {mood === 'Mal' && (
         <>
-          <Path d="M5.5 8.5 l3.5 3.5 M9 8.5 l-3.5 3.5" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
-          <Path d="M15 8.5 l3.5 3.5 M18.5 8.5 L15 12" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
-          <Path d="M8 16.5 q1.5 -2 3 0 q1.5 2 3 0 q1.5 -2 2.5 -0.5" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+          <Path d="M6 10 h3.5 M14.5 10 h3.5" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+          <Path d="M8.5 16.5 q3.5 -2 7 0" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
         </>
       )}
-      {mood === 'Alegre' && (
+      {mood === 'Neutro' && (
+        <>
+          <Path d="M6 10 h3.5 M14.5 10 h3.5" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+          <Path d="M8.5 16 h7" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+        </>
+      )}
+      {mood === 'Bien' && (
+        <>
+          <Circle cx={8.5} cy={10} r={1.1} fill={color} />
+          <Circle cx={15.5} cy={10} r={1.1} fill={color} />
+          <Path d="M8.3 14.8 q3.7 2.8 7.4 0" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+        </>
+      )}
+      {mood === 'Muy bien' && (
         <>
           <Circle cx={8.5} cy={10} r={1.1} fill={color} />
           <Circle cx={15.5} cy={10} r={1.1} fill={color} />
           <Path d="M8 14.5 q4 4 8 0" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
-        </>
-      )}
-      {mood === 'Cansado' && (
-        <>
-          <Path d="M5.5 10 h4 M14.5 10 h4" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
-          <Path d="M10 16.5 q2 -1.5 4 0" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
         </>
       )}
     </Svg>
@@ -127,6 +135,76 @@ export function SparkleIcon({ size = 12, color = '#d4b43c' }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
       <Path d="M12 3 L13.8 10.2 L21 12 L13.8 13.8 L12 21 L10.2 13.8 L3 12 L10.2 10.2 z" fill={color} />
+    </Svg>
+  );
+}
+
+export function PhoneIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M5.5 4 h3.5 l1 3.8 -2 1.6 a11.5 11.5 0 0 0 6.6 6.6 l1.6 -2 3.8 1 v3.5 a2 2 0 0 1 -2.2 2 A16.5 16.5 0 0 1 3.5 6.2 a2 2 0 0 1 2 -2.2 z"
+        stroke={color}
+        strokeWidth={STROKE}
+        fill="none"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function ChatIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M4 6 a2.5 2.5 0 0 1 2.5 -2.5 h11 A2.5 2.5 0 0 1 20 6 v7 a2.5 2.5 0 0 1 -2.5 2.5 H9.5 L5.5 19 v-3.5 H6.5 A2.5 2.5 0 0 1 4 13 z"
+        stroke={color}
+        strokeWidth={STROKE}
+        fill="none"
+        strokeLinejoin="round"
+      />
+      <Circle cx={8.7} cy={9.8} r={0.9} fill={color} />
+      <Circle cx={12} cy={9.8} r={0.9} fill={color} />
+      <Circle cx={15.3} cy={9.8} r={0.9} fill={color} />
+    </Svg>
+  );
+}
+
+export function SirenIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M7 15 v-3 a5 5 0 0 1 10 0 v3" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+      <Path d="M4.5 15 h15 M6.5 18 h11" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+      <Path d="M12 3 v2 M5.5 5.5 l1.4 1.4 M18.5 5.5 l-1.4 1.4" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function HeartIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M12 20 C7.5 16.3 4.5 13.4 4.5 9.8 A4.4 4.4 0 0 1 12 7.2 A4.4 4.4 0 0 1 19.5 9.8 C19.5 13.4 16.5 16.3 12 20 z"
+        stroke={color}
+        strokeWidth={STROKE}
+        fill="none"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function HandsHeartIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M3.5 15.5 q4 3.2 8.5 3.2 t8.5 -3.2" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+      <Path
+        d="M12 13.2 c-1.8 -2.2 -4.8 -1.2 -4.8 1 c0 1.9 2.4 3.3 4.8 4.7 c2.4 -1.4 4.8 -2.8 4.8 -4.7 c0 -2.2 -3 -3.2 -4.8 -1 z"
+        stroke={color}
+        strokeWidth={STROKE}
+        fill="none"
+        strokeLinejoin="round"
+      />
     </Svg>
   );
 }

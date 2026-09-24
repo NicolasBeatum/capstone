@@ -112,7 +112,7 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
   },
   moodPill: {
-    width: '23%',
+    width: '18%',
     alignItems: 'center',
     paddingVertical: 10,
     borderRadius: 18,

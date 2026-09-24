@@ -15,13 +15,13 @@ import {
 } from '@/shared/components/icons';
 import { styles } from '@/shared/styles/dashboard.styles';
 
-type MoodType = 'Calmo' | 'Estresado' | 'Alegre' | 'Cansado';
+type MoodType = 'Muy mal' | 'Mal' | 'Neutro' | 'Bien' | 'Muy bien';
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const [selectedMood, setSelectedMood] = useState<MoodType>('Calmo');
+  const [selectedMood, setSelectedMood] = useState<MoodType>('Bien');
 
-  const moods: MoodType[] = ['Calmo', 'Estresado', 'Alegre', 'Cansado'];
+  const moods: MoodType[] = ['Muy mal', 'Mal', 'Neutro', 'Bien', 'Muy bien'];
 
   return (
     <View style={styles.safeArea}>
