@@ -1,20 +1,14 @@
 import { StyleSheet } from 'react-native';
 
-/* ── Paleta cálida alineada al diseño de referencia ── */
-const cream = '#f6f1e6';
+import { glassTokens } from '@/shared/components/glass';
+
+/* ── Paleta cálida alineada al diseño de referencia, con superficies glass/liquid ── */
+const cream = '#f3ecda';
 const navy = '#1a2b44';
 const yellow = '#f2c14e';
 const yellowSoft = '#f9dd85';
-const bannerYellow = '#f9e7ae';
 const textSecondary = '#8a8272';
 const textMuted = '#b0a891';
-const cardShadow = {
-  shadowColor: '#4a4230',
-  shadowOffset: { width: 0, height: 6 },
-  shadowOpacity: 0.08,
-  shadowRadius: 16,
-  elevation: 4,
-};
 
 export const styles = StyleSheet.create({
   safeArea: {
@@ -33,43 +27,43 @@ export const styles = StyleSheet.create({
     marginBottom: 22,
   },
   avatarCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: navy,
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: 10,
   },
   avatarInitials: {
     color: yellowSoft,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
   },
   headerText: {
     flex: 1,
-    marginLeft: 12,
   },
   greetingTitle: {
-    fontSize: 19,
+    fontSize: 23,
     fontWeight: '800',
     color: navy,
   },
   greetingSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: textSecondary,
-    marginTop: 1,
+    marginTop: 2,
   },
   bellButton: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#ffffff',
+    backgroundColor: glassTokens.surfaceStrong,
+    borderWidth: 1,
+    borderColor: glassTokens.border,
     alignItems: 'center',
     justifyContent: 'center',
-    ...cardShadow,
-  },
-  bellIcon: {
-    fontSize: 18,
+    marginLeft: 10,
+    ...glassTokens.shadow,
   },
   bellDot: {
     position: 'absolute',
@@ -82,139 +76,34 @@ export const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: cream,
   },
-  /* ── Check-in emocional ── */
-  moodCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
+  /* ── Tu semana de un vistazo (GlassCard aporta fondo, borde y sombra) ── */
+  weekCard: {
     padding: 18,
-    marginBottom: 24,
-    ...cardShadow,
+    marginBottom: 20,
   },
-  moodCardHeader: {
+  weekCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
   },
-  moodCardEyebrow: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: textSecondary,
-    letterSpacing: 1.2,
-  },
-  moodCardDecoration: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  moodGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  moodPill: {
-    width: '18%',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: 18,
-  },
-  moodPillSelected: {
-    backgroundColor: yellowSoft,
-  },
-  moodIcon: {
-    marginBottom: 6,
-  },
-  moodPillLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: textSecondary,
-  },
-  moodPillLabelSelected: {
-    color: navy,
-    fontWeight: '800',
-  },
-  primaryButton: {
-    backgroundColor: navy,
-    borderRadius: 16,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...cardShadow,
-  },
-  primaryButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '700',
-    marginRight: 6,
-  },
-  primaryButtonArrow: {
-    color: yellowSoft,
+  weekCardTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  /* ── Secciones ── */
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 17,
     fontWeight: '800',
     color: navy,
   },
-  sectionLink: {
+  weekCardLink: {
     fontSize: 12,
     fontWeight: '600',
     color: textSecondary,
   },
-  /* ── Medidores del día ── */
-  gaugesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  gaugeCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '48.5%',
-    ...cardShadow,
-  },
-  gaugeText: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  gaugeIcon: {
-    marginBottom: 3,
-    alignSelf: 'flex-start',
-  },
-  gaugeTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: navy,
-  },
-  gaugeStatus: {
-    fontSize: 10,
-    color: textSecondary,
-    marginTop: 2,
-  },
-  /* ── Banner de evaluación ── */
+  /* ── Banner del test semanal (LiquidPanel aporta el gradiente) ── */
   testBanner: {
-    backgroundColor: bannerYellow,
-    borderRadius: 22,
     padding: 18,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#c9a227',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.16,
-    shadowRadius: 16,
-    elevation: 4,
+    marginBottom: 20,
+    ...glassTokens.shadow,
   },
   testBannerContent: {
     flex: 1,
@@ -222,7 +111,9 @@ export const styles = StyleSheet.create({
   },
   testBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(26, 43, 68, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.55)',
+    borderWidth: 1,
+    borderColor: glassTokens.border,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
@@ -253,6 +144,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
   },
   testBannerButtonText: {
     color: '#ffffff',
@@ -270,29 +163,65 @@ export const styles = StyleSheet.create({
     marginLeft: 4,
     gap: 4,
   },
-  /* ── Recomendación "Para ti" ── */
+  /* ── Accesos rápidos ── */
+  quickGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  quickTileWrap: {
+    width: '48.5%',
+    marginBottom: 12,
+  },
+  quickTile: {
+    padding: 16,
+  },
+  quickIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(249, 221, 133, 0.45)',
+    borderWidth: 1,
+    borderColor: glassTokens.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  quickTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: navy,
+  },
+  /* ── Pausa sugerida (GlassCard aporta fondo, borde y sombra) ── */
   recommendCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
+    marginBottom: 4,
+  },
+  recommendGlass: {
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    ...cardShadow,
   },
   recommendIconCircle: {
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: '#faf3da',
+    backgroundColor: 'rgba(249, 221, 133, 0.35)',
+    borderWidth: 1,
+    borderColor: glassTokens.border,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  recommendIcon: {
-    fontSize: 20,
   },
   recommendText: {
     flex: 1,
     marginLeft: 12,
+  },
+  recommendEyebrow: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    color: textMuted,
+    marginBottom: 2,
   },
   recommendTitle: {
     fontSize: 13,

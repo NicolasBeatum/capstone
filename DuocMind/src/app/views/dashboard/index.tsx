@@ -1,39 +1,57 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { BottomNav } from '@/shared/components/BottomNav';
-import { ProgressRing } from '@/shared/components/ProgressRing';
+import { LiquidBackground, LiquidCard, LiquidPanel } from '@/shared/components/glass';
+import { WeekChart, type WeekDayData } from '@/shared/components/WeekChart';
 import {
   BellIcon,
-  BoltIcon,
   ClipboardIcon,
-  EmotionFace,
-  GradCapIcon,
+  HandsHeartIcon,
+  HeartIcon,
   LeafIcon,
   SparkleIcon,
   WindIcon,
 } from '@/shared/components/icons';
 import { styles } from '@/shared/styles/dashboard.styles';
 
-type MoodType = 'Muy mal' | 'Mal' | 'Neutro' | 'Bien' | 'Muy bien';
+/* Datos de muestra hasta que el histórico real esté disponible */
+const SAMPLE_WEEK: WeekDayData[] = [
+  { day: 'L', mood: 'Bien', value: 62 },
+  { day: 'M', mood: 'Muy bien', value: 78 },
+  { day: 'X', mood: 'Neutro', value: 48 },
+  { day: 'J', mood: 'Mal', value: 30 },
+  { day: 'V', mood: 'Bien', value: 66 },
+  { day: 'S', mood: 'Muy bien', value: 85 },
+  { day: 'D', mood: 'Bien', value: 58 },
+];
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const [selectedMood, setSelectedMood] = useState<MoodType>('Bien');
 
-  const moods: MoodType[] = ['Muy mal', 'Mal', 'Neutro', 'Bien', 'Muy bien'];
+  const quickActions: Array<{ title: string; icon: React.ReactNode; path: Href }> = [
+    { title: 'Check-in emocional', icon: <HeartIcon size={24} />, path: '/views/checkin' },
+    { title: 'Centro de bienestar', icon: <LeafIcon size={24} />, path: '/views/wellness' },
+    { title: 'Test diario', icon: <ClipboardIcon size={24} />, path: '/views/tests/daily-test' },
+    {
+      title: 'Recursos de apoyo',
+      icon: <HandsHeartIcon size={24} />,
+      path: '/views/tests/crisis-resources',
+    },
+  ];
 
   return (
     <View style={styles.safeArea}>
+      <LiquidBackground />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* ── Header: saludo personalizado ── */}
         <View style={styles.headerRow}>
+          <View style={styles.headerText}>
+            <Text style={styles.greetingTitle}>¡Hola, Camila!</Text>
+            <Text style={styles.greetingSubtitle}>Un paso a la vez</Text>
+          </View>
           <View style={styles.avatarCircle}>
             <Text style={styles.avatarInitials}>CM</Text>
-          </View>
-          <View style={styles.headerText}>
-            <Text style={styles.greetingTitle}>Hola, Camila</Text>
-            <Text style={styles.greetingSubtitle}>Un paso a la vez</Text>
           </View>
           <TouchableOpacity
             style={styles.bellButton}
@@ -46,102 +64,33 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* ── Check-in emocional ── */}
-        <View style={styles.moodCard}>
-          <View style={styles.moodCardHeader}>
-            <Text style={styles.moodCardEyebrow}>¿CÓMO TE SIENTES HOY?</Text>
-            <View style={styles.moodCardDecoration}>
-              <LeafIcon size={18} />
-            </View>
+        {/* ── Tu semana de un vistazo ── */}
+        <LiquidCard style={styles.weekCard}>
+          <View style={styles.weekCardHeader}>
+            <Text style={styles.weekCardTitle}>Tu semana de un vistazo</Text>
+            <TouchableOpacity activeOpacity={0.7}>
+              <Text style={styles.weekCardLink}>Ver más →</Text>
+            </TouchableOpacity>
           </View>
+          <WeekChart data={SAMPLE_WEEK} todayIndex={6} />
+        </LiquidCard>
 
-          <View style={styles.moodGrid}>
-            {moods.map((mood) => {
-              const isSelected = selectedMood === mood;
-              return (
-                <TouchableOpacity
-                  key={mood}
-                  style={[styles.moodPill, isSelected && styles.moodPillSelected]}
-                  onPress={() => setSelectedMood(mood)}
-                  activeOpacity={0.75}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Seleccionar estado ${mood}`}
-                  accessibilityState={{ selected: isSelected }}
-                >
-                  <View style={styles.moodIcon}>
-                    <EmotionFace mood={mood} size={30} />
-                  </View>
-                  <Text
-                    style={[
-                      styles.moodPillLabel,
-                      isSelected && styles.moodPillLabelSelected,
-                    ]}
-                  >
-                    {mood}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={() => router.push('/views/checkin')}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.primaryButtonText}>Registrar check-in</Text>
-            <Text style={styles.primaryButtonArrow}>→</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* ── Tu día ── */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Tu día</Text>
-          <TouchableOpacity activeOpacity={0.7}>
-            <Text style={styles.sectionLink}>Hoy ⌄</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.gaugesRow}>
-          <View style={styles.gaugeCard}>
-            <ProgressRing value={70} color="#f2c14e" />
-            <View style={styles.gaugeText}>
-              <View style={styles.gaugeIcon}>
-                <GradCapIcon size={16} />
-              </View>
-              <Text style={styles.gaugeTitle}>Carga académica</Text>
-              <Text style={styles.gaugeStatus}>3 de 5 materias</Text>
-            </View>
-          </View>
-
-          <View style={styles.gaugeCard}>
-            <ProgressRing value={60} color="#f2c14e" />
-            <View style={styles.gaugeText}>
-              <View style={styles.gaugeIcon}>
-                <BoltIcon size={16} />
-              </View>
-              <Text style={styles.gaugeTitle}>Nivel de energía</Text>
-              <Text style={styles.gaugeStatus}>Regular</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ── Test diario ── */}
-        <View style={styles.testBanner}>
+        {/* ── Test semanal de bienestar ── */}
+        <LiquidPanel from="#fbeec0" to="#eec25e" radius={24} style={styles.testBanner}>
           <View style={styles.testBannerContent}>
             <View style={styles.testBadge}>
-              <Text style={styles.testBadgeText}>TEST DIARIO</Text>
+              <Text style={styles.testBadgeText}>TEST SEMANAL</Text>
             </View>
-            <Text style={styles.testBannerTitle}>¡Realiza tu test diario!</Text>
+            <Text style={styles.testBannerTitle}>¡Realiza tu test semanal de bienestar!</Text>
             <Text style={styles.testBannerDesc}>
-              Mide tu sobrecarga cognitiva en 3 minutos.
+              Mide tu bienestar general y revisa cómo va tu semana.
             </Text>
             <TouchableOpacity
               style={styles.testBannerButton}
               onPress={() => router.push('/views/tests/daily-test')}
               activeOpacity={0.85}
             >
-              <Text style={styles.testBannerButtonText}>Realizar test diario</Text>
+              <Text style={styles.testBannerButtonText}>Realizar test</Text>
               <Text style={styles.testBannerButtonArrow}>→</Text>
             </TouchableOpacity>
           </View>
@@ -150,29 +99,44 @@ export default function DashboardScreen() {
             <ClipboardIcon size={52} />
             <SparkleIcon size={9} color="#e8a93c" />
           </View>
+        </LiquidPanel>
+
+        {/* ── Accesos rápidos ── */}
+        <View style={styles.quickGrid}>
+          {quickActions.map((action) => (
+            <TouchableOpacity
+              key={action.title}
+              style={styles.quickTileWrap}
+              onPress={() => router.push(action.path)}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={action.title}
+            >
+              <LiquidCard style={styles.quickTile}>
+                <View style={styles.quickIconCircle}>{action.icon}</View>
+                <Text style={styles.quickTitle}>{action.title}</Text>
+              </LiquidCard>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* ── Para ti ── */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Para ti</Text>
-          <TouchableOpacity activeOpacity={0.7}>
-            <Text style={styles.sectionLink}>Ver más →</Text>
-          </TouchableOpacity>
-        </View>
-
+        {/* ── Pausa sugerida ── */}
         <TouchableOpacity
           style={styles.recommendCard}
           onPress={() => router.push('/views/wellness')}
           activeOpacity={0.85}
         >
-          <View style={styles.recommendIconCircle}>
-            <WindIcon size={22} />
-          </View>
-          <View style={styles.recommendText}>
-            <Text style={styles.recommendTitle}>Pausa de 2 minutos</Text>
-            <Text style={styles.recommendDesc}>Respira, desconecta y vuelve a ti.</Text>
-          </View>
-          <Text style={styles.recommendChevron}>›</Text>
+          <LiquidCard style={styles.recommendGlass}>
+            <View style={styles.recommendIconCircle}>
+              <WindIcon size={22} />
+            </View>
+            <View style={styles.recommendText}>
+              <Text style={styles.recommendEyebrow}>PAUSA SUGERIDA</Text>
+              <Text style={styles.recommendTitle}>Ejercicio de respiración 4-7-8</Text>
+              <Text style={styles.recommendDesc}>Respira, desconecta y vuelve a ti.</Text>
+            </View>
+            <Text style={styles.recommendChevron}>›</Text>
+          </LiquidCard>
         </TouchableOpacity>
       </ScrollView>
 
