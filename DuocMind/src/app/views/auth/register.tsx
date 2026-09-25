@@ -9,8 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { styles } from '../shared/styles/register.styles';
 import { useRouter } from 'expo-router';
+import { styles } from '@/shared/styles/register.styles';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function RegisterScreen() {
       Alert.alert('Términos', 'Debes aceptar los términos y condiciones para continuar.');
       return;
     }
-    router.push('/dashboard');
+    router.push('/views/dashboard');
   };
 
   const hasMinLength = password.length >= 8;
@@ -55,7 +55,7 @@ export default function RegisterScreen() {
         <View style={styles.topBar}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.push('/login')}
+            onPress={() => router.push('/views/auth/login')}
             accessibilityLabel="Volver al inicio de sesión"
           >
             <Text style={styles.backArrow}>←</Text>
@@ -236,7 +236,7 @@ export default function RegisterScreen() {
             ¿Ya tienes una cuenta?{' '}
             <Text
               style={styles.loginLink}
-              onPress={() => router.push('/login')}
+              onPress={() => router.push('/views/auth/login')}
             >
               Inicia sesión
             </Text>

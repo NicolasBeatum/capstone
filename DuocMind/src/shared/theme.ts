@@ -3,6 +3,7 @@
  * Soporta modo claro y oscuro automáticamente.
  * Usa: const theme = useTheme();
  */
+import React, { createContext, useContext } from 'react';
 import { useColorScheme } from 'react-native';
 
 const light = {
@@ -93,8 +94,18 @@ const dark = {
 
 export type AppTheme = typeof light;
 
+// Theme fixed to light only: remove system-based theming so the app always uses the colors defined here
+
+// Theme context so the app uses a single source of truth
+const ThemeContext = createContext<AppTheme>(light);
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const theme = light; // always use the light theme defined above
+  // Return provider using React.createElement to keep this file as .ts
+  return React.createElement(ThemeContext.Provider, { value: theme }, children);
+}
+
 export function useTheme(): AppTheme {
-  const scheme = useColorScheme();
-  return scheme === 'dark' ? dark : light;
+  return useContext(ThemeContext);
 }
 

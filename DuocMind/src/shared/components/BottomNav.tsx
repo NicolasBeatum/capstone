@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { styles } from './BottomNav.styles';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useTheme } from '../theme';
 
 interface BottomNavProps {
@@ -12,10 +12,16 @@ export function BottomNav({ currentTab }: BottomNavProps) {
   const router = useRouter();
   const theme = useTheme();
 
-  const tabs = [
-    { id: 'home' as const, icon: '⌂', label: 'Home', route: '/dashboard', a11y: 'Ir al Inicio' },
-    { id: 'checkin' as const, icon: '☺', label: 'Check-in', route: '/checkin', a11y: 'Ir a Check-in' },
-    { id: 'wellness' as const, icon: '✦', label: 'Wellness', route: '/wellness', a11y: 'Ir a Centro de Bienestar' },
+  const tabs: Array<{
+    id: BottomNavProps['currentTab'];
+    icon: string;
+    label: string;
+    route: Href;
+    a11y: string;
+  }> = [
+    { id: 'home' as const, icon: '⌂', label: 'Inicio', route: '/views/dashboard', a11y: 'Ir al inicio' },
+    { id: 'checkin' as const, icon: '☺', label: 'Check-in', route: '/views/checkin', a11y: 'Ir a Check-in' },
+    { id: 'wellness' as const, icon: '✦', label: 'Bienestar', route: '/views/wellness', a11y: 'Ir al centro de bienestar' },
   ];
 
   return (
@@ -59,7 +65,7 @@ export function BottomNav({ currentTab }: BottomNavProps) {
                   : 'rgba(212, 180, 60, 0.50)',
               },
             ]}
-            onPress={() => router.push(tab.route as any)}
+            onPress={() => router.push(tab.route)}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel={tab.a11y}

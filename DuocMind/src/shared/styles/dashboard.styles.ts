@@ -1,250 +1,109 @@
 import { StyleSheet } from 'react-native';
 
+import { glassTokens } from '@/shared/components/glass';
+
+/* ── Paleta cálida alineada al diseño de referencia, con superficies glass/liquid ── */
+const cream = '#f3ecda';
+const navy = '#1a2b44';
+const yellow = '#f2c14e';
+const yellowSoft = '#f9dd85';
+const textSecondary = '#8a8272';
+const textMuted = '#b0a891';
+
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  /* ── Liquid Orbs ── */
-  liquidOrbTopRight: {
-    position: 'absolute',
-    top: -80,
-    right: -50,
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-  },
-  liquidOrbMidLeft: {
-    position: 'absolute',
-    top: 280,
-    left: -80,
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-  },
-  liquidOrbBottomRight: {
-    position: 'absolute',
-    bottom: 80,
-    right: -60,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
+    backgroundColor: cream,
   },
   scrollContent: {
     padding: 20,
-    paddingTop: 30,
+    paddingTop: 24,
     paddingBottom: 28,
   },
-  /* ── Tarjeta Principal (Deep Liquid Glass) ── */
-  glassMoodCard: {
-    borderRadius: 28,
-    padding: 20,
+  /* ── Header: saludo personalizado ── */
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 22,
-    borderWidth: 1.5,
-    borderTopColor: 'rgba(255, 255, 255, 0.28)',
-    shadowColor: '#0a1220',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.35,
-    shadowRadius: 28,
-    elevation: 10,
-    position: 'relative',
-    overflow: 'hidden',
   },
-  glassSpecularTop: {
-    position: 'absolute',
-    top: 0,
-    left: 20,
-    right: 20,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+  avatarCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: navy,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
   },
-  glassSpecularLeft: {
+  avatarInitials: {
+    color: yellowSoft,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  headerText: {
+    flex: 1,
+  },
+  greetingTitle: {
+    fontSize: 23,
+    fontWeight: '800',
+    color: navy,
+  },
+  greetingSubtitle: {
+    fontSize: 13,
+    color: textSecondary,
+    marginTop: 2,
+  },
+  bellButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: glassTokens.surfaceStrong,
+    borderWidth: 1,
+    borderColor: glassTokens.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+    ...glassTokens.shadow,
+  },
+  bellDot: {
     position: 'absolute',
     top: 8,
-    left: 0,
-    bottom: 8,
-    width: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.10)',
-  },
-  moodCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 18,
-  },
-  moodCardEyebrow: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#f3e7a0',
-    letterSpacing: 1.5,
-  },
-  moodCardTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#ffffff',
-    marginTop: 3,
-  },
-  todayPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  todayText: {
-    color: '#f3e7a0',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  moodGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 18,
-  },
-  moodPill: {
-    borderRadius: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 6,
-    alignItems: 'center',
-    width: '23%',
+    right: 9,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: yellow,
     borderWidth: 1.5,
-    shadowOffset: { width: 0, height: 4 },
+    borderColor: cream,
   },
-  moodEmoji: {
-    fontSize: 22,
-    marginBottom: 5,
+  /* ── Tu semana de un vistazo (GlassCard aporta fondo, borde y sombra) ── */
+  weekCard: {
+    padding: 18,
+    marginBottom: 20,
   },
-  moodPillLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  detailedButton: {
-    backgroundColor: '#f3e7a0',
-    borderRadius: 16,
-    paddingVertical: 13,
+  weekCardHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.55)',
-    borderTopColor: '#ffffff',
-    shadowColor: '#d4b43c',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.30,
-    shadowRadius: 12,
-    elevation: 3,
+    marginBottom: 16,
   },
-  detailedButtonText: {
-    color: '#1a2b44',
-    fontSize: 12,
-    fontWeight: '800',
-    marginRight: 6,
-  },
-  detailedButtonArrow: {
-    color: '#1a2b44',
+  weekCardTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  /* ── Medidores ── */
-  gaugesSection: {
-    marginBottom: 22,
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  weekBadge: {
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  weekBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  gaugesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  /* Frosted Glass Card */
-  frostedCard: {
-    borderRadius: 24,
-    padding: 18,
-    alignItems: 'center',
-    width: '48%',
-    borderWidth: 1.5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    elevation: 3,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  glowDot: {
-    position: 'absolute',
-    top: -16,
-    right: -16,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-  },
-  gaugeCircle: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 6,
-    marginBottom: 10,
-  },
-  gaugeNavy: {
-    borderColor: '#1a2b44',
-    backgroundColor: 'rgba(248, 250, 252, 0.85)',
-  },
-  gaugeYellow: {
-    borderColor: '#d4b43c',
-    backgroundColor: 'rgba(251, 246, 220, 0.85)',
-  },
-  gaugeValueNavy: {
-    fontSize: 17,
     fontWeight: '800',
-    color: '#1a2b44',
+    color: navy,
   },
-  gaugeValueYellow: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#d4b43c',
-  },
-  gaugeTitle: {
+  weekCardLink: {
     fontSize: 12,
-    fontWeight: '700',
-  },
-  gaugeStatus: {
-    fontSize: 10,
-    marginTop: 2,
     fontWeight: '600',
+    color: textSecondary,
   },
-  /* ── Banner Test ── */
+  /* ── Banner del test semanal (LiquidPanel aporta el gradiente) ── */
   testBanner: {
-    borderWidth: 1.5,
-    borderRadius: 26,
     padding: 18,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#d4b43c',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.10,
-    shadowRadius: 18,
-    elevation: 3,
+    marginBottom: 20,
+    ...glassTokens.shadow,
   },
   testBannerContent: {
     flex: 1,
@@ -252,38 +111,41 @@ export const styles = StyleSheet.create({
   },
   testBadge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 2.5,
-    borderRadius: 8,
-    marginBottom: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.55)',
     borderWidth: 1,
+    borderColor: glassTokens.border,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    marginBottom: 8,
   },
   testBadgeText: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: '800',
-    letterSpacing: 0.6,
+    letterSpacing: 0.8,
+    color: navy,
   },
   testBannerTitle: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
+    color: navy,
+    marginBottom: 4,
   },
   testBannerDesc: {
-    fontSize: 10,
-    marginTop: 2,
-    lineHeight: 14,
+    fontSize: 11,
+    color: '#6b6557',
+    marginBottom: 12,
   },
   testBannerButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    backgroundColor: navy,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
     borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
     borderWidth: 1,
-    shadowColor: '#1a2b44',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.20,
-    shadowRadius: 10,
-    elevation: 2,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
   },
   testBannerButtonText: {
     color: '#ffffff',
@@ -292,8 +154,88 @@ export const styles = StyleSheet.create({
     marginRight: 4,
   },
   testBannerButtonArrow: {
-    color: '#f3e7a0',
+    color: yellowSoft,
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  testBannerIllustration: {
+    alignItems: 'center',
+    marginLeft: 4,
+    gap: 4,
+  },
+  /* ── Accesos rápidos ── */
+  quickGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  quickTileWrap: {
+    width: '48.5%',
+    marginBottom: 12,
+  },
+  quickTile: {
+    padding: 16,
+  },
+  quickIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(249, 221, 133, 0.45)',
+    borderWidth: 1,
+    borderColor: glassTokens.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  quickTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: navy,
+  },
+  /* ── Pausa sugerida (GlassCard aporta fondo, borde y sombra) ── */
+  recommendCard: {
+    marginBottom: 4,
+  },
+  recommendGlass: {
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  recommendIconCircle: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: 'rgba(249, 221, 133, 0.35)',
+    borderWidth: 1,
+    borderColor: glassTokens.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recommendText: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  recommendEyebrow: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    color: textMuted,
+    marginBottom: 2,
+  },
+  recommendTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: navy,
+  },
+  recommendDesc: {
+    fontSize: 11,
+    color: textSecondary,
+    marginTop: 2,
+  },
+  recommendChevron: {
+    fontSize: 22,
+    color: textMuted,
+    marginLeft: 6,
   },
 });

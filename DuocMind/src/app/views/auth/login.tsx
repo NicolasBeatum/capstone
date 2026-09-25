@@ -9,13 +9,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { styles } from '../shared/styles/login.styles';
 import { useRouter } from 'expo-router';
+import { styles } from '@/shared/styles/login.styles';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('c.mora@universidad.edu');
-  const [password, setPassword] = useState('EstudioSereno2025');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
@@ -23,7 +23,7 @@ export default function LoginScreen() {
       Alert.alert('Campos requeridos', 'Por favor ingresa tu correo y contraseña.');
       return;
     }
-    router.push('/dashboard');
+    router.push('/views/dashboard');
   };
 
   const handleForgotPassword = () => {
@@ -124,7 +124,7 @@ export default function LoginScreen() {
           {/* Botones de inicio alternativo */}
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={() => router.push('/dashboard')}
+            onPress={() => router.push('/views/dashboard')}
             activeOpacity={0.8}
           >
             <Text style={styles.socialIcon}>G</Text>
@@ -133,7 +133,7 @@ export default function LoginScreen() {
 
           <TouchableOpacity
             style={styles.ssoButton}
-            onPress={() => router.push('/dashboard')}
+            onPress={() => router.push('/views/dashboard')}
             activeOpacity={0.8}
           >
             <Text style={styles.ssoIcon}>🏛</Text>
@@ -147,7 +147,7 @@ export default function LoginScreen() {
             ¿No tienes cuenta?{' '}
             <Text
               style={styles.registerLink}
-              onPress={() => router.push('/register')}
+              onPress={() => router.push('/views/auth/register')}
             >
               Regístrate aquí
             </Text>

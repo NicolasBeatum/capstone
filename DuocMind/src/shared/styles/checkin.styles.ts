@@ -1,276 +1,158 @@
 import { StyleSheet } from 'react-native';
 
+import { glassTokens } from '@/shared/components/glass';
+
+/* ── Paleta cálida compartida con el dashboard, con superficies liquid ── */
+const cream = '#f3ecda';
+const navy = '#1a2b44';
+const yellow = '#f2c14e';
+const yellowSoft = '#f9dd85';
+const textSecondary = '#8a8272';
+
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f9f9f7',
+    backgroundColor: cream,
   },
   container: {
     flex: 1,
   },
   scrollContent: {
     padding: 20,
-    paddingTop: 30,
-    paddingBottom: 24,
+    paddingTop: 24,
+    paddingBottom: 28,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  headerLeft: {
+  /* ── Header: saludo personalizado ── */
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 22,
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#1a2b44',
+  avatarCircle: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: navy,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#f3e7a0',
-    marginRight: 12,
   },
-  avatarInitial: {
-    color: '#f3e7a0',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  screenTitle: {
+  avatarInitials: {
+    color: yellowSoft,
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1a2b44',
+    fontWeight: '800',
   },
-  screenSubtitle: {
-    fontSize: 12,
-    color: '#94a3b8',
-  },
-  quoteIcon: {
-    fontSize: 28,
-    color: '#cbd5e1',
-    fontWeight: 'bold',
-  },
-  checkinCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    padding: 18,
-    borderLeftWidth: 4,
-    borderLeftColor: '#1a2b44',
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardQuestion: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1a2b44',
-    lineHeight: 20,
-  },
-  cardHelpText: {
-    fontSize: 11,
-    color: '#64748b',
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  scaleContainer: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 18,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    marginBottom: 16,
-  },
-  scaleLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  scaleExtremesOverwhelmed: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#f43f5e',
-  },
-  scaleExtremesCalm: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#1a2b44',
-  },
-  numbersGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 14,
-  },
-  numberPill: {
-    width: 28,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  numberPillActive: {
-    backgroundColor: '#1a2b44',
-    borderColor: '#1a2b44',
-  },
-  numberPillText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748b',
-  },
-  numberPillTextActive: {
-    color: '#f3e7a0',
-  },
-  scoreResultRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scoreResultLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#94a3b8',
-    letterSpacing: 0.5,
+  headerText: {
+    flex: 1,
+    marginLeft: 12,
     marginRight: 8,
   },
-  scorePill: {
-    backgroundColor: '#fbf6dc',
-    borderWidth: 1,
-    borderColor: '#f3e7a0',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  scorePillValue: {
-    fontSize: 13,
+  greetingTitle: {
+    fontSize: 23,
     fontWeight: '800',
-    color: '#1a2b44',
+    color: navy,
+    lineHeight: 27,
   },
-  notesGroup: {
-    marginBottom: 16,
+  greetingSubtitle: {
+    fontSize: 12,
+    color: textSecondary,
+    marginTop: 1,
   },
-  notesLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#1a2b44',
+  bellButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: glassTokens.surfaceStrong,
+    borderWidth: 1,
+    borderColor: glassTokens.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...glassTokens.shadow,
+  },
+  bellDot: {
+    position: 'absolute',
+    top: 8,
+    right: 9,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: yellow,
+    borderWidth: 1.5,
+    borderColor: cream,
+  },
+  /* ── Selector de ánimo (LiquidCard aporta fondo, borde y sombra) ── */
+  moodCardContainer: {
+    padding: 18,
+    paddingTop: 22,
+    marginBottom: 18,
+  },
+  moodCardDecoration: {
+    position: 'absolute',
+    top: 14,
+    right: 16,
+  },
+  moodGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  moodCard: {
+    width: '18%',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 18,
+  },
+  moodCardSelected: {
+    backgroundColor: 'rgba(249, 221, 133, 0.9)',
+    borderWidth: 1,
+    borderColor: '#ffffff',
+  },
+  moodIcon: {
     marginBottom: 6,
   },
-  notesInput: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    padding: 12,
-    fontSize: 12,
-    color: '#1e293b',
-    minHeight: 80,
+  moodLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: textSecondary,
   },
+  moodLabelSelected: {
+    color: navy,
+    fontWeight: '800',
+  },
+  /* ── Emociones relacionadas (globos de diálogo) ── */
+  tagsSectionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: textSecondary,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  tagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  /* Botón guardar */
   saveButton: {
-    backgroundColor: '#1a2b44',
+    backgroundColor: navy,
     borderRadius: 16,
-    height: 46,
+    paddingVertical: 15,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  saveButtonIcon: {
-    color: '#f3e7a0',
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginRight: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    marginBottom: 24,
+    ...glassTokens.shadow,
   },
   saveButtonText: {
     color: '#ffffff',
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
+    marginRight: 6,
   },
-  historySection: {
-    marginTop: 4,
-  },
-  historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  historyTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1a2b44',
-  },
-  historySubtitle: {
-    fontSize: 10,
-    color: '#94a3b8',
-  },
-  historyList: {
-    gap: 8,
-  },
-  historyCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 18,
-    padding: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  historyCardLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginRight: 10,
-  },
-  historyMoodBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  historyMoodBadgePositive: {
-    backgroundColor: '#fbf6dc',
-  },
-  historyMoodBadgeNeutral: {
-    backgroundColor: '#ffe4e6',
-  },
-  historyEmoji: {
-    fontSize: 18,
-  },
-  historyTexts: {
-    flex: 1,
-  },
-  historyDate: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#1e293b',
-  },
-  historyNote: {
-    fontSize: 10,
-    color: '#94a3b8',
-    marginTop: 1,
-  },
-  historyScorePill: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  historyScoreText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#1a2b44',
+  saveButtonArrow: {
+    color: yellowSoft,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

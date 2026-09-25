@@ -5,16 +5,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { styles } from '../shared/styles/wellness.styles';
-import { AppHeader } from '../shared/components/AppHeader';
 import { useRouter } from 'expo-router';
-import { BottomNav } from '../shared/components/BottomNav';
+import { AppHeader } from '@/shared/components/AppHeader';
+import { BottomNav } from '@/shared/components/BottomNav';
+import { styles } from '@/shared/styles/wellness.styles';
 
 export default function WellnessScreen() {
   const router = useRouter();
 
   const handleStartTest = () => {
-    router.push('/stress-test');
+    router.push('/views/tests/daily-test');
   };
 
   const tips = [
