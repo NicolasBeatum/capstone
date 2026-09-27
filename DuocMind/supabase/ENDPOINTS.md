@@ -6,9 +6,57 @@ Proyecto de desarrollo: `Duocmind` (`ashgvanzjeaeekpygqgy`). La migración crea 
 
 - URL del proyecto: `https://ashgvanzjeaeekpygqgy.supabase.co`
 - Base de la API REST: `https://ashgvanzjeaeekpygqgy.supabase.co/rest/v1`
+- API de autenticación: `https://ashgvanzjeaeekpygqgy.supabase.co/auth/v1`
 - Autenticación: encabezado `apikey: <PUBLISHABLE_KEY>` y `Authorization: Bearer <JWT_DE_SESION>` para operaciones de usuarios.
 - Usa la clave publicable del proyecto. Nunca incluyas una clave `secret` o `service_role` en la app, un archivo `EXPO_PUBLIC_*`, un commit o una petición desde el navegador.
 - Los identificadores son `bigint` autogenerados. Omite la PK en los `POST`; pide `Prefer: return=representation` si necesitas el ID generado.
+
+## Crear una cuenta
+
+Supabase Auth administra las cuentas en `auth.users`; no se deben crear usuarios insertando filas por SQL. El endpoint de registro email/contraseña está disponible para consumir desde la app:
+
+```http
+POST /auth/v1/signup
+apikey: <PUBLISHABLE_KEY>
+Content-Type: application/json
+
+{
+  "email": "estudiante@example.test",
+  "password": "<CONTRASENA_SEGURA>"
+}
+```
+
+Con `@supabase/supabase-js`, el equivalente es:
+
+```ts
+const { data, error } = await supabase.auth.signUp({
+  email,
+  password,
+});
+```
+
+La autenticación email/contraseña está habilitada por defecto en Supabase y, en proyectos alojados, la confirmación de correo también está activada por defecto ([documentación oficial](https://supabase.com/docs/guides/auth/passwords)). Puede crearse el usuario y enviarse el mensaje de verificación sin devolver una sesión (`data.session === null`). Tras confirmar el correo, la persona podrá iniciar sesión y recibir su JWT. Revisa en **Supabase Dashboard → Authentication → Providers → Email** que el registro de nuevos usuarios esté permitido y que el envío de correo esté configurado para el entorno.
+
+La cuenta de Auth y el perfil de la app son recursos distintos. Después del primer inicio de sesión, crea el perfil en `public.estudiante` con el JWT de esa sesión. `auth_user_id` se completa con `auth.uid()` y la política solo acepta que cada persona cree su propio perfil:
+
+```http
+POST /rest/v1/estudiante
+apikey: <PUBLISHABLE_KEY>
+Authorization: Bearer <JWT_DE_SESION>
+Content-Type: application/json
+Prefer: return=representation
+
+{
+  "rut": "12.345.678-9",
+  "primer_nombre": "Nombre",
+  "primer_apellido": "Apellido",
+  "correo": "estudiante@example.test"
+}
+```
+
+El perfil requiere RUT, nombre y apellido; `segundo_nombre`, `segundo_apellido`, `numero_telefonico` y `correo` son opcionales. No se necesita `service_role` para registrar o crear el perfil. No uses `user_metadata` para roles ni autorización; las políticas de base de datos se basan en `auth.uid()`.
+
+La app todavía no está conectada a estos endpoints: esta sección deja definido el contrato para que otro integrante implemente luego el registro/inicio de sesión.
 
 ## Rutas de lectura
 
