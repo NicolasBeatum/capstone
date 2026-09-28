@@ -32,4 +32,6 @@ Requisito previo: el mismo `.env` descrito arriba, presente en esta carpeta (el 
 docker compose up --build
 ```
 
+Al iniciar el contenedor, `npm ci` sincroniza el volumen de `node_modules` con `package-lock.json`: instala dependencias nuevas y quita las que ya no están declaradas. La primera ejecución o un cambio de dependencias puede tardar unos segundos más y necesitar acceso al registro de npm.
+
 La previsualización queda disponible en `http://localhost:8081`. Docker se usa solo para desarrollo; el build nativo Android debe ejecutarse con `npx expo run:android` desde un entorno con Android SDK.

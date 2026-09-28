@@ -1,0 +1,28 @@
+name: Validar DuocMind
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: DuocMind
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: DuocMind/package-lock.json
+      - run: npm install --global npm@11.13.0
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
