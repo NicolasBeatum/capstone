@@ -1,4 +1,4 @@
-import { supabase } from '@/shared/infrastructure/supabase';
+import { getSupabaseClient } from '@/features/backend/infrastructure/supabaseClient';
 import type { Instrument, ScaleOption, TestQuestion, TestResult } from '../data/types';
 
 interface OpcionRespuestaRow {
@@ -32,7 +32,7 @@ export const PSS10_RANGES = {
 } as const;
 
 export async function fetchStressTestInstrument(): Promise<Instrument> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabaseClient()
     .from('test_bienestar')
     .select(`
       id_test,

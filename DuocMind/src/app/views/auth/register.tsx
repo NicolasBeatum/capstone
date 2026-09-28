@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -10,6 +9,12 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { AuthActionButton } from '@/shared/components/AuthActionButton';
+import {
+  getAuthenticationErrorMessage,
+  registerAccount,
+} from '@/features/auth/application/authentication';
+import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
 import { styles } from '@/shared/styles/register.styles';
 
 export default function RegisterScreen() {
@@ -18,22 +23,48 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [acceptTerms, setAcceptTerms] = useState(true);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{ message: string; tone: 'error' | 'success' } | null>(null);
+  const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
+    setFeedback(null);
+    setNeedsEmailConfirmation(false);
     if (!email || !password || !confirmPassword) {
-      Alert.alert('Campos requeridos', 'Por favor completa todos los campos.');
+      setFeedback({ tone: 'error', message: 'Completa todos los campos para continuar.' });
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden.');
+      setFeedback({ tone: 'error', message: 'Las contraseñas no coinciden.' });
+      return;
+    }
+    if (!hasMinLength || !hasNumber || !hasUppercase || !hasSymbol) {
+      setFeedback({ tone: 'error', message: 'Usa al menos 8 caracteres, un número, una mayúscula y un símbolo.' });
       return;
     }
     if (!acceptTerms) {
-      Alert.alert('Términos', 'Debes aceptar los términos y condiciones para continuar.');
+      setFeedback({ tone: 'error', message: 'Acepta los términos y la política de privacidad para crear la cuenta.' });
       return;
     }
-    router.push('/views/dashboard');
+
+    setIsSubmitting(true);
+    try {
+      const destination = await registerAccount(email, password, supabaseAuthGateway);
+      if (destination === 'profile') {
+        router.replace('/views/auth/profile');
+      } else {
+        setNeedsEmailConfirmation(true);
+        setFeedback({
+          tone: 'success',
+          message: 'Solicitud recibida. Si el correo puede registrarse, recibirás un enlace para confirmarlo. Después inicia sesión para completar tu perfil.',
+        });
+      }
+    } catch (error) {
+      setFeedback({ tone: 'error', message: getAuthenticationErrorMessage(error) });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const hasMinLength = password.length >= 8;
@@ -134,7 +165,7 @@ export default function RegisterScreen() {
               <View style={styles.strengthHeader}>
                 <Text style={styles.strengthLabel}>Fortaleza de seguridad</Text>
                 <Text style={styles.strengthStatus}>
-                  {password.length > 8 && hasNumber && hasUppercase ? 'Buena' : 'En progreso'}
+                  {hasMinLength && hasNumber && hasUppercase && hasSymbol ? 'Buena' : 'En progreso'}
                 </Text>
               </View>
               <View style={styles.strengthBarBg}>
@@ -210,6 +241,8 @@ export default function RegisterScreen() {
             style={styles.termsRow}
             onPress={() => setAcceptTerms(!acceptTerms)}
             activeOpacity={0.8}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: acceptTerms }}
           >
             <View style={[styles.checkbox, acceptTerms && styles.checkboxActive]}>
               {acceptTerms && <Text style={styles.checkboxCheck}>✓</Text>}
@@ -220,14 +253,35 @@ export default function RegisterScreen() {
           </TouchableOpacity>
 
           {/* Botón Crear Cuenta */}
-          <TouchableOpacity
-            style={styles.primaryButton}
+          <AuthActionButton
+            label="Crear Cuenta"
+            busyLabel="Creando cuenta…"
+            isBusy={isSubmitting}
             onPress={handleRegister}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.primaryButtonText}>Crear Cuenta</Text>
-            <Text style={styles.buttonArrow}>→</Text>
-          </TouchableOpacity>
+            style={styles.primaryButton}
+            textStyle={styles.primaryButtonText}
+            arrowStyle={styles.buttonArrow}
+          />
+
+          {feedback ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              style={feedback.tone === 'error' ? styles.feedbackError : styles.feedbackSuccess}
+            >
+              {feedback.message}
+            </Text>
+          ) : null}
+
+          {needsEmailConfirmation ? (
+            <TouchableOpacity
+              style={styles.confirmationLoginButton}
+              onPress={() => router.replace('/views/auth/login')}
+              accessibilityRole="button"
+              activeOpacity={0.8}
+            >
+              <Text style={styles.confirmationLoginText}>Ir a iniciar sesión</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {/* Footer */}

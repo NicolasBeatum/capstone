@@ -117,20 +117,6 @@ export const styles = StyleSheet.create({
     color: navy,
     fontWeight: '800',
   },
-  /* ── Emociones relacionadas (globos de diálogo) ── */
-  tagsSectionLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: textSecondary,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  tagsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
   /* Botón guardar */
   saveButton: {
     backgroundColor: navy,
@@ -154,5 +140,100 @@ export const styles = StyleSheet.create({
     color: yellowSoft,
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  checkinFeedbackError: {
+    color: '#9b3d33',
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: -10,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  surveyButton: {
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: -8,
+    marginBottom: 14,
+  },
+  surveyButtonText: {
+    color: navy,
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
+  historySection: {
+    marginTop: 6,
+    marginBottom: 24,
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  historyTitle: {
+    color: navy,
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  historyHint: {
+    color: textSecondary,
+    fontSize: 11,
+  },
+  historyEmpty: {
+    color: textSecondary,
+    fontSize: 13,
+    paddingVertical: 14,
+  },
+  historyLoginLink: {
+    alignSelf: 'flex-start',
+    justifyContent: 'center',
+    minHeight: 40,
+    paddingVertical: 10,
+  },
+  historyLoginText: {
+    color: navy,
+    fontSize: 12,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
+  },
+  historyItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(26, 43, 68, 0.10)',
+  },
+  historyItemText: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  historyMood: {
+    color: navy,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  historyDate: {
+    color: textSecondary,
+    fontSize: 11,
+    marginTop: 3,
+  },
+  historySync: {
+    color: textSecondary,
+    fontSize: 10,
+    marginTop: 2,
+  },
+  deleteButton: {
+    minHeight: 38,
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  deleteButtonText: {
+    color: '#9b3d33',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

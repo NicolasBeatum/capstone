@@ -38,7 +38,7 @@ const REFERRAL_DESCRIPTION =
 export default function DailyCheckinScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ mood?: string }>();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !shouldOfferSondeo(String(params.mood ?? '')));
   const [error, setError] = useState<string | null>(null);
   const [pss10Instrument, setPss10Instrument] = useState<Instrument | null>(null);
   const [pendingGad7, setPendingGad7] = useState(false);
@@ -66,7 +66,9 @@ export default function DailyCheckinScreen() {
   };
 
   useEffect(() => {
-    loadTest();
+    if (!shouldOfferSondeo(String(params.mood ?? ''))) {
+      void loadTest();
+    }
   }, []);
 
   const handlePss10Complete = (answers: Record<number, number>) => {
@@ -273,7 +275,7 @@ export default function DailyCheckinScreen() {
       <TestOffer
         title="Gracias por responder"
         subtitle="Registro de hoy"
-        description="Tomarte un momento para revisar cómo estás es un buen paso. Tu respuesta quedó registrada."
+        description="Tomarte un momento para revisar cómo estás es un buen paso. Puedes volver cuando quieras."
         primaryLabel="Volver"
         onPrimary={() => router.back()}
       />

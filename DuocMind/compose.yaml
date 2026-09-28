@@ -2,6 +2,7 @@ services:
   app:
     build:
       context: .
+    command: ["npx", "expo", "start", "--web", "--host", "lan", "--clear"]
     ports:
       - "8081:8081"
     environment:
