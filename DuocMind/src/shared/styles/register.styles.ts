@@ -268,6 +268,30 @@ export const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
   },
+  feedbackError: {
+    color: '#9b3d33',
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 12,
+  },
+  feedbackSuccess: {
+    color: '#256b4a',
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 12,
+  },
+  confirmationLoginButton: {
+    minHeight: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  confirmationLoginText: {
+    color: '#1a2b44',
+    fontSize: 12,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
+  },
   footerContainer: {
     alignItems: 'center',
     marginTop: 20,

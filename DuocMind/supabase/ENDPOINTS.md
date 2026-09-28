@@ -129,10 +129,18 @@ Content-Type: application/json
 Prefer: return=representation
 
 {
+  "client_request_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
   "emocion_especifica_id_emocionesp": 1,
-  "estudiante_id_estudiante": 1
+  "estudiante_id_estudiante": 1,
+  "fecha_hora": "2026-09-27T22:00:00Z"
 }
 ```
+
+La migración `20260927230000_emotional_checkin_history.sql` agrega `Sin especificar` para cada fila de `emocion_general` y una clave UUID única de reintento. La app resuelve el ánimo general por `valor_escala`, lo relaciona con ese valor técnico y nunca lo presenta como un sentimiento elegido. Repetir el mismo `client_request_id` no crea otro registro. RLS sigue derivando el propietario de `auth.uid()`; la app consulta su perfil y no acepta un `estudiante_id_estudiante` externo.
+
+La migración posterior `20260928010000_grant_checkin_timestamp.sql` concede a `authenticated` el privilegio de insertar la columna `fecha_hora`, que el cliente envía para conservar la fecha original del check-in al sincronizar. No amplía lectura ni acceso a otras cuentas; la política RLS de inserción sigue exigiendo que el estudiante pertenezca a `auth.uid()`.
+
+Para borrar la cuenta, la app invoca la Edge Function `delete-account` con el JWT de la sesión. La función usa `service_role` solo en el servidor para llamar `erase_student_personal_data` y eliminar el usuario de Auth. No se habilita `DELETE` global ni se expone ese secreto al cliente. El despliegue se hace por separado con `supabase functions deploy delete-account` después de revisar/aplicar la migración.
 
 Solicitud de derivación tras aceptar el consentimiento en la app:
 
