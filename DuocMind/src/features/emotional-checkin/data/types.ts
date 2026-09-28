@@ -1,7 +1,9 @@
-export interface TestQuestion {
+﻿export interface TestQuestion {
   id: number;
   title: string;
   helper?: string;
+  isCritica?: boolean;
+  options?: ScaleOption[];
 }
 
 export interface ScaleOption {
