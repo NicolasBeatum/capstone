@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { BottomNav } from '@/shared/components/BottomNav';
 import { LiquidBackground, LiquidCard } from '@/shared/components/glass';
+import { ScalePress } from '@/shared/components/ScalePress';
 import { SpeechBubble } from '@/shared/components/SpeechBubble';
 import { BellIcon, EmotionFace, LeafIcon } from '@/shared/components/icons';
 import { styles } from '@/shared/styles/checkin.styles';
@@ -109,11 +110,10 @@ export default function CheckinScreen() {
               {MOOD_OPTIONS.map((mood) => {
                 const isSelected = selectedMood === mood;
                 return (
-                  <TouchableOpacity
+                  <ScalePress
                     key={mood}
                     style={[styles.moodCard, isSelected && styles.moodCardSelected]}
                     onPress={() => setSelectedMood(mood)}
-                    activeOpacity={0.75}
                     accessibilityRole="button"
                     accessibilityLabel={`Seleccionar estado ${mood}`}
                     accessibilityState={{ selected: isSelected }}
@@ -129,7 +129,7 @@ export default function CheckinScreen() {
                     >
                       {mood}
                     </Text>
-                  </TouchableOpacity>
+                  </ScalePress>
                 );
               })}
             </View>
@@ -151,14 +151,10 @@ export default function CheckinScreen() {
           </View>
 
           {/* ── Botón confirmar ── */}
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={handleSave}
-            activeOpacity={0.85}
-          >
+          <ScalePress style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Confirmar Registro de Emoción</Text>
             <Text style={styles.saveButtonArrow}>→</Text>
-          </TouchableOpacity>
+          </ScalePress>
         </ScrollView>
 
         {/* Navegación Inferior */}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { ScalePress } from '@/shared/components/ScalePress';
 import { SparkleIcon } from '@/shared/components/icons';
 import { styles } from '@/shared/styles/daily-test.styles';
 import type { TestResult } from '../data/types';
@@ -80,19 +81,18 @@ export function TestOffer({
           <Text style={styles.resultMessage}>{description}</Text>
 
           <View style={styles.resultButtonsRow}>
-            <TouchableOpacity style={styles.acceptButton} onPress={onPrimary} activeOpacity={0.85}>
+            <ScalePress style={styles.acceptButton} onPress={onPrimary}>
               <Text style={styles.acceptButtonText}>{primaryLabel} →</Text>
-            </TouchableOpacity>
+            </ScalePress>
 
             {secondaryLabel ? (
-              <TouchableOpacity
+              <ScalePress
                 style={styles.rejectButton}
                 onPress={onSecondary}
-                activeOpacity={0.85}
                 disabled={!onSecondary}
               >
                 <Text style={styles.rejectButtonText}>{secondaryLabel}</Text>
-              </TouchableOpacity>
+              </ScalePress>
             ) : null}
           </View>
         </View>

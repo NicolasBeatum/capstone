@@ -1,12 +1,13 @@
 import { StyleSheet } from 'react-native';
 
+import { fontFamily as font } from '@/shared/typography';
+
 export const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 24,
-    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
@@ -24,21 +25,27 @@ export const styles = StyleSheet.create({
     height: 1,
   },
   tab: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'transparent',
+    marginHorizontal: 3,
+    borderRadius: 18,
   },
-  tabIcon: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  /* Pill elevada de la pestaña activa */
+  activePill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.90)',
+    shadowColor: '#6b5a33',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.16,
+    shadowRadius: 14,
+    elevation: 6,
   },
   tabLabel: {
     fontSize: 10,
-    fontWeight: '700',
-    marginTop: 2,
+    marginTop: 3,
+    fontFamily: font.bold,
   },
 });
