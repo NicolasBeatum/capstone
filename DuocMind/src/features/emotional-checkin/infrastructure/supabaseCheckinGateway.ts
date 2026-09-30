@@ -1,0 +1,130 @@
+import type { CheckinMood, LocalCheckin } from '../application/localCheckinStore';
+import type { CheckinHistoryEntry, CheckinRemoteGateway } from '../application/checkinHistory';
+import { getSupabaseClient } from '@/features/backend/infrastructure/supabaseClient';
+
+interface StudentRow {
+  id_estudiante: number;
+}
+
+interface GeneralEmotionRow {
+  id_emocion: number;
+}
+
+interface SpecificEmotionRow {
+  id_emocionesp: number;
+}
+
+interface RemoteCheckinRow {
+  id_registro: number;
+  fecha_hora: string;
+  client_request_id: string;
+  emocion_especifica: {
+    emocion_general: {
+      nombre_emocion: string;
+    };
+  };
+}
+
+const MOOD_VALUES: Record<CheckinMood, number> = {
+  'Muy mal': 1,
+  Mal: 2,
+  Neutro: 3,
+  Bien: 4,
+  'Muy bien': 5,
+};
+
+async function getStudentId(): Promise<number> {
+  const client = getSupabaseClient();
+  const { data: userData, error: userError } = await client.auth.getUser();
+  if (userError) throw userError;
+  if (!userData.user) throw new Error('Inicia sesión para ver tus check-ins.');
+
+  const { data, error } = await client
+    .from('estudiante')
+    .select('id_estudiante')
+    .eq('auth_user_id', userData.user.id)
+    .maybeSingle<StudentRow>();
+  if (error) throw error;
+  if (!data) throw new Error('Completa tu perfil de estudiante antes de continuar.');
+  return data.id_estudiante;
+}
+
+async function getSpecificEmotionId(mood: CheckinMood): Promise<number> {
+  const client = getSupabaseClient();
+  const { data: generalEmotion, error: generalError } = await client
+    .from('emocion_general')
+    .select('id_emocion')
+    .eq('valor_escala', MOOD_VALUES[mood])
+    .single<GeneralEmotionRow>();
+  if (generalError) throw generalError;
+
+  const { data: specificEmotion, error: specificError } = await client
+    .from('emocion_especifica')
+    .select('id_emocionesp')
+    .eq('emocion_general_id_emocion', generalEmotion.id_emocion)
+    .eq('nombre_emocionesp', 'Sin especificar')
+    .single<SpecificEmotionRow>();
+  if (specificError) throw specificError;
+  return specificEmotion.id_emocionesp;
+}
+
+function mapRemoteRow(row: RemoteCheckinRow): CheckinHistoryEntry | null {
+  const mood = row.emocion_especifica?.emocion_general?.nombre_emocion;
+  if (!mood || !Object.keys(MOOD_VALUES).includes(mood)) return null;
+
+  return {
+    clientRequestId: row.client_request_id,
+    mood: mood as CheckinMood,
+    createdAt: row.fecha_hora,
+    syncStatus: 'synced',
+  };
+}
+
+export const supabaseCheckinGateway: CheckinRemoteGateway = {
+  async save(checkin: Omit<LocalCheckin, 'syncStatus'>) {
+    const [studentId, specificEmotionId] = await Promise.all([
+      getStudentId(),
+      getSpecificEmotionId(checkin.mood),
+    ]);
+    const { error } = await getSupabaseClient().from('registro_emocional').upsert(
+      {
+        client_request_id: checkin.clientRequestId,
+        emocion_especifica_id_emocionesp: specificEmotionId,
+        estudiante_id_estudiante: studentId,
+        fecha_hora: checkin.createdAt,
+      },
+      { onConflict: 'client_request_id', ignoreDuplicates: true },
+    );
+    if (error) throw error;
+  },
+
+  async list() {
+    const studentId = await getStudentId();
+    const { data, error } = await getSupabaseClient()
+      .from('registro_emocional')
+      .select(`
+        id_registro,
+        fecha_hora,
+        client_request_id,
+        emocion_especifica!inner(
+          emocion_general!inner(nombre_emocion)
+        )
+      `)
+      .eq('estudiante_id_estudiante', studentId)
+      .order('fecha_hora', { ascending: false })
+      .returns<RemoteCheckinRow[]>();
+    if (error) throw error;
+
+    return data.map(mapRemoteRow).filter((entry): entry is CheckinHistoryEntry => entry !== null);
+  },
+
+  async remove(clientRequestId: string) {
+    const studentId = await getStudentId();
+    const { error } = await getSupabaseClient()
+      .from('registro_emocional')
+      .delete()
+      .eq('client_request_id', clientRequestId)
+      .eq('estudiante_id_estudiante', studentId);
+    if (error) throw error;
+  },
+};
