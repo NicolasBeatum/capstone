@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 import { glassTokens } from '@/shared/components/glass';
+import { fontFamily as font } from '@/shared/typography';
 
 /* ── Paleta cálida alineada al diseño de referencia, con superficies glass/liquid ── */
 const cream = '#f3ecda';
@@ -38,20 +39,21 @@ export const styles = StyleSheet.create({
   avatarInitials: {
     color: yellowSoft,
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: font.extraBold,
   },
   headerText: {
     flex: 1,
   },
   greetingTitle: {
     fontSize: 23,
-    fontWeight: '800',
     color: navy,
+    fontFamily: font.extraBold,
   },
   greetingSubtitle: {
     fontSize: 13,
     color: textSecondary,
     marginTop: 2,
+    fontFamily: font.regular,
   },
   bellButton: {
     width: 42,
@@ -89,13 +91,13 @@ export const styles = StyleSheet.create({
   },
   weekCardTitle: {
     fontSize: 16,
-    fontWeight: '800',
     color: navy,
+    fontFamily: font.extraBold,
   },
   weekCardLink: {
     fontSize: 12,
-    fontWeight: '600',
     color: textSecondary,
+    fontFamily: font.semiBold,
   },
   /* ── Banner del test semanal (LiquidPanel aporta el gradiente) ── */
   testBanner: {
@@ -121,20 +123,21 @@ export const styles = StyleSheet.create({
   },
   testBadgeText: {
     fontSize: 9,
-    fontWeight: '800',
     letterSpacing: 0.8,
     color: navy,
+    fontFamily: font.extraBold,
   },
   testBannerTitle: {
     fontSize: 16,
-    fontWeight: '800',
     color: navy,
     marginBottom: 4,
+    fontFamily: font.extraBold,
   },
   testBannerDesc: {
     fontSize: 11,
     color: '#6b6557',
     marginBottom: 12,
+    fontFamily: font.regular,
   },
   testBannerButton: {
     backgroundColor: navy,
@@ -150,13 +153,13 @@ export const styles = StyleSheet.create({
   testBannerButtonText: {
     color: '#ffffff',
     fontSize: 12,
-    fontWeight: '700',
     marginRight: 4,
+    fontFamily: font.bold,
   },
   testBannerButtonArrow: {
     color: yellowSoft,
     fontSize: 14,
-    fontWeight: 'bold',
+    fontFamily: font.bold,
   },
   testBannerIllustration: {
     alignItems: 'center',
@@ -190,8 +193,8 @@ export const styles = StyleSheet.create({
   },
   quickTitle: {
     fontSize: 13,
-    fontWeight: '700',
     color: navy,
+    fontFamily: font.bold,
   },
   /* ── Pausa sugerida (GlassCard aporta fondo, borde y sombra) ── */
   recommendCard: {
@@ -218,24 +221,26 @@ export const styles = StyleSheet.create({
   },
   recommendEyebrow: {
     fontSize: 9,
-    fontWeight: '800',
     letterSpacing: 0.8,
     color: textMuted,
     marginBottom: 2,
+    fontFamily: font.extraBold,
   },
   recommendTitle: {
     fontSize: 13,
-    fontWeight: '700',
     color: navy,
+    fontFamily: font.bold,
   },
   recommendDesc: {
     fontSize: 11,
     color: textSecondary,
     marginTop: 2,
+    fontFamily: font.regular,
   },
   recommendChevron: {
     fontSize: 22,
     color: textMuted,
     marginLeft: 6,
+    fontFamily: font.bold,
   },
 });

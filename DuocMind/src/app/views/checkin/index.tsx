@@ -25,6 +25,7 @@ import { getSupabaseClient } from '@/features/backend/infrastructure/supabaseCli
 import { AuthActionButton } from '@/shared/components/AuthActionButton';
 import { BottomNav } from '@/shared/components/BottomNav';
 import { LiquidBackground, LiquidCard } from '@/shared/components/glass';
+import { ScalePress } from '@/shared/components/ScalePress';
 import { BellIcon, EmotionFace, LeafIcon } from '@/shared/components/icons';
 import { styles } from '@/shared/styles/checkin.styles';
 
@@ -214,11 +215,10 @@ export default function CheckinScreen() {
               {MOOD_OPTIONS.map((mood) => {
                 const isSelected = selectedMood === mood;
                 return (
-                  <TouchableOpacity
+                  <ScalePress
                     key={mood}
                     style={[styles.moodCard, isSelected && styles.moodCardSelected]}
                     onPress={() => setSelectedMood(mood)}
-                    activeOpacity={0.75}
                     accessibilityRole="button"
                     accessibilityLabel={`Seleccionar estado ${mood}`}
                     accessibilityState={{ selected: isSelected }}
@@ -234,7 +234,7 @@ export default function CheckinScreen() {
                     >
                       {mood}
                     </Text>
-                  </TouchableOpacity>
+                  </ScalePress>
                 );
               })}
             </View>

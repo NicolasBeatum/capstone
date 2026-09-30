@@ -3,6 +3,11 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { styles } from './BottomNav.styles';
 import { type Href, useRouter } from 'expo-router';
 import { useTheme } from '../theme';
+import {
+  HomeIcon,
+  SmileIcon,
+  SparkleIcon,
+} from './icons';
 
 interface BottomNavProps {
   currentTab: 'home' | 'checkin' | 'wellness';
@@ -14,14 +19,14 @@ export function BottomNav({ currentTab }: BottomNavProps) {
 
   const tabs: Array<{
     id: BottomNavProps['currentTab'];
-    icon: string;
     label: string;
     route: Href;
     a11y: string;
+    Icon: (props: { size?: number; color?: string }) => React.ReactNode;
   }> = [
-    { id: 'home' as const, icon: '⌂', label: 'Inicio', route: '/views/dashboard', a11y: 'Ir al inicio' },
-    { id: 'checkin' as const, icon: '☺', label: 'Check-in', route: '/views/checkin', a11y: 'Ir a Check-in' },
-    { id: 'wellness' as const, icon: '✦', label: 'Bienestar', route: '/views/wellness', a11y: 'Ir al centro de bienestar' },
+    { id: 'home' as const, label: 'Inicio', route: '/views/dashboard', a11y: 'Ir al inicio', Icon: HomeIcon },
+    { id: 'checkin' as const, label: 'Check-in', route: '/views/checkin', a11y: 'Ir a Check-in', Icon: SmileIcon },
+    { id: 'wellness' as const, label: 'Bienestar', route: '/views/wellness', a11y: 'Ir al centro de bienestar', Icon: SparkleIcon },
   ];
 
   return (
@@ -50,42 +55,20 @@ export function BottomNav({ currentTab }: BottomNavProps) {
 
       {tabs.map((tab) => {
         const isActive = currentTab === tab.id;
+        const color = isActive
+          ? (theme.isDark ? '#f3e7a0' : '#1a2b44')
+          : theme.textMuted;
         return (
           <TouchableOpacity
             key={tab.id}
-            style={[
-              styles.tab,
-              isActive && {
-                backgroundColor: theme.isDark
-                  ? 'rgba(243, 231, 160, 0.18)'
-                  : 'rgba(243, 231, 160, 0.80)',
-                borderWidth: 1,
-                borderColor: theme.isDark
-                  ? 'rgba(243, 231, 160, 0.30)'
-                  : 'rgba(212, 180, 60, 0.50)',
-              },
-            ]}
+            style={[styles.tab, isActive && styles.activePill]}
             onPress={() => router.push(tab.route)}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel={tab.a11y}
           >
-            <Text
-              style={[
-                styles.tabIcon,
-                { color: isActive ? (theme.isDark ? '#f3e7a0' : '#1a2b44') : theme.textMuted },
-              ]}
-            >
-              {tab.icon}
-            </Text>
-            <Text
-              style={[
-                styles.tabLabel,
-                { color: isActive ? (theme.isDark ? '#f3e7a0' : '#1a2b44') : theme.textMuted },
-              ]}
-            >
-              {tab.label}
-            </Text>
+            <tab.Icon size={21} color={color} />
+            <Text style={[styles.tabLabel, { color }]}>{tab.label}</Text>
           </TouchableOpacity>
         );
       })}

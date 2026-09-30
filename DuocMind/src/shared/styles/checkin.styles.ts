@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 import { glassTokens } from '@/shared/components/glass';
+import { fontFamily as font } from '@/shared/typography';
 
 /* ── Paleta cálida compartida con el dashboard, con superficies liquid ── */
 const cream = '#f3ecda';
@@ -39,7 +40,7 @@ export const styles = StyleSheet.create({
   avatarInitials: {
     color: yellowSoft,
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: font.extraBold,
   },
   headerText: {
     flex: 1,
@@ -48,14 +49,15 @@ export const styles = StyleSheet.create({
   },
   greetingTitle: {
     fontSize: 23,
-    fontWeight: '800',
     color: navy,
     lineHeight: 27,
+    fontFamily: font.extraBold,
   },
   greetingSubtitle: {
     fontSize: 12,
     color: textSecondary,
     marginTop: 1,
+    fontFamily: font.regular,
   },
   bellButton: {
     width: 42,
@@ -110,12 +112,12 @@ export const styles = StyleSheet.create({
   },
   moodLabel: {
     fontSize: 11,
-    fontWeight: '600',
     color: textSecondary,
+    fontFamily: font.semiBold,
   },
   moodLabelSelected: {
     color: navy,
-    fontWeight: '800',
+    fontFamily: font.extraBold,
   },
   /* Botón guardar */
   saveButton: {
@@ -133,13 +135,13 @@ export const styles = StyleSheet.create({
   saveButtonText: {
     color: '#ffffff',
     fontSize: 14,
-    fontWeight: '700',
     marginRight: 6,
+    fontFamily: font.bold,
   },
   saveButtonArrow: {
     color: yellowSoft,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: font.bold,
   },
   checkinFeedbackError: {
     color: '#9b3d33',

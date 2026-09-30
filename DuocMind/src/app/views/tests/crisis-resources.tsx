@@ -8,7 +8,7 @@ import {
   PhoneIcon,
   SirenIcon,
 } from '@/shared/components/icons';
-import { styles } from '@/shared/styles/daily-test.styles';
+import { styles } from '@/shared/styles/crisis-resources.styles';
 
 const BOOKING_URL = 'https://agenda.achs.cl/booking/step-1';
 

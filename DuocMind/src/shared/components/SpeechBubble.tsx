@@ -1,5 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { ScalePress } from './ScalePress';
+import { fontFamily as font } from '@/shared/typography';
 
 interface SpeechBubbleProps {
   label: string;
@@ -15,10 +17,9 @@ const fillSelected = '#f9dd85';
 /* Globo de diálogo para emociones: píldora pastel con colita inferior */
 export function SpeechBubble({ label, selected, onPress }: SpeechBubbleProps) {
   return (
-    <TouchableOpacity
+    <ScalePress
       style={styles.wrap}
       onPress={onPress}
-      activeOpacity={0.75}
       accessibilityRole="button"
       accessibilityLabel={`Emoción ${label}`}
       accessibilityState={{ selected }}
@@ -30,7 +31,7 @@ export function SpeechBubble({ label, selected, onPress }: SpeechBubbleProps) {
         style={[styles.tail, selected && styles.tailSelected]}
         pointerEvents="none"
       />
-    </TouchableOpacity>
+    </ScalePress>
   );
 }
 
@@ -49,12 +50,12 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
-    fontWeight: '700',
     color: fillText,
+    fontFamily: font.bold,
   },
   textSelected: {
     color: navy,
-    fontWeight: '800',
+    fontFamily: font.extraBold,
   },
   tail: {
     position: 'absolute',

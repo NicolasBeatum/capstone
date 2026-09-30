@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { ScalePress } from '@/shared/components/ScalePress';
 import { styles } from '@/shared/styles/daily-test.styles';
 import type { TestResult } from '../data/types';
 
@@ -83,25 +84,24 @@ export function InstrumentResult({
             <View style={styles.referralCard}>
               <Text style={styles.referralTitle}>{referral.title}</Text>
               <Text style={styles.referralText}>{referral.description}</Text>
-              <TouchableOpacity style={styles.referralButton} onPress={referral.onPress} activeOpacity={0.85}>
+              <ScalePress style={styles.referralButton} onPress={referral.onPress}>
                 <Text style={styles.referralButtonText}>{referral.label} →</Text>
-              </TouchableOpacity>
+              </ScalePress>
             </View>
           ) : null}
 
           <View style={styles.resultButtonsRow}>
-            <TouchableOpacity style={styles.acceptButton} onPress={onFinish} activeOpacity={0.85}>
+            <ScalePress style={styles.acceptButton} onPress={onFinish}>
               <Text style={styles.acceptButtonText}>{finishLabel}</Text>
-            </TouchableOpacity>
+            </ScalePress>
 
             {secondaryAction ? (
-              <TouchableOpacity
+              <ScalePress
                 style={styles.rejectButton}
                 onPress={secondaryAction.onPress}
-                activeOpacity={0.85}
               >
                 <Text style={styles.rejectButtonText}>{secondaryAction.label}</Text>
-              </TouchableOpacity>
+              </ScalePress>
             ) : null}
           </View>
         </View>

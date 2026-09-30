@@ -1,80 +1,84 @@
 import { StyleSheet } from 'react-native';
 
+import { glassTokens } from '@/shared/components/glass';
+import { fontFamily as font } from '@/shared/typography';
+
+/* ── Paleta cálida compartida con el resto de la app ── */
+const cream = '#f3ecda';
+const navy = '#1a2b44';
+const yellowSoft = '#f9dd85';
+const textSecondary = '#8a8272';
+const textMuted = '#b0a891';
+
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f9f9f7',
+    backgroundColor: cream,
+  },
+  flex: {
+    flex: 1,
   },
   scrollContent: {
     padding: 20,
-    paddingTop: 36,
+    paddingTop: 48,
     paddingBottom: 40,
   },
-  bannerCard: {
-    backgroundColor: '#fbf6dc',
-    borderRadius: 24,
-    padding: 20,
+  /* ── Bienvenida ── */
+  hero: {
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#f3e7a0',
-    marginBottom: 20,
+    marginBottom: 26,
   },
-  iconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    backgroundColor: '#f3e7a0',
+  heroIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 22,
+    backgroundColor: glassTokens.surfaceStrong,
+    borderWidth: 1,
+    borderColor: glassTokens.border,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
+    ...glassTokens.shadow,
   },
-  iconText: {
+  heroTitle: {
     fontSize: 26,
+    color: navy,
+    fontFamily: font.extraBold,
   },
-  bannerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1a2b44',
-  },
-  bannerSubtitle: {
-    fontSize: 12,
-    color: '#64748b',
+  heroSubtitle: {
+    fontSize: 13,
+    color: textSecondary,
     textAlign: 'center',
-    marginTop: 4,
-    lineHeight: 18,
+    marginTop: 6,
+    lineHeight: 19,
+    fontFamily: font.regular,
   },
   badgePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: glassTokens.surfaceStrong,
+    borderWidth: 1,
+    borderColor: glassTokens.border,
     paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: 20,
-    marginTop: 12,
+    marginTop: 14,
+    gap: 6,
   },
   badgeDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: '#d4b43c',
-    marginRight: 6,
   },
   badgeText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#1a2b44',
+    color: navy,
+    fontFamily: font.semiBold,
   },
+  /* ── Formulario (GlassCard aporta fondo, borde y sombra) ── */
   formCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
     padding: 20,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 2,
   },
   inputGroup: {
     marginBottom: 16,
@@ -87,50 +91,44 @@ export const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#1a2b44',
+    color: navy,
     marginBottom: 6,
+    fontFamily: font.bold,
   },
   forgotPasswordText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#d4b43c',
+    color: '#c1912c',
+    fontFamily: font.semiBold,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: glassTokens.surfaceStrong,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: glassTokens.border,
     paddingHorizontal: 14,
-  },
-  inputLeadingIcon: {
-    fontSize: 15,
-    color: '#94a3b8',
-    marginRight: 10,
+    gap: 10,
   },
   input: {
     flex: 1,
     height: 48,
     fontSize: 13,
-    color: '#1e293b',
+    color: navy,
+    fontFamily: font.regular,
   },
   eyeButton: {
-    padding: 6,
-  },
-  eyeIcon: {
-    fontSize: 16,
+    padding: 4,
   },
   primaryButton: {
-    backgroundColor: '#1a2b44',
+    backgroundColor: navy,
     borderRadius: 16,
     height: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
-    shadowColor: '#1a2b44',
+    shadowColor: navy,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -139,13 +137,13 @@ export const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#ffffff',
     fontSize: 14,
-    fontWeight: '700',
     marginRight: 8,
+    fontFamily: font.bold,
   },
   buttonArrow: {
-    color: '#ffffff',
+    color: yellowSoft,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: font.bold,
   },
   feedbackError: {
     color: '#9b3d33',
@@ -167,79 +165,76 @@ export const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: glassTokens.border,
   },
   dividerText: {
     fontSize: 10,
-    fontWeight: '700',
-    color: '#94a3b8',
+    color: textMuted,
     marginHorizontal: 10,
+    fontFamily: font.bold,
   },
   secondaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: glassTokens.surfaceStrong,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: glassTokens.border,
     borderRadius: 16,
-    height: 44,
+    height: 46,
     marginBottom: 10,
+    gap: 8,
   },
   socialIcon: {
     fontSize: 14,
-    fontWeight: 'bold',
     color: '#4285F4',
-    marginRight: 8,
+    fontFamily: font.extraBold,
   },
   secondaryButtonText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#334155',
+    color: textSecondary,
+    fontFamily: font.bold,
   },
   ssoButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fbf6dc',
+    backgroundColor: 'rgba(249, 221, 133, 0.35)',
     borderWidth: 1,
-    borderColor: '#f3e7a0',
+    borderColor: glassTokens.border,
     borderRadius: 16,
-    height: 44,
-  },
-  ssoIcon: {
-    fontSize: 14,
-    marginRight: 8,
+    height: 46,
+    gap: 8,
   },
   ssoButtonText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#1a2b44',
+    color: navy,
+    fontFamily: font.bold,
   },
+  /* ── Pie ── */
   footerContainer: {
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 26,
   },
   footerText: {
     fontSize: 12,
-    color: '#64748b',
+    color: textSecondary,
+    fontFamily: font.regular,
   },
   registerLink: {
-    color: '#1a2b44',
-    fontWeight: '700',
+    color: navy,
     textDecorationLine: 'underline',
+    fontFamily: font.bold,
   },
   securityBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
-  },
-  shieldIcon: {
-    fontSize: 12,
-    marginRight: 6,
+    marginTop: 14,
+    gap: 6,
   },
   securityText: {
     fontSize: 10,
-    color: '#94a3b8',
+    color: textMuted,
+    fontFamily: font.regular,
   },
 });

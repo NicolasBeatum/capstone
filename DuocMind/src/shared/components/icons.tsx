@@ -208,3 +208,110 @@ export function HandsHeartIcon({ size = 20, color = '#1a2b44' }: IconProps) {
     </Svg>
   );
 }
+
+
+export function TimerIcon({ size = 22, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Circle cx={12} cy={13.5} r={7} stroke={color} strokeWidth={STROKE} fill="none" />
+      <Path d="M12 13.5 v-3.8 M12 13.5 l2.4 1.7" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+      <Path d="M9.5 3.5 h5 M12 3.5 v2.5" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function MeditationIcon({ size = 22, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Circle cx={12} cy={6.8} r={2.4} stroke={color} strokeWidth={STROKE} fill="none" />
+      <Path d="M6.5 17 q5.5 -6.4 11 0" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+      <Path d="M4 20 q8 2.2 16 0" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function MoonIcon({ size = 22, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M20 13.6 A8 8 0 1 1 10.4 4 A6.4 6.4 0 0 0 20 13.6 z"
+        stroke={color}
+        strokeWidth={STROKE}
+        fill="none"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+
+
+export function HomeIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M4 11 L12 4 L20 11" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M6.5 9.5 V20 h11 V9.5" stroke={color} strokeWidth={STROKE} fill="none" strokeLinejoin="round" />
+      <Path d="M10.5 20 v-5 h3 v5" stroke={color} strokeWidth={STROKE} fill="none" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function SmileIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Circle cx={12} cy={12} r={9} stroke={color} strokeWidth={STROKE} fill="none" />
+      <Circle cx={8.8} cy={9.8} r={1} fill={color} />
+      <Circle cx={15.2} cy={9.8} r={1} fill={color} />
+      <Path d="M8 14.2 q4 3 8 0" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+
+
+
+export function MailIcon({ size = 18, color = '#94a3b8' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Rect x={3} y={5.5} width={18} height={13} rx={2.5} stroke={color} strokeWidth={STROKE} fill="none" />
+      <Path d="M4 7.5 L12 13 L20 7.5" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function LockIcon({ size = 18, color = '#94a3b8' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Rect x={5.5} y={10.5} width={13} height={9.5} rx={2} stroke={color} strokeWidth={STROKE} fill="none" />
+      <Path d="M8.5 10.5 V8 a3.5 3.5 0 0 1 7 0 v2.5" stroke={color} strokeWidth={STROKE} fill="none" />
+      <Circle cx={12} cy={15} r={1.2} fill={color} />
+    </Svg>
+  );
+}
+
+export function EyeIcon({ size = 18, color = '#94a3b8' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M2.5 12 q4.5 -6 9.5 -6 t9.5 6 q-4.5 6 -9.5 6 t-9.5 -6 z" stroke={color} strokeWidth={STROKE} fill="none" strokeLinejoin="round" />
+      <Circle cx={12} cy={12} r={2.6} stroke={color} strokeWidth={STROKE} fill="none" />
+    </Svg>
+  );
+}
+
+export function EyeOffIcon({ size = 18, color = '#94a3b8' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M4 4 L20 20" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+      <Path d="M9.8 6.2 A9.4 9.4 0 0 1 12 6 q5 0 9.5 6 a17 17 0 0 1 -3.1 3.4 M6.3 7.7 A16.4 16.4 0 0 0 2.5 12 q4.5 6 9.5 6 a8.6 8.6 0 0 0 3.6 -0.8" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function ShieldIcon({ size = 14, color = '#94a3b8' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M12 3.5 L19.5 6 v6 c0 4.5 -3.2 7.4 -7.5 8.5 C7.7 19.4 4.5 16.5 4.5 12 V6 z" stroke={color} strokeWidth={STROKE} fill="none" strokeLinejoin="round" />
+      <Path d="M9 12 l2.2 2.2 L15.5 9.8" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}

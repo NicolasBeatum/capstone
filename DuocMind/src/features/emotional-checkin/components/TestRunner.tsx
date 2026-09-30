@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
-import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { ScalePress } from '@/shared/components/ScalePress';
 import { ClipboardIcon, SparkleIcon } from '@/shared/components/icons';
 import { styles } from '@/shared/styles/daily-test.styles';
 import type { ScaleOption, TestQuestion } from '../data/types';
@@ -31,6 +32,16 @@ export function TestRunner({ eyebrow, subtitle, questions, options, onAnswer, on
   );
   const selectedAnswer = answers[currentQuestion.id];
   const isLastStep = currentStep === questions.length - 1;
+
+  /* La barra avanza con una transición suave en lugar de saltar de golpe */
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(progressAnim, {
+      toValue: progress,
+      duration: 450,
+      useNativeDriver: false,
+    }).start();
+  }, [progress, progressAnim]);
 
   const handleSelect = (option: ScaleOption) => {
     setAnswers((prev) => ({ ...prev, [currentQuestion.id]: option.value }));
@@ -78,7 +89,17 @@ export function TestRunner({ eyebrow, subtitle, questions, options, onAnswer, on
           </View>
 
           <View style={styles.progressBarTrack}>
-            <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+            <Animated.View
+              style={[
+                styles.progressBarFill,
+                {
+                  width: progressAnim.interpolate({
+                    inputRange: [0, 100],
+                    outputRange: ['0%', '100%'],
+                  }),
+                },
+              ]}
+            />
           </View>
 
           <View style={styles.questionRow}>
@@ -89,9 +110,9 @@ export function TestRunner({ eyebrow, subtitle, questions, options, onAnswer, on
               ) : null}
             </View>
             <View style={styles.questionIllustration}>
-              <SparkleIcon size={12} />
-              <ClipboardIcon size={52} />
-              <SparkleIcon size={9} color="#e8a93c" />
+              <SparkleIcon size={10} />
+              <ClipboardIcon size={42} />
+              <SparkleIcon size={8} color="#e8a93c" />
             </View>
           </View>
 
@@ -100,11 +121,13 @@ export function TestRunner({ eyebrow, subtitle, questions, options, onAnswer, on
               const isSelected = selectedAnswer === option.value;
 
               return (
-                <TouchableOpacity
+                <ScalePress
                   key={option.label}
                   style={[styles.optionButton, isSelected && styles.optionButtonSelected]}
                   onPress={() => handleSelect(option)}
-                  activeOpacity={0.9}
+                  accessibilityRole="button"
+                  accessibilityLabel={option.label}
+                  accessibilityState={{ selected: isSelected }}
                 >
                   <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
                     {option.label}
@@ -112,14 +135,14 @@ export function TestRunner({ eyebrow, subtitle, questions, options, onAnswer, on
                   <View style={[styles.selector, isSelected && styles.selectorSelected]}>
                     {isSelected && <View style={styles.selectorInner} />}
                   </View>
-                </TouchableOpacity>
+                </ScalePress>
               );
             })}
           </View>
 
-          <TouchableOpacity style={styles.primaryButton} onPress={handleContinue} activeOpacity={0.9}>
+          <ScalePress style={styles.primaryButton} onPress={handleContinue}>
             <Text style={styles.primaryButtonText}>{isLastStep ? 'Finalizar' : 'Siguiente'} →</Text>
-          </TouchableOpacity>
+          </ScalePress>
         </View>
       </ScrollView>
     </>
