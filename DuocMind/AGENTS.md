@@ -40,7 +40,6 @@ Una solicitud del usuario autoriza el alcance indicado, no otros incrementos. La
 - Usar TypeScript estricto; evitar `any` y validar datos externos en sus límites.
 - Usar `PascalCase` para componentes y tipos, `camelCase` para funciones y variables, y `UPPER_SNAKE_CASE` solo para constantes globales.
 - Escribir código, nombres de archivos e identificadores en inglés. Escribir documentación, comentarios, textos de interfaz y etiquetas de accesibilidad en español.
-- Tipografía: usar Nunito como fuente predeterminada en toda la interfaz. Usar Inter exclusivamente en vistas serias o con contenido sensible (por ejemplo, recursos de crisis o apoyo emocional). Las familias y sus variantes se definen en `src/shared/typography.ts` y se cargan en `src/app/_layout.tsx`; no declarar familias tipográficas literales en las hojas de estilo.
 - Mantener componentes pequeños y accesibles. Los comentarios explican decisiones, no repiten el código. Evitar dependencias circulares y acceso a detalles internos de otra funcionalidad.
 - No registrar secretos, sesiones, datos personales ni respuestas emocionales. No incluir claves privilegiadas en el cliente ni versionar archivos de entorno reales.
 

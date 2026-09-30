@@ -145,6 +145,18 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: font.bold,
   },
+  feedbackError: {
+    color: '#9b3d33',
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 12,
+  },
+  feedbackSuccess: {
+    color: '#256b4a',
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 12,
+  },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',

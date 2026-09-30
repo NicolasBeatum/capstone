@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,10 +10,12 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { GlassCard, LiquidBackground } from '@/shared/components/glass';
+import { AuthActionButton } from '@/shared/components/AuthActionButton';
+import { getAuthenticationErrorMessage, loginAccount } from '@/features/auth/application/authentication';
+import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
 import {
   EyeIcon,
   EyeOffIcon,
-  GradCapIcon,
   LeafIcon,
   LockIcon,
   MailIcon,
@@ -28,20 +29,40 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{ message: string; tone: 'error' | 'success' } | null>(null);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    setFeedback(null);
     if (!email || !password) {
-      Alert.alert('Campos requeridos', 'Por favor ingresa tu correo y contraseña.');
+      setFeedback({ tone: 'error', message: 'Ingresa tu correo y contraseña.' });
       return;
     }
-    router.push('/views/dashboard');
+
+    setIsSubmitting(true);
+    try {
+      const destination = await loginAccount(email, password, supabaseAuthGateway);
+      router.replace(destination === 'profile' ? '/views/auth/profile' : '/views/dashboard');
+    } catch (error) {
+      setFeedback({ tone: 'error', message: getAuthenticationErrorMessage(error) });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleForgotPassword = () => {
-    Alert.alert(
-      'Recuperación de contraseña',
-      'Se ha enviado un enlace de recuperación a tu correo institucional.'
-    );
+  const handleForgotPassword = async () => {
+    setFeedback(null);
+    if (!email.trim()) {
+      setFeedback({ tone: 'error', message: 'Ingresa tu correo para solicitar la recuperación.' });
+      return;
+    }
+
+    try {
+      await supabaseAuthGateway.requestPasswordReset(email.trim());
+      setFeedback({ tone: 'success', message: 'Si la cuenta existe, recibirás un enlace de recuperación.' });
+    } catch (error) {
+      setFeedback({ tone: 'error', message: getAuthenticationErrorMessage(error) });
+    }
   };
 
   return (
@@ -119,41 +140,25 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            {/* Botón de Inicio */}
-            <TouchableOpacity
-              style={styles.primaryButton}
+            {/* Inicio de sesión */}
+            <AuthActionButton
+              label="Iniciar Sesión"
+              busyLabel="Ingresando…"
+              isBusy={isSubmitting}
               onPress={handleLogin}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.primaryButtonText}>Iniciar Sesión</Text>
-              <Text style={styles.buttonArrow}>→</Text>
-            </TouchableOpacity>
+              style={styles.primaryButton}
+              textStyle={styles.primaryButtonText}
+              arrowStyle={styles.buttonArrow}
+            />
 
-            {/* Separador */}
-            <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>O CONTINÚA CON</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Botones de inicio alternativo */}
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() => router.push('/views/dashboard')}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.socialIcon}>G</Text>
-              <Text style={styles.secondaryButtonText}>Cuenta de Google</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.ssoButton}
-              onPress={() => router.push('/views/dashboard')}
-              activeOpacity={0.8}
-            >
-              <GradCapIcon size={18} color="#1a2b44" />
-              <Text style={styles.ssoButtonText}>Portal Universitario (SSO)</Text>
-            </TouchableOpacity>
+            {feedback ? (
+              <Text
+                accessibilityLiveRegion="polite"
+                style={feedback.tone === 'error' ? styles.feedbackError : styles.feedbackSuccess}
+              >
+                {feedback.message}
+              </Text>
+            ) : null}
           </GlassCard>
 
           {/* ── Enlace a Registro ── */}

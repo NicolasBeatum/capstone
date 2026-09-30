@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
+﻿import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BottomNav } from '@/shared/components/BottomNav';
 import { styles } from '@/shared/styles/daily-test.styles';
@@ -9,8 +9,9 @@ import { TestRunner } from '../components/TestRunner';
 import { gad7 } from '../data/gad7';
 import { phq9 } from '../data/phq9';
 import { sondeoInicial, type SondeoResult } from '../data/sondeoInicial';
-import type { Instrument, TestResult } from '../data/types';
+import type { Instrument, TestQuestion, TestResult } from '../data/types';
 import { who5 } from '../data/who5';
+import { fetchStressTestInstrument } from '../infrastructure/stressTestRepository';
 import {
   isPhq9Item9Positive,
   needsModerateReferral,
@@ -37,12 +38,53 @@ const REFERRAL_DESCRIPTION =
 export default function DailyCheckinScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ mood?: string }>();
+  const [loading, setLoading] = useState(() => !shouldOfferSondeo(String(params.mood ?? '')));
+  const [error, setError] = useState<string | null>(null);
+  const [pss10Instrument, setPss10Instrument] = useState<Instrument | null>(null);
   const [pendingGad7, setPendingGad7] = useState(false);
   const [step, setStep] = useState<Step>(() =>
     shouldOfferSondeo(String(params.mood ?? ''))
       ? { name: 'instrument', instrument: sondeoInicial }
       : { name: 'instrument', instrument: who5 },
   );
+
+  const loadTest = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const inst = await fetchStressTestInstrument();
+      setPss10Instrument(inst);
+      if (!shouldOfferSondeo(String(params.mood ?? ''))) {
+        setStep({ name: 'instrument', instrument: inst });
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido al cargar el test';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!shouldOfferSondeo(String(params.mood ?? ''))) {
+      void loadTest();
+    }
+  }, []);
+
+  const handlePss10Complete = (answers: Record<number, number>) => {
+    if (!pss10Instrument) return;
+    const result = pss10Instrument.score(answers);
+    const isHighStress =
+      ['alto', 'muy_alto', 'muy alto', 'severo', 'alta'].includes(String(result.category).toLowerCase()) ||
+      result.score >= Math.round(result.maxScore * 0.7);
+
+    if (isHighStress) {
+      router.replace('/views/tests/crisis-resources');
+      return;
+    }
+
+    setStep({ name: 'done' });
+  };
 
   const handleWho5Complete = (answers: Record<number, number>) => {
     const result = who5.score(answers);
@@ -70,8 +112,12 @@ export default function DailyCheckinScreen() {
     setStep({ name: 'result', instrument: sondeoInicial, result, next: 'done' });
   };
 
-  const handlePhq9Answer = (questionId: number, value: number) => {
-    if (isPhq9Item9Positive(questionId, value)) {
+  const handleAnswer = (questionId: number, value: number, question?: TestQuestion) => {
+    if (question?.isCritica && value > 0) {
+      router.replace('/views/tests/crisis-resources');
+      return;
+    }
+    if (step.name === 'instrument' && step.instrument.id === 'phq9' && isPhq9Item9Positive(questionId, value)) {
       router.replace('/views/tests/crisis-resources');
     }
   };
@@ -87,6 +133,7 @@ export default function DailyCheckinScreen() {
   };
 
   const completionHandlers: Record<string, (answers: Record<number, number>) => void> = {
+    pss10: handlePss10Complete,
     who5: handleWho5Complete,
     sondeo: handleSondeoComplete,
     phq9: handlePhq9Complete,
@@ -144,6 +191,42 @@ export default function DailyCheckinScreen() {
     );
   };
 
+  if (loading) {
+    return (
+      <View style={styles.safeArea}>
+        <View style={styles.container}>
+          <View style={[styles.panel, { alignItems: 'center', paddingVertical: 40 }]}>
+            <ActivityIndicator size="large" color="#1a2b44" style={{ marginBottom: 16 }} />
+            <Text style={styles.questionText}>Cargando test de estrés...</Text>
+            <Text style={styles.helperText}>Obteniendo preguntas desde Supabase</Text>
+          </View>
+        </View>
+        <BottomNav currentTab="checkin" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.safeArea}>
+        <View style={styles.container}>
+          <View style={[styles.panel, { alignItems: 'center', paddingVertical: 32 }]}>
+            <Text style={[styles.questionText, { textAlign: 'center', marginBottom: 8 }]}>
+              No pudimos cargar el test
+            </Text>
+            <Text style={[styles.helperText, { textAlign: 'center', marginBottom: 20 }]}>
+              {error}
+            </Text>
+            <TouchableOpacity style={styles.primaryButton} onPress={loadTest} activeOpacity={0.8}>
+              <Text style={styles.primaryButtonText}>Reintentar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <BottomNav currentTab="checkin" />
+      </View>
+    );
+  }
+
   const renderStep = () => {
     if (step.name === 'instrument') {
       const { instrument } = step;
@@ -154,7 +237,7 @@ export default function DailyCheckinScreen() {
           subtitle={instrument.name}
           questions={instrument.questions}
           options={instrument.options}
-          onAnswer={instrument.id === 'phq9' ? handlePhq9Answer : undefined}
+          onAnswer={handleAnswer}
           onComplete={completionHandlers[instrument.id]}
         />
       );
@@ -190,9 +273,9 @@ export default function DailyCheckinScreen() {
 
     return (
       <TestOffer
-        title="Check-in completado"
+        title="Gracias por responder"
         subtitle="Registro de hoy"
-        description="Tomarte un momento para revisar cómo estás es un buen paso. Tu registro de hoy quedó guardado."
+        description="Tomarte un momento para revisar cómo estás es un buen paso. Puedes volver cuando quieras."
         primaryLabel="Volver"
         onPrimary={() => router.back()}
       />

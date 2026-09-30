@@ -5,6 +5,7 @@ import { ScalePress } from '@/shared/components/ScalePress';
 import { ClipboardIcon, SparkleIcon } from '@/shared/components/icons';
 import { styles } from '@/shared/styles/daily-test.styles';
 import type { ScaleOption, TestQuestion } from '../data/types';
+import { getQuestionOptions } from '../data/questionOptions';
 
 interface TestRunnerProps {
   /** Etiqueta sobre la barra de progreso, ej. 'TEST DE ÁNIMO (PHQ-9)' */
@@ -14,7 +15,7 @@ interface TestRunnerProps {
   questions: TestQuestion[];
   options: ScaleOption[];
   /** Se invoca en cada respuesta; permite interceptar ítems críticos (PHQ-9 ítem 9) */
-  onAnswer?: (questionId: number, value: number) => void;
+  onAnswer?: (questionId: number, value: number, question: TestQuestion) => void;
   onComplete: (answers: Record<number, number>) => void;
 }
 
@@ -24,6 +25,7 @@ export function TestRunner({ eyebrow, subtitle, questions, options, onAnswer, on
   const [answers, setAnswers] = useState<Record<number, number>>({});
 
   const currentQuestion = questions[currentStep];
+  const currentOptions = getQuestionOptions(currentQuestion, options);
   const progress = useMemo(
     () => ((currentStep + 1) / questions.length) * 100,
     [currentStep, questions.length],
@@ -43,7 +45,7 @@ export function TestRunner({ eyebrow, subtitle, questions, options, onAnswer, on
 
   const handleSelect = (option: ScaleOption) => {
     setAnswers((prev) => ({ ...prev, [currentQuestion.id]: option.value }));
-    onAnswer?.(currentQuestion.id, option.value);
+    onAnswer?.(currentQuestion.id, option.value, currentQuestion);
   };
 
   const handleContinue = () => {
@@ -115,7 +117,7 @@ export function TestRunner({ eyebrow, subtitle, questions, options, onAnswer, on
           </View>
 
           <View style={styles.optionsList}>
-            {options.map((option) => {
+            {currentOptions.map((option) => {
               const isSelected = selectedAnswer === option.value;
 
               return (

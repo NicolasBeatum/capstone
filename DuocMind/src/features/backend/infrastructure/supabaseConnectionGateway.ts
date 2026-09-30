@@ -1,24 +1,12 @@
 import 'react-native-url-polyfill/auto';
 
 import NetInfo from '@react-native-community/netinfo';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 import type { BackendConnectionGateway } from '../application/checkBackendConnection';
 import { probeBackend } from './probeBackend';
+import { initializeSupabaseClient } from './supabaseClient';
 
 const HEALTH_CHECK_TIMEOUT_MS = 10_000;
-
-let client: SupabaseClient | undefined;
-
-function initializeClient(url: string, publishableKey: string): void {
-  client ??= createClient(url, publishableKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
-  });
-}
 
 async function requestHealth(url: string, publishableKey: string): Promise<boolean> {
   const controller = new AbortController();
@@ -55,7 +43,9 @@ export const supabaseConnectionGateway: BackendConnectionGateway = {
         publishableKey: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
       },
       {
-        initializeClient,
+        initializeClient: (url, publishableKey) => {
+          initializeSupabaseClient(url, publishableKey);
+        },
         getNetworkState: () => NetInfo.fetch(),
         refreshNetworkState: () => NetInfo.refresh(),
         requestHealth,

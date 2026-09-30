@@ -27,13 +27,21 @@ export function ScalePress({ children, style, ...rest }: ScalePressProps) {
   };
 
   return (
-    <Pressable
-      style={style}
-      onPressIn={() => animateTo(0.96)}
-      onPressOut={() => animateTo(1)}
+    <AnimatedPressable
       {...rest}
+      style={[style, { transform: [{ scale }] }]}
+      onPressIn={(event) => {
+        animateTo(0.96);
+        rest.onPressIn?.(event);
+      }}
+      onPressOut={(event) => {
+        animateTo(1);
+        rest.onPressOut?.(event);
+      }}
     >
-      <Animated.View style={{ transform: [{ scale }] }}>{children}</Animated.View>
-    </Pressable>
+      {children}
+    </AnimatedPressable>
   );
 }
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);

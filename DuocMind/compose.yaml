@@ -2,6 +2,7 @@ services:
   app:
     build:
       context: .
+    command: ["sh", "-c", "npm ci --prefer-offline && exec npx expo start --web --host lan --clear"]
     ports:
       - "8081:8081"
     environment:

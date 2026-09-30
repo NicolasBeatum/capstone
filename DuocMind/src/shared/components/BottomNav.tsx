@@ -7,11 +7,10 @@ import {
   HomeIcon,
   SmileIcon,
   SparkleIcon,
-  UserIcon,
 } from './icons';
 
 interface BottomNavProps {
-  currentTab: 'home' | 'checkin' | 'wellness' | 'profile';
+  currentTab: 'home' | 'checkin' | 'wellness';
 }
 
 export function BottomNav({ currentTab }: BottomNavProps) {
@@ -28,7 +27,6 @@ export function BottomNav({ currentTab }: BottomNavProps) {
     { id: 'home' as const, label: 'Inicio', route: '/views/dashboard', a11y: 'Ir al inicio', Icon: HomeIcon },
     { id: 'checkin' as const, label: 'Check-in', route: '/views/checkin', a11y: 'Ir a Check-in', Icon: SmileIcon },
     { id: 'wellness' as const, label: 'Bienestar', route: '/views/wellness', a11y: 'Ir al centro de bienestar', Icon: SparkleIcon },
-    { id: 'profile' as const, label: 'Perfil', route: '/views/profile', a11y: 'Ir al perfil', Icon: UserIcon },
   ];
 
   return (
@@ -64,10 +62,7 @@ export function BottomNav({ currentTab }: BottomNavProps) {
           <TouchableOpacity
             key={tab.id}
             style={[styles.tab, isActive && styles.activePill]}
-            onPress={() => {
-              if (isActive) return;
-              router.push(tab.route);
-            }}
+            onPress={() => router.push(tab.route)}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel={tab.a11y}
