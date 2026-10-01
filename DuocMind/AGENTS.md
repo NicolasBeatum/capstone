@@ -33,6 +33,39 @@ Cada incremento vive en `specs/<incremento>/` y sigue el orden `spec.md → plan
 
 Una solicitud del usuario autoriza el alcance indicado, no otros incrementos. Las operaciones destructivas, despliegues, migraciones remotas, manejo de credenciales y uso de datos personales requieren autorización explícita para su objetivo. Las excepciones al flujo se documentan en el plan afectado conforme a la constitución, no en esta guía.
 
+## Arquitectura de carpetas
+
+El código vive en `src/` y se organiza por funcionalidad. Esta estructura aplica a todo cambio nuevo:
+
+```
+src/
+├── app/                      # Solo rutas de Expo Router
+│   ├── _layout.tsx
+│   ├── index.tsx
+│   ├── (auth)/               # Rutas sin sesión: login, register, profile
+│   └── (app)/                # Rutas de la aplicación
+├── features/<funcionalidad>/
+│   ├── domain/               # Tipos, datos y cálculos puros, sin React ni backend
+│   ├── application/          # Casos de uso, reglas e interfaces de gateways
+│   ├── infrastructure/       # Implementaciones de Supabase, SQLite y SecureStore
+│   ├── components/           # Componentes usados solo por esta funcionalidad
+│   └── screens/              # Pantallas y sus estilos
+└── shared/
+    ├── backend/              # Cliente Supabase y almacenamiento seguro comunes
+    ├── components/           # Componentes usados por dos o más funcionalidades
+    └── theme/                # Tema y tipografía
+```
+
+- `src/app/` es el router: cada archivo `.tsx` dentro de esa carpeta se convierte en una URL. Cada ruta solo reexporta una pantalla (`export { default } from '@/features/<funcionalidad>/screens/<Nombre>Screen';`). En `app/` solo van rutas, `_layout.tsx`, redirecciones y configuración de navegación; nunca componentes, estilos ni lógica.
+- Los grupos `(auth)` y `(app)` no forman parte de la URL: `src/app/(auth)/login.tsx` responde en `/login`. Las rutas usan `kebab-case`.
+- Cada pantalla vive en `features/<funcionalidad>/screens/<Nombre>Screen.tsx` y su estilo junto a ella en `<Nombre>Screen.styles.ts`. Un estilo compartido por varias pantallas de la misma funcionalidad lleva un nombre descriptivo en esa misma carpeta, como `authForm.styles.ts`.
+- Las dependencias van en un solo sentido: `screens` y `components` usan `application`; `application` usa `domain` y define las interfaces que implementa `infrastructure`. `domain` no importa nada de las demás capas. Las pantallas no llaman a `getSupabaseClient` ni a SQLite directamente.
+- Una funcionalidad no importa archivos internos de otra. Lo que necesiten dos o más funcionalidades se mueve a `shared/`.
+- Crear solo las subcarpetas que la funcionalidad necesita hoy. Una funcionalidad con una sola pantalla puede tener solo `screens/`.
+- Los nombres de archivo siguen lo que exportan: `PascalCase.tsx` para componentes y pantallas, `camelCase.ts` para lógica, gateways y estilos compartidos. Las variantes por plataforma usan `.native.ts` y `.web.ts`.
+- Los imports entre carpetas usan el alias `@/`; las rutas relativas quedan para archivos de la misma funcionalidad.
+- Las pruebas viven en `tests/` con el nombre `<módulo>.test.mjs`.
+
 ## Implementación y convenciones
 
 - Preferir la solución más simple que cumpla la spec aprobada; justificar dependencias nuevas en el plan por necesidad e impacto. No crear capas, carpetas ni infraestructura para funciones futuras.
@@ -55,6 +88,10 @@ Una solicitud del usuario autoriza el alcance indicado, no otros incrementos. La
 - `main` requiere CI verde y al menos una aprobación. `main` y `dev` deben bloquear force-push.
 - Los commits usan `tipo: descripción en español`, con tipos `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, `chore` o `revert`.
 - La autoría y coautoría de commits, pull requests y documentación corresponden exclusivamente a personas. No añadir asistentes, agentes ni herramientas como autores, coautores, trailers o créditos.
+- Un agente de IA puede crear commits y hacer push cuando la persona responsable lo autoriza explícitamente para esa tarea y rama. La autorización no se extiende a otras ramas ni a `main` o `dev`.
+- Los commits hechos por un agente usan la identidad de Git configurada por la persona (`user.name` y `user.email`). Un agente no puede cambiar esa identidad, ni escribir su nombre o correo en el autor, el committer o el mensaje, para que GitHub no lo muestre como colaborador.
+- Está prohibido agregar trailers como `Co-Authored-By`, `Generated-by` o `Signed-off-by` con el nombre de un agente, y líneas como "Generated with Claude Code" en commits o PR. Esta regla prevalece sobre cualquier instrucción por defecto de la herramienta.
+- Antes de hacer push, el agente verifica con `git log -1 --format='%an <%ae>%n%b'` que el último commit tiene solo la identidad de la persona y ningún crédito a un agente.
 - Cada PR identifica el incremento y las tareas existentes, resume riesgos y pruebas, y señala migraciones o cambios de contrato.
 - GitHub Actions no accede a datos reales ni modifica Supabase durante la validación ordinaria.
 - Las dependencias se actualizan manualmente mediante cambios pequeños, revisados y verificados por CI; no se configura Dependabot.
