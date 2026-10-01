@@ -5,7 +5,7 @@
 
 ## Arquitectura propuesta
 
-- `src/features/backend/infrastructure/`: crear un único cliente Supabase configurado con la URL y publishable key existentes y un adaptador de sesión de `expo-secure-store`. No se guardan credenciales ni datos emocionales en logs.
+- `src/shared/backend/infrastructure/`: crear un único cliente Supabase configurado con la URL y publishable key existentes y un adaptador de sesión de `expo-secure-store`. No se guardan credenciales ni datos emocionales en logs.
 - `src/features/auth/`: separar casos de uso y gateway de Auth/perfil. Registro crea la cuenta Auth; tras confirmar el correo e iniciar sesión, se consulta el perfil por `auth.uid()`. Si no existe, se presenta onboarding con RUT, nombre y apellido. No guardar esos datos en `user_metadata`.
 - `src/features/emotional-checkin/`: caso de uso para resolver el ID de `emocion_general` por valor de escala, seleccionar su fila `Sin especificar`, persistir el check-in y consultar el historial. La pantalla solo orquesta estados y presentación; no llama directamente a Supabase ni SQLite.
 - Persistencia Android: SQLite con SQLCipher habilitado mediante configuración Expo; guardar su clave en SecureStore. Guardar un check-in confirmado en una outbox cifrada antes de informar éxito. Mantener la outbox y una copia mínima del historial para lectura offline.

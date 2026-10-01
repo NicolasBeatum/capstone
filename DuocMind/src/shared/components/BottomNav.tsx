@@ -2,12 +2,12 @@ import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { styles } from './BottomNav.styles';
 import { type Href, useRouter } from 'expo-router';
-import { useTheme } from '../theme';
+import { useTheme } from '@/shared/theme/theme';
 import {
   HomeIcon,
   SmileIcon,
   SparkleIcon,
-} from './icons';
+} from './Icons';
 
 interface BottomNavProps {
   currentTab: 'home' | 'checkin' | 'wellness';
@@ -24,9 +24,9 @@ export function BottomNav({ currentTab }: BottomNavProps) {
     a11y: string;
     Icon: (props: { size?: number; color?: string }) => React.ReactNode;
   }> = [
-    { id: 'home' as const, label: 'Inicio', route: '/views/dashboard', a11y: 'Ir al inicio', Icon: HomeIcon },
-    { id: 'checkin' as const, label: 'Check-in', route: '/views/checkin', a11y: 'Ir a Check-in', Icon: SmileIcon },
-    { id: 'wellness' as const, label: 'Bienestar', route: '/views/wellness', a11y: 'Ir al centro de bienestar', Icon: SparkleIcon },
+    { id: 'home' as const, label: 'Inicio', route: '/dashboard', a11y: 'Ir al inicio', Icon: HomeIcon },
+    { id: 'checkin' as const, label: 'Check-in', route: '/checkin', a11y: 'Ir a Check-in', Icon: SmileIcon },
+    { id: 'wellness' as const, label: 'Bienestar', route: '/wellness', a11y: 'Ir al centro de bienestar', Icon: SparkleIcon },
   ];
 
   return (

@@ -1,6 +1,6 @@
 import type { CheckinMood, LocalCheckin } from '../application/localCheckinStore';
 import type { CheckinHistoryEntry, CheckinRemoteGateway } from '../application/checkinHistory';
-import { getSupabaseClient } from '@/features/backend/infrastructure/supabaseClient';
+import { getSupabaseClient } from '@/shared/backend/infrastructure/supabaseClient';
 
 interface StudentRow {
   id_estudiante: number;

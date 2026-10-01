@@ -13,6 +13,7 @@ function gateway(overrides = {}) {
   return {
     register: async () => true,
     signIn: async () => {},
+    getCurrentUserId: async () => null,
     hasStudentProfile: async () => false,
     createStudentProfile: async () => {},
     requestPasswordReset: async () => {},

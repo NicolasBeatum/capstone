@@ -1,5 +1,5 @@
-import { getSupabaseClient } from '@/features/backend/infrastructure/supabaseClient';
-import type { Instrument, ScaleOption, TestQuestion, TestResult } from '../data/types';
+import { getSupabaseClient } from '@/shared/backend/infrastructure/supabaseClient';
+import type { Instrument, ScaleOption, TestQuestion, TestResult } from '../domain/types';
 
 interface OpcionRespuestaRow {
   id_opcion: number;

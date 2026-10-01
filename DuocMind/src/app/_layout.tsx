@@ -14,7 +14,7 @@ import {
   Inter_700Bold,
   Inter_800ExtraBold,
 } from '@expo-google-fonts/inter';
-import { ThemeProvider } from '../shared/theme';
+import { ThemeProvider } from '@/shared/theme/theme';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
