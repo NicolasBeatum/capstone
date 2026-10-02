@@ -1,7 +1,7 @@
 import { completeAccountDeletion, type AuthGateway, type StudentProfileInput } from '../application/authentication';
-import { getSupabaseClient } from '@/features/backend/infrastructure/supabaseClient';
+import { getSupabaseClient } from '@/shared/backend/infrastructure/supabaseClient';
 import { deleteLocalCheckinData } from '@/features/emotional-checkin/infrastructure/encryptedCheckinDatabase';
-import { platformSecureKeyValueStorage } from '@/features/backend/infrastructure/platformSecureStorage';
+import { platformSecureKeyValueStorage } from '@/shared/backend/infrastructure/platformSecureStorage';
 
 const PROFILE_VERIFIED_KEY_PREFIX = 'duocmind.student-profile-verified.v1.';
 
@@ -19,6 +19,12 @@ export const supabaseAuthGateway: AuthGateway = {
   async signIn(email, password) {
     const { error } = await getSupabaseClient().auth.signInWithPassword({ email, password });
     throwIfError(error);
+  },
+
+  async getCurrentUserId() {
+    const { data, error } = await getSupabaseClient().auth.getSession();
+    throwIfError(error);
+    return data.session?.user.id ?? null;
   },
 
   async hasStudentProfile() {

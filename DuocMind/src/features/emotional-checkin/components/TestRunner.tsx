@@ -2,19 +2,19 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ScalePress } from '@/shared/components/ScalePress';
-import { ClipboardIcon, SparkleIcon } from '@/shared/components/icons';
-import { styles } from '@/shared/styles/daily-test.styles';
-import type { ScaleOption, TestQuestion } from '../data/types';
-import { getQuestionOptions } from '../data/questionOptions';
+import { ClipboardIcon, SparkleIcon } from '@/shared/components/Icons';
+import { styles } from '../screens/DailyTestScreen.styles';
+import type { ScaleOption, TestQuestion } from '../domain/types';
+import { getQuestionOptions } from '../domain/questionOptions';
 
 interface TestRunnerProps {
-  /** Etiqueta sobre la barra de progreso, ej. 'TEST DE ÁNIMO (PHQ-9)' */
+  /** Etiqueta sobre la barra de progreso, ej. 'TEST DE ESTRÉS (PSS-10)' */
   eyebrow: string;
   /** Subtítulo del header con el nombre del instrumento */
   subtitle: string;
   questions: TestQuestion[];
   options: ScaleOption[];
-  /** Se invoca en cada respuesta; permite interceptar ítems críticos (PHQ-9 ítem 9) */
+  /** Se invoca en cada respuesta; permite interceptar ítems críticos */
   onAnswer?: (questionId: number, value: number, question: TestQuestion) => void;
   onComplete: (answers: Record<number, number>) => void;
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { ScalePress } from './ScalePress';
-import { fontFamily as font } from '@/shared/typography';
+import { fontFamily as font } from '@/shared/theme/typography';
 
 interface SpeechBubbleProps {
   label: string;

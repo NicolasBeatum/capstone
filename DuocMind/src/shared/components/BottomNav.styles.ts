@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { fontFamily as font } from '@/shared/typography';
+import { fontFamily as font } from '@/shared/theme/typography';
 
 export const styles = StyleSheet.create({
   container: {

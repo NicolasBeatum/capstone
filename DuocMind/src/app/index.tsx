@@ -1,5 +1,5 @@
 import { Redirect } from 'expo-router';
 
 export default function IndexRoute() {
-  return <Redirect href="/views/home" />;
+  return <Redirect href="/home" />;
 }
