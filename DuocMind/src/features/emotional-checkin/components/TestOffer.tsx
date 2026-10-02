@@ -1,7 +1,9 @@
 import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { FadeIn } from '@/shared/components/FadeIn';
 import { ScalePress } from '@/shared/components/ScalePress';
+import { SplitText } from '@/shared/components/SplitText';
 import { SparkleIcon } from '@/shared/components/Icons';
 import { styles } from '../screens/DailyTestScreen.styles';
 
@@ -49,34 +51,40 @@ export function TestOffer({
       </View>
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.resultCard}>
-          <View style={styles.resultHeaderRow}>
-            <Text style={styles.resultEyebrow}>CHECK-IN EMOCIONAL</Text>
-            <View style={styles.questionIllustration}>
-              <SparkleIcon size={12} />
-              <SparkleIcon size={9} color="#e8a93c" />
+        <FadeIn duration={450}>
+          <View style={styles.resultCard}>
+            <View style={styles.resultHeaderRow}>
+              <Text style={styles.resultEyebrow}>CHECK-IN EMOCIONAL</Text>
+              <View style={styles.questionIllustration}>
+                <SparkleIcon size={12} />
+                <SparkleIcon size={9} color="#e8a93c" />
+              </View>
             </View>
+
+            <SplitText key={title} text={title} style={styles.resultTitle} delay={250} />
+            <FadeIn delay={600} offset={10}>
+              <Text style={styles.resultMessage}>{description}</Text>
+            </FadeIn>
+
+            <FadeIn delay={800} offset={10}>
+              <View style={styles.resultButtonsRow}>
+                <ScalePress style={styles.acceptButton} onPress={onPrimary}>
+                  <Text style={styles.acceptButtonText}>{primaryLabel} →</Text>
+                </ScalePress>
+
+                {secondaryLabel ? (
+                  <ScalePress
+                    style={styles.rejectButton}
+                    onPress={onSecondary}
+                    disabled={!onSecondary}
+                  >
+                    <Text style={styles.rejectButtonText}>{secondaryLabel}</Text>
+                  </ScalePress>
+                ) : null}
+              </View>
+            </FadeIn>
           </View>
-
-          <Text style={styles.resultTitle}>{title}</Text>
-          <Text style={styles.resultMessage}>{description}</Text>
-
-          <View style={styles.resultButtonsRow}>
-            <ScalePress style={styles.acceptButton} onPress={onPrimary}>
-              <Text style={styles.acceptButtonText}>{primaryLabel} →</Text>
-            </ScalePress>
-
-            {secondaryLabel ? (
-              <ScalePress
-                style={styles.rejectButton}
-                onPress={onSecondary}
-                disabled={!onSecondary}
-              >
-                <Text style={styles.rejectButtonText}>{secondaryLabel}</Text>
-              </ScalePress>
-            ) : null}
-          </View>
-        </View>
+        </FadeIn>
       </ScrollView>
     </>
   );

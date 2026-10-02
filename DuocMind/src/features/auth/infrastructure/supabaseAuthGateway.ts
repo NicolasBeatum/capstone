@@ -45,6 +45,23 @@ export const supabaseAuthGateway: AuthGateway = {
     return data !== null;
   },
 
+  async getStudentName() {
+    const client = getSupabaseClient();
+    const { data: sessionData, error: sessionError } = await client.auth.getSession();
+    throwIfError(sessionError);
+    const userId = sessionData.session?.user.id;
+    if (!userId) return null;
+
+    const { data, error } = await client
+      .from('estudiante')
+      .select('primer_nombre, primer_apellido')
+      .eq('auth_user_id', userId)
+      .maybeSingle();
+    throwIfError(error);
+    if (!data) return null;
+    return { firstName: data.primer_nombre, lastName: data.primer_apellido };
+  },
+
   async hasCachedStudentProfile() {
     const { data, error } = await getSupabaseClient().auth.getSession();
     throwIfError(error);

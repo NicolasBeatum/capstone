@@ -1,6 +1,7 @@
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { styles } from './BottomNav.styles';
+import { ScalePress } from './ScalePress';
 import { type Href, useRouter } from 'expo-router';
 import { useTheme } from '@/shared/theme/theme';
 import {
@@ -59,17 +60,16 @@ export function BottomNav({ currentTab }: BottomNavProps) {
           ? (theme.isDark ? '#f3e7a0' : '#1a2b44')
           : theme.textMuted;
         return (
-          <TouchableOpacity
+          <ScalePress
             key={tab.id}
             style={[styles.tab, isActive && styles.activePill]}
             onPress={() => router.push(tab.route)}
-            activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel={tab.a11y}
           >
             <tab.Icon size={21} color={color} />
             <Text style={[styles.tabLabel, { color }]}>{tab.label}</Text>
-          </TouchableOpacity>
+          </ScalePress>
         );
       })}
     </View>

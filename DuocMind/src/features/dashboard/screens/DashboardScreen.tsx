@@ -1,7 +1,14 @@
-import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
 import { BottomNav } from '@/shared/components/BottomNav';
+import { CountUp } from '@/shared/components/CountUp';
+import { FadeIn } from '@/shared/components/FadeIn';
+import { Pulse } from '@/shared/components/Pulse';
+import { ScalePress } from '@/shared/components/ScalePress';
+import { SplitText } from '@/shared/components/SplitText';
+import { useReduceMotion } from '@/shared/components/useReduceMotion';
 import { LiquidBackground, LiquidCard } from '@/shared/components/Glass';
 import { WeekChart, type WeekDayData } from '@/shared/components/WeekChart';
 import { BellIcon, ClipboardIcon, SparkleIcon, WindIcon } from '@/shared/components/Icons';
@@ -51,10 +58,60 @@ const BADGE_TEXT_STYLE = {
   oral: 'dateTextOral',
 } as const satisfies Record<UpcomingKind, keyof typeof styles>;
 
+/* Relleno de la barra de progreso: crece desde 0 hasta el porcentaje actual.
+ * Anima `width`, que no admite driver nativo; es una sola barra pequeña. */
+function ProgressFill({ percent }: { percent: number }) {
+  const reduceMotion = useReduceMotion();
+  const progress = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (reduceMotion) {
+      progress.setValue(percent);
+      return undefined;
+    }
+    const animation = Animated.timing(progress, {
+      toValue: percent,
+      duration: 900,
+      delay: 500,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [percent, progress, reduceMotion]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.progressFill,
+        { width: progress.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] }) },
+      ]}
+    />
+  );
+}
+
 export default function DashboardScreen() {
   const router = useRouter();
   const now = new Date();
   const currentClass = SAMPLE_CURRENT_CLASS;
+  // null mientras carga: así la animación del saludo se reproduce una sola vez
+  const [greeting, setGreeting] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    // Si falla la lectura, se usa el saludo genérico.
+    supabaseAuthGateway
+      .getStudentName()
+      .then((name) => {
+        if (active) setGreeting(name ? `Hola, ${name.firstName}` : 'Hola');
+      })
+      .catch(() => {
+        if (active) setGreeting('Hola');
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <View style={styles.safeArea}>
@@ -64,7 +121,12 @@ export default function DashboardScreen() {
         <View style={styles.headerRow}>
           <View style={styles.headerText}>
             <Text style={styles.dateEyebrow}>{formatToday(now)}</Text>
-            <Text style={styles.greetingTitle}>Hola, Camila</Text>
+            {greeting ? (
+              <SplitText key={greeting} text={greeting} style={styles.greetingTitle} />
+            ) : (
+              // Reserva la altura del saludo mientras llega el nombre
+              <Text style={[styles.greetingTitle, { opacity: 0 }]}>Hola</Text>
+            )}
           </View>
           <TouchableOpacity
             style={styles.bellButton}
@@ -73,7 +135,7 @@ export default function DashboardScreen() {
             accessibilityLabel="Notificaciones"
           >
             <BellIcon size={20} />
-            <View style={styles.bellDot} />
+            <Pulse style={styles.bellDot} />
           </TouchableOpacity>
           <View style={styles.avatarCircle}>
             <Text style={styles.avatarInitials}>CM</Text>
@@ -81,6 +143,7 @@ export default function DashboardScreen() {
         </View>
 
         {/* ── Vistazo de tu semana ── */}
+        <FadeIn delay={120}>
         <LiquidCard style={styles.weekCard}>
           <View style={styles.weekCardHeader}>
             <Text style={styles.weekCardTitle}>Vistazo de tu semana</Text>
@@ -101,15 +164,19 @@ export default function DashboardScreen() {
             </View>
           </View>
         </LiquidCard>
+        </FadeIn>
 
         {/* ── Clase en curso ── */}
+        <FadeIn delay={240}>
         <View style={styles.classCard}>
           <View style={styles.classTopRow}>
             <View style={styles.classBadge}>
               <View style={styles.classBadgeDot} />
               <Text style={styles.classBadgeText}>En clase ahora</Text>
             </View>
-            <Text style={styles.classRemaining}>Termina en {currentClass.minutesLeft} min</Text>
+            <Text style={styles.classRemaining}>
+              Termina en <CountUp to={currentClass.minutesLeft} delay={400} /> min
+            </Text>
           </View>
           <Text style={styles.className}>{currentClass.name}</Text>
           <Text style={styles.classMeta}>
@@ -120,7 +187,7 @@ export default function DashboardScreen() {
             accessibilityRole="progressbar"
             accessibilityValue={{ min: 0, max: 100, now: currentClass.progress }}
           >
-            <View style={[styles.progressFill, { width: `${currentClass.progress}%` }]} />
+            <ProgressFill percent={currentClass.progress} />
           </View>
           <View style={styles.classBottomRow}>
             <Text style={styles.classNext}>
@@ -132,8 +199,10 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </View>
         </View>
+        </FadeIn>
 
         {/* ── Se viene ── */}
+        <FadeIn delay={360}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Se viene</Text>
           <TouchableOpacity activeOpacity={0.7}>
@@ -164,32 +233,32 @@ export default function DashboardScreen() {
             </View>
           ))}
         </LiquidCard>
+        </FadeIn>
 
         {/* ── Para ti hoy ── */}
+        <FadeIn delay={480}>
         <Text style={[styles.sectionTitle, styles.forYouTitle]}>Para ti hoy</Text>
         <View style={styles.forYouRow}>
-          <TouchableOpacity
+          <ScalePress
             style={[styles.forYouTile, styles.forYouBreathe]}
             onPress={() => router.push('/wellness')}
-            activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel="Respira 3 minutos"
           >
             <WindIcon size={26} color="#6b5aa8" />
             <Text style={styles.forYouTitleText}>Respira 3 min</Text>
             <Text style={styles.forYouDesc}>Antes de tu prueba de mañana</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </ScalePress>
+          <ScalePress
             style={[styles.forYouTile, styles.forYouTest]}
             onPress={() => router.push('/daily-test')}
-            activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel="Test semanal de estrés percibido"
           >
             <ClipboardIcon size={26} color="#b4561a" />
             <Text style={styles.forYouTitleText}>Test semanal</Text>
             <Text style={styles.forYouDesc}>Estrés percibido · 3 min</Text>
-          </TouchableOpacity>
+          </ScalePress>
         </View>
 
         <TouchableOpacity
@@ -200,6 +269,7 @@ export default function DashboardScreen() {
         >
           <Text style={styles.supportLinkText}>¿Necesitas hablar con alguien? Ver recursos de apoyo →</Text>
         </TouchableOpacity>
+        </FadeIn>
       </ScrollView>
 
       <BottomNav currentTab="home" />

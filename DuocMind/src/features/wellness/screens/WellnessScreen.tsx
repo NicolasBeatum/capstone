@@ -1,8 +1,10 @@
 import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AppHeader } from '@/shared/components/AppHeader';
 import { BottomNav } from '@/shared/components/BottomNav';
+import { FadeIn } from '@/shared/components/FadeIn';
+import { ScalePress } from '@/shared/components/ScalePress';
 import { GlassCard, LiquidBackground, LiquidPanel } from '@/shared/components/Glass';
 import { ClipboardIcon, MeditationIcon, MoonIcon, SparkleIcon, TimerIcon } from '@/shared/components/Icons';
 import { styles } from './WellnessScreen.styles';
@@ -40,6 +42,7 @@ export default function WellnessScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <AppHeader title="Centro de Bienestar" subtitle="Herramientas y descanso" />
 
+        <FadeIn delay={100}>
         <GlassCard style={styles.centerCard}>
           <Text style={styles.centerCardTitle}>Tu Centro de Bienestar</Text>
           <Text style={styles.centerCardSubtitle}>Herramientas y descanso</Text>
@@ -57,33 +60,33 @@ export default function WellnessScreen() {
             </View>
           </LiquidPanel>
         </GlassCard>
+        </FadeIn>
 
         <View style={styles.tipsHeader}>
           <Text style={styles.tipsTitle}>Tips Personalizados</Text>
           <Text style={styles.tipsBadge}>Basado en tu estado</Text>
         </View>
         <View style={styles.tipsGrid}>
-          {tips.map((tip) => (
-            <View key={tip.id} style={styles.tipCardWrap}>
+          {tips.map((tip, index) => (
+            <FadeIn key={tip.id} delay={250 + index * 120} style={styles.tipCardWrap}>
               <GlassCard style={styles.tipCard}>
                 <View style={[styles.tipIconBox, { backgroundColor: tip.iconBg }]}>{tip.icon}</View>
                 <Text style={styles.tipTitle}>{tip.title}</Text>
                 <Text style={styles.tipDesc}>{tip.desc}</Text>
               </GlassCard>
-            </View>
+            </FadeIn>
           ))}
         </View>
 
-        <TouchableOpacity
+        <ScalePress
           style={styles.ctaButton}
           onPress={() => router.push('/daily-test')}
-          activeOpacity={0.85}
           accessibilityRole="button"
           accessibilityLabel="Comenzar test emocional"
         >
           <Text style={styles.ctaText}>Comenzar Test</Text>
           <Text style={styles.ctaArrow}>→</Text>
-        </TouchableOpacity>
+        </ScalePress>
       </ScrollView>
       <BottomNav currentTab="wellness" />
     </View>

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { BottomNav } from '@/shared/components/BottomNav';
+import { FadeIn } from '@/shared/components/FadeIn';
+import { ScalePress } from '@/shared/components/ScalePress';
 import { styles } from './DailyTestScreen.styles';
 import { TestOffer } from '../components/TestOffer';
 import { TestRunner } from '../components/TestRunner';
@@ -60,11 +62,13 @@ export default function DailyTestScreen() {
     return (
       <View style={styles.safeArea}>
         <View style={styles.container}>
-          <View style={[styles.panel, { alignItems: 'center', paddingVertical: 40 }]}>
-            <ActivityIndicator size="large" color="#1a2b44" style={{ marginBottom: 16 }} />
-            <Text style={styles.questionText}>Cargando test de estrés...</Text>
-            <Text style={styles.helperText}>Obteniendo preguntas desde Supabase</Text>
-          </View>
+          <FadeIn>
+            <View style={[styles.panel, { alignItems: 'center', paddingVertical: 40 }]}>
+              <ActivityIndicator size="large" color="#1a2b44" style={{ marginBottom: 16 }} />
+              <Text style={styles.questionText}>Cargando test de estrés...</Text>
+              <Text style={styles.helperText}>Obteniendo preguntas desde Supabase</Text>
+            </View>
+          </FadeIn>
         </View>
         <BottomNav currentTab="checkin" />
       </View>
@@ -75,17 +79,19 @@ export default function DailyTestScreen() {
     return (
       <View style={styles.safeArea}>
         <View style={styles.container}>
-          <View style={[styles.panel, { alignItems: 'center', paddingVertical: 32 }]}>
-            <Text style={[styles.questionText, { textAlign: 'center', marginBottom: 8 }]}>
-              No pudimos cargar el test
-            </Text>
-            <Text style={[styles.helperText, { textAlign: 'center', marginBottom: 20 }]}>
-              {error ?? 'No se encontró el test.'}
-            </Text>
-            <TouchableOpacity style={styles.primaryButton} onPress={loadTest} activeOpacity={0.8}>
-              <Text style={styles.primaryButtonText}>Reintentar</Text>
-            </TouchableOpacity>
-          </View>
+          <FadeIn>
+            <View style={[styles.panel, { alignItems: 'center', paddingVertical: 32 }]}>
+              <Text style={[styles.questionText, { textAlign: 'center', marginBottom: 8 }]}>
+                No pudimos cargar el test
+              </Text>
+              <Text style={[styles.helperText, { textAlign: 'center', marginBottom: 20 }]}>
+                {error ?? 'No se encontró el test.'}
+              </Text>
+              <ScalePress style={styles.primaryButton} onPress={loadTest}>
+                <Text style={styles.primaryButtonText}>Reintentar</Text>
+              </ScalePress>
+            </View>
+          </FadeIn>
         </View>
         <BottomNav currentTab="checkin" />
       </View>

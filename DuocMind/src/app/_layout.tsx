@@ -34,7 +34,17 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <Stack screenOptions={{ headerShown: false, animation: 'fade_from_bottom' }} />
+      {/* Pestañas y pantallas principales hacen fundido; los flujos entran de lado
+          y los recursos de apoyo suben desde abajo */}
+      <Stack screenOptions={{ headerShown: false, animation: 'fade', animationDuration: 260 }}>
+        <Stack.Screen name="(auth)/register" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="(auth)/profile" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="(app)/daily-test" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen
+          name="(app)/wellness/crisis-resources"
+          options={{ animation: 'fade_from_bottom' }}
+        />
+      </Stack>
       <StatusBar style={isDark ? 'light' : 'dark'} />
     </ThemeProvider>
   );

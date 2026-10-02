@@ -4,11 +4,17 @@ export interface StudentProfileInput {
   lastName: string;
 }
 
+export interface StudentName {
+  firstName: string;
+  lastName: string;
+}
+
 export interface AuthGateway {
   register(email: string, password: string): Promise<boolean>;
   signIn(email: string, password: string): Promise<void>;
   getCurrentUserId(): Promise<string | null>;
   hasStudentProfile(): Promise<boolean>;
+  getStudentName(): Promise<StudentName | null>;
   hasCachedStudentProfile(): Promise<boolean>;
   createStudentProfile(profile: StudentProfileInput): Promise<void>;
   requestPasswordReset(email: string): Promise<void>;

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Easing, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { FadeIn } from '@/shared/components/FadeIn';
+import { PopIn } from '@/shared/components/PopIn';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { ClipboardIcon, SparkleIcon } from '@/shared/components/Icons';
 import { styles } from '../screens/DailyTestScreen.styles';
@@ -39,6 +41,7 @@ export function TestRunner({ eyebrow, subtitle, questions, options, onAnswer, on
     Animated.timing(progressAnim, {
       toValue: progress,
       duration: 450,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
     }).start();
   }, [progress, progressAnim]);
@@ -102,40 +105,49 @@ export function TestRunner({ eyebrow, subtitle, questions, options, onAnswer, on
             />
           </View>
 
-          <View style={styles.questionRow}>
-            <View style={styles.questionWrap}>
-              <Text style={styles.questionText}>{currentQuestion.title}</Text>
-              {currentQuestion.helper ? (
-                <Text style={styles.helperText}>{currentQuestion.helper}</Text>
-              ) : null}
+          {/* La pregunta entra desde la derecha en cada paso; `key` reinicia la animación */}
+          <FadeIn key={`question-${currentQuestion.id}`} axis="x" offset={28} duration={380}>
+            <View style={styles.questionRow}>
+              <View style={styles.questionWrap}>
+                <Text style={styles.questionText}>{currentQuestion.title}</Text>
+                {currentQuestion.helper ? (
+                  <Text style={styles.helperText}>{currentQuestion.helper}</Text>
+                ) : null}
+              </View>
+              <View style={styles.questionIllustration}>
+                <SparkleIcon size={10} />
+                <ClipboardIcon size={42} />
+                <SparkleIcon size={8} color="#e8a93c" />
+              </View>
             </View>
-            <View style={styles.questionIllustration}>
-              <SparkleIcon size={10} />
-              <ClipboardIcon size={42} />
-              <SparkleIcon size={8} color="#e8a93c" />
-            </View>
-          </View>
+          </FadeIn>
 
           <View style={styles.optionsList}>
-            {currentOptions.map((option) => {
+            {currentOptions.map((option, index) => {
               const isSelected = selectedAnswer === option.value;
 
               return (
-                <ScalePress
-                  key={option.label}
-                  style={[styles.optionButton, isSelected && styles.optionButtonSelected]}
-                  onPress={() => handleSelect(option)}
-                  accessibilityRole="button"
-                  accessibilityLabel={option.label}
-                  accessibilityState={{ selected: isSelected }}
+                <FadeIn
+                  key={`${currentQuestion.id}-${option.label}`}
+                  delay={120 + index * 70}
+                  offset={14}
+                  duration={380}
                 >
-                  <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
-                    {option.label}
-                  </Text>
-                  <View style={[styles.selector, isSelected && styles.selectorSelected]}>
-                    {isSelected && <View style={styles.selectorInner} />}
-                  </View>
-                </ScalePress>
+                  <ScalePress
+                    style={[styles.optionButton, isSelected && styles.optionButtonSelected]}
+                    onPress={() => handleSelect(option)}
+                    accessibilityRole="button"
+                    accessibilityLabel={option.label}
+                    accessibilityState={{ selected: isSelected }}
+                  >
+                    <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                      {option.label}
+                    </Text>
+                    <View style={[styles.selector, isSelected && styles.selectorSelected]}>
+                      {isSelected && <PopIn style={styles.selectorInner} />}
+                    </View>
+                  </ScalePress>
+                </FadeIn>
               );
             })}
           </View>

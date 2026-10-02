@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
+  Animated,
+  Easing,
   StyleSheet,
   View,
   useWindowDimensions,
@@ -7,6 +9,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
+import { useReduceMotion } from './useReduceMotion';
 
 /* Tokens del efecto glass/liquid compartidos con las hojas de estilo */
 export const glassTokens = {
@@ -84,13 +87,54 @@ export function LiquidCard({ children, style }: GlassCardProps) {
   );
 }
 
-/* Orbes de luz suaves detrás del contenido; dan el fondo líquido del glassmorphism */
-export function LiquidBackground() {
+/* Margen extra del lienzo: al derivar, los orbes nunca dejan ver el borde */
+const DRIFT_PAD = 32;
+
+/* Orbes de luz suaves detrás del contenido; dan el fondo líquido del glassmorphism.
+ * Derivan muy despacio (inspirado en Aurora/Orb de React Bits) para dar vida al fondo. */
+export const LiquidBackground = React.memo(function LiquidBackground() {
   const { width, height } = useWindowDimensions();
+  const reduceMotion = useReduceMotion();
+  const drift = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (reduceMotion) return undefined;
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(drift, {
+          toValue: 1,
+          duration: 9000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(drift, {
+          toValue: 0,
+          duration: 9000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [drift, reduceMotion]);
+
+  const reach = DRIFT_PAD * 0.8;
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      <Svg width={width} height={height}>
+      <Animated.View
+        style={{
+          position: 'absolute',
+          left: -DRIFT_PAD,
+          top: -DRIFT_PAD,
+          transform: [
+            { translateX: drift.interpolate({ inputRange: [0, 1], outputRange: [-reach, reach] }) },
+            { translateY: drift.interpolate({ inputRange: [0, 1], outputRange: [reach * 0.6, -reach * 0.6] }) },
+          ],
+        }}
+      >
+      <Svg width={width + DRIFT_PAD * 2} height={height + DRIFT_PAD * 2}>
         <Defs>
           <RadialGradient id="orbYellow" cx="50%" cy="50%" r="50%">
             <Stop offset="0" stopColor="rgba(248, 214, 112, 0.85)" />
@@ -105,13 +149,14 @@ export function LiquidBackground() {
             <Stop offset="1" stopColor="rgba(238, 178, 66, 0)" />
           </RadialGradient>
         </Defs>
-        <Circle cx={width * 0.92} cy={height * 0.16} r={300} fill="url(#orbYellow)" />
-        <Circle cx={width * 0.02} cy={height * 0.46} r={300} fill="url(#orbSage)" />
-        <Circle cx={width * 0.85} cy={height * 0.82} r={320} fill="url(#orbAmber)" />
+        <Circle cx={DRIFT_PAD + width * 0.92} cy={DRIFT_PAD + height * 0.16} r={300} fill="url(#orbYellow)" />
+        <Circle cx={DRIFT_PAD + width * 0.02} cy={DRIFT_PAD + height * 0.46} r={300} fill="url(#orbSage)" />
+        <Circle cx={DRIFT_PAD + width * 0.85} cy={DRIFT_PAD + height * 0.82} r={320} fill="url(#orbAmber)" />
       </Svg>
+      </Animated.View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {
