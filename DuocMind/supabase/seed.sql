@@ -1,0 +1,1 @@
+-- Fixtures sintéticas de Auth y perfiles se crean mediante tools/scripts/fixtures.mjs.

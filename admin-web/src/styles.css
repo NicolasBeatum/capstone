@@ -1,0 +1,266 @@
+:root {
+  font-family: Inter,system-ui,sans-serif;
+  color: #173537;
+  background: #f2f7f6;
+  font-synthesis: none;
+  line-height: 1.5;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+  border: 0;
+  border-radius: 8px;
+  background: #17645f;
+  color: white;
+  padding: .65rem 1.05rem;
+  font-weight: 600;
+}
+button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+.secondary {
+  background: white;
+  border: 1px solid #a4bfba;
+  color: #174d47;
+}
+.danger {
+  background: #963e35;
+}
+a {
+  color: #17645f;
+}
+h1 {
+  font-size: 1.8rem;
+  margin: .25rem 0 1rem;
+}
+h2 {
+  font-size: 1.15rem;
+}
+p {
+  max-width: 80ch;
+}
+.brand {
+  font-weight: 800;
+  letter-spacing: .12em;
+  font-size: 1.1rem;
+  text-decoration: none;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  font-weight: 600;
+  margin: .8rem 0;
+}
+input,
+select,
+textarea {
+  width: 100%;
+  padding: .6rem;
+  border: 1px solid #9cb7b2;
+  border-radius: 6px;
+  background: white;
+  color: #173537;
+}
+textarea {
+  min-height: 90px;
+}
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #e1a63a;
+  outline-offset: 3px;
+}
+.login {
+  max-width: 520px;
+  margin: 9vh auto;
+  padding: 2rem;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 5px 35px #174d4712;
+}
+.login .brand {
+  color: #17645f;
+}
+.shell {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  min-height: 100vh;
+}
+aside {
+  padding: 2rem 1.3rem;
+  background: #164f4c;
+  color: #eaf5f2;
+}
+aside .brand {
+  color: white;
+}
+aside nav {
+  display: grid;
+  gap: .5rem;
+  margin: 2rem 0;
+}
+aside nav a {
+  color: #effbf7;
+  text-decoration: none;
+  padding: .75rem;
+  border-radius: 8px;
+}
+aside nav a.active {
+  background: #32756e;
+  font-weight: 700;
+}
+.shell main {
+  padding: 2rem;
+  max-width: 1200px;
+  width: 100%;
+}
+.card {
+  background: white;
+  border: 1px solid #d6e5df;
+  border-radius: 12px;
+  padding: 1.3rem;
+  margin: 1rem 0;
+}
+.toolbar,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .7rem;
+  align-items: center;
+}
+.toolbar label {
+  min-width: 160px;
+  flex: 1;
+}
+.notice {
+  padding: .9rem;
+  background: #e3f4eb;
+  border-radius: 8px;
+  border-left: 4px solid #267255;
+}
+.error {
+  background: #ffefeb;
+  border-color: #a63c31;
+  color: #7d2822;
+}
+.muted {
+  color: #526e69;
+}
+.badge {
+  display: inline-block;
+  padding: .15rem .55rem;
+  background: #e9f0ef;
+  border-radius: 99px;
+  font-size: .85rem;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(210px,1fr));
+  gap: 1rem;
+}
+.table-scroll {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+th,
+td {
+  text-align: left;
+  padding: .9rem;
+  border-bottom: 1px solid #d6e5df;
+}
+th {
+  background: #e9f1ef;
+}
+fieldset {
+  border: 1px solid #c0d5cd;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+legend {
+  font-weight: 700;
+}
+details {
+  padding: .8rem;
+  border: 1px solid #c0d5cd;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.row {
+  display: flex;
+  gap: .7rem;
+  align-items: end;
+}
+.row label {
+  flex: 1;
+}
+.inline {
+  flex-direction: row;
+  align-items: center;
+}
+.inline input {
+  width: auto;
+}
+.empty {
+  padding: 2rem;
+  text-align: center;
+}
+.skip {
+  position: absolute;
+  left: -999px;
+}
+.skip:focus {
+  left: 1rem;
+  top: 1rem;
+  background: white;
+  padding: 1rem;
+  z-index: 10;
+}
+@media (max-width:760px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  aside {
+    padding: 1rem;
+  }
+  aside nav {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+  }
+  .shell main {
+    padding: 1rem;
+  }
+  .login {
+    margin: 2rem 1rem;
+  }
+  .row {
+    flex-wrap: wrap;
+  }
+  .row label {
+    min-width: 160px;
+  }
+}
