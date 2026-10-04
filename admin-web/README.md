@@ -57,7 +57,26 @@ se adaptan a escritorio y móvil, con foco visible y controles de al menos 44 px
 
 `local-start` genera `admin-web/.env.local` con URL y clave publicable de la instancia local. La API usa las credenciales de servidor proporcionadas por el runtime y `ADMIN_WEB_ORIGIN`, en `DuocMind/tools/.local/functions.env`. La sesión administrativa se guarda en `sessionStorage`; los listados y formularios permanecen en memoria.
 
-El `.env` existente de `DuocMind/` se conserva. Su URL corresponde al proyecto remoto: no se usó para migraciones, cuentas ni pruebas. Nunca copiar claves privilegiadas a variables `VITE_*` o `EXPO_PUBLIC_*`. Los scripts de prueba rechazan URLs remotas y no imprimen claves, contraseñas ni tokens.
+El `.env` existente de `DuocMind/` se conserva. Nunca copiar claves privilegiadas a variables `VITE_*` o `EXPO_PUBLIC_*`. Las suites automatizadas rechazan URLs remotas y no imprimen claves, contraseñas ni tokens.
+
+## Probar contra el Supabase real autorizado
+
+Desde la raíz, en terminales independientes:
+
+```bash
+npm --prefix admin-web run dev:remote -- --port 5173 --strictPort
+npm --prefix DuocMind run web -- --port 8081 --localhost
+```
+
+El primer comando genera `.env.remote.local` a partir de la URL y clave publicable
+del `.env` de DuocMind y arranca Vite en modo `remote`. Abrir el panel en
+`http://127.0.0.1:5173/login` y la previsualización en `http://localhost:8081`.
+El backend administrativo está aplicado al proyecto real por autorización
+posterior; la cuenta de prueba está habilitada. El consumo de nuevos tests,
+eventos y tips en Android sigue pendiente de otra spec. La recuperación por
+correo remota todavía requiere una plantilla compatible y SMTP o plan que la
+admita: ver [operación remota](../DuocMind/specs/005-admin-dashboard/remote.md).
+No ejecutar las suites locales de mutación contra el proyecto real.
 
 ## Validación
 

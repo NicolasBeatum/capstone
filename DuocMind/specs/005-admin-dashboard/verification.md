@@ -144,3 +144,26 @@ presentan desbordamiento horizontal de página a 390 px con datos cargados. La t
 mantiene su desplazamiento interno para consultar todas las columnas. Capturas,
 credenciales y configuración local siguen ignoradas por Git. Revisión visual en
 web; T023 nativa permanece omitida.
+
+## Operación remota posterior autorizada — 2026-10-04
+
+Se aplicaron nueve migraciones y `admin-api` al Supabase real, se verificaron
+RLS/grants, preservación del PSS-10 y Cron activo con ejecución satisfactoria.
+`remote-check.mjs` pasó las comprobaciones públicas y negativas. La cuenta
+administrativa sintética solicitada se creó mediante Auth Admin, se habilitó por
+operador y pasó acceso API (200), cierre y rechazo de sesión cerrada (401).
+El navegador verificó inicio y cierre del panel sin errores JavaScript ni
+guardar capturas/datos personales. DuocMind respondió 200 y su comprobación
+pública de Auth mostró «Backend conectado» sin errores JavaScript.
+
+Las secciones de tests, eventos y tips recibieron respuestas 200 de la API real
+sin alertas visibles. Pasaron tipos Deno, sintaxis de los scripts remotos y
+revisión de espacios/diff; el config mínimo coincide con sus campos remotos
+declarados. Los servicios quedaron ejecutándose para las pruebas del usuario.
+
+Auth recibió únicamente la URL permitida `/recover`; la plantilla fue rechazada
+por una restricción del proveedor predeterminado del plan gratuito. No se
+acredita recuperación web remota completa ni entrega de correos. Los comandos
+de validación funcional anteriores siguen usando exclusivamente Supabase local.
+Ver `remote.md` para detalle, recuperación y límites. T023 permanece omitida;
+conectar ambas webs al mismo backend no implementa nuevo consumo Android.

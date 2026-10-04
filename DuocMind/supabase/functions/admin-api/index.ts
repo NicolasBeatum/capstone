@@ -6,7 +6,7 @@ import {
   validateMutation,
 } from "./validation.ts";
 import { requestRecovery } from "./recovery.ts";
-const origin = Deno.env.get("ADMIN_WEB_ORIGIN");
+const origin = Deno.env.get("ADMIN_WEB_ORIGIN") ?? "http://127.0.0.1:5173";
 const url = Deno.env.get("SUPABASE_URL");
 const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const timedFetch: typeof fetch = (input, init) =>

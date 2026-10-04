@@ -549,3 +549,46 @@ T023 se omite por decisión del usuario del 2026-10-04.
 
 La integración Android corresponderá a una futura spec independiente. La implementación incluye aplicación web, migraciones, API y Cron locales; no
 modifica servicios remotos ni despliega aplicaciones.
+
+## 10. Operación remota de prueba autorizada — 2026-10-04
+
+El usuario autorizó posteriormente aplicar las migraciones administrativas,
+Cron y la API en el Supabase existente de DuocMind y crear una cuenta Auth de
+prueba habilitada en `private.admin_staff`. La web se ejecuta localmente contra
+ese backend. Esta autorización sustituye el límite de ejecución local para
+esta operación concreta; no convierte el entorno en producción.
+
+Antes de aplicar SQL: comprobar migraciones/esquema reales, conservar una copia
+privada de definiciones del instrumento y metadatos de esquema/políticas,
+y registrar conteos agregados sin copiar perfiles ni historial emocional.
+Aplicar únicamente las migraciones aprobadas en orden, verificando su registro.
+Conservar PSS-10 y sus IDs, opciones y puntajes. Revalidar RLS y asesores después.
+
+Desplegar `admin-api` con autenticación propia verificada por Auth y comprobación
+SQL de sesión/permiso; el gateway no valida JWT legacy porque las cuentas usan
+los JWT actuales de Auth. El origen de prueba fijo es `http://127.0.0.1:5173`;
+`ADMIN_WEB_ORIGIN` permite cambiarlo mediante configuración de servidor.
+Solo la URL y clave publicable pasan a la web. Mantener las pruebas automatizadas
+conectadas a la instancia local y separar la comprobación remota de lectura.
+
+Provisionar con `auth.admin.createUser`, confirmación de correo para la cuenta
+de prueba y habilitación mediante operador. No enviar correo ni crear perfil
+estudiantil. Usar la sesión CLI del operador y una clave de servidor únicamente
+en memoria; no persistirla ni crear un endpoint de provisión. La revisión
+automática rechazó el endpoint temporal y la extracción persistente de claves;
+el usuario aprobó después el uso en memoria. El procedimiento directo creó la
+cuenta y se verificaron el permiso, el acceso y el cierre de sesión.
+No insertar hashes de contraseña directamente en tablas internas de Auth.
+
+Verificación remota: acceso/cierre con la cuenta solicitada, permiso vigente,
+lecturas administrativas mínimas sin guardar datos personales, borradores/RPC
+protegidos y compatibilidad de PSS-10. No enviar recuperaciones a alumnos reales
+ni ejecutar fixtures o suites de mutación locales contra el proyecto remoto.
+La configuración de recuperación requiere comprobar allowlist, plantilla y SMTP
+con acceso a los ajustes de Auth; si falta, registrar el límite expresamente.
+
+Recuperación: revocar la cuenta de prueba y detener escrituras/API; conservar
+contenido y versiones. Corregir con migración nueva a partir de la copia de
+metadatos/contenido afectado, sin reabrir borradores ni borrar datos personales.
+Ver `remote.md` para el resultado real y las diferencias respecto de la entrega
+inicial local.

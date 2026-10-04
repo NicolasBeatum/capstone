@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
     "build": "tsc --noEmit && vite build",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "dev:remote": "vite --host 127.0.0.1 --mode remote",
+    "predev:remote": "node ../DuocMind/tools/scripts/remote-env.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",

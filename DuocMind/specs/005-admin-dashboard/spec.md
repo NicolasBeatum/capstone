@@ -208,3 +208,12 @@ se encuentran en `verification.md`; la aprobación y la ejecución son estados d
 La regresión nativa T023 se omite por decisión del usuario del 2026-10-04 y no se
 considera una comprobación completada.
 La integración Android se mantiene fuera de este incremento.
+
+## Operación remota de prueba autorizada — 2026-10-04
+
+La solicitud posterior del usuario autoriza aplicar la administración en el
+proyecto Supabase existente de DuocMind y provisionar una cuenta administrativa
+de prueba. Esta ampliación operativa conserva las funciones aprobadas y el
+aislamento personal. No incorpora integración Android ni despliegue de la web.
+El inventario, respaldo de contenido afectado, verificación y recuperación de
+esta operación se documentan en `remote.md`; las credenciales no se versionan.
