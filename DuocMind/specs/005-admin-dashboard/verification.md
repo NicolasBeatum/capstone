@@ -126,3 +126,21 @@ tipos estrictos y build verificados en local. Los comandos de CI se reprodujeron
 localmente; no se ejecutó un job de GitHub ni se desplegó. No se aplicaron
 migraciones, configuración de correo o trabajos Cron en Supabase remoto. La futura
 integración Android conserva su alcance independiente.
+
+## Ajuste visual — 2026-10-04
+
+Por solicitud del usuario, el panel adopta la identidad de DuocMind definida en
+`shared/theme.ts`, los estilos de dashboard/acceso y `shared/components/glass.tsx`:
+azul marino, crema, amarillo, tarjetas redondeadas y superficies translúcidas.
+Aplicado a navegación, acceso, recuperación, formularios y tablas con variables
+CSS propias, tipografía del sistema, foco visible y objetivos de al menos 44 px.
+El ajuste corresponde a la presentación de T002/T013–T019; conserva los contratos,
+las reglas y el estado de las tareas existentes.
+
+`npm --prefix admin-web run typecheck`, `test`, `build` y `test:e2e` pasaron: 19
+recorridos web satisfactorios. Capturas sintéticas de acceso y alumnos revisadas
+en escritorio (1440 px) y móvil (390 px); alumnos, editor, eventos y tips no
+presentan desbordamiento horizontal de página a 390 px con datos cargados. La tabla
+mantiene su desplazamiento interno para consultar todas las columnas. Capturas,
+credenciales y configuración local siguen ignoradas por Git. Revisión visual en
+web; T023 nativa permanece omitida.

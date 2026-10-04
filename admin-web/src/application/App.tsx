@@ -14,6 +14,8 @@ import { Tests } from "../pages/Tests";
 import { TestEditor } from "../pages/TestEditor";
 import { Events } from "../pages/Events";
 import { Tips } from "../pages/Tips";
+import { Brand } from "../components/Brand";
+import { NavigationIcon } from "../components/NavigationIcon";
 function Protected() {
   const session = useAuth();
   if (session.loading) return <main role="status">Comprobando sesión…</main>;
@@ -22,14 +24,20 @@ function Protected() {
     <div className="shell">
       <a className="skip" href="#main">Ir al contenido</a>
       <aside>
-        <a className="brand" href="/students">DUOCMIND</a>
-        <p>Bienestar y Salud</p>
+        <a className="brand-link" href="/students">
+          <Brand />
+        </a>
+        <p className="sidebar-subtitle">Bienestar y Salud</p>
+        <p className="eyebrow sidebar-label">Administración</p>
         <nav aria-label="Administración">
           {[["/students", "Alumnos"], ["/tests", "Tests"], [
             "/events",
             "Eventos",
           ], ["/tips", "Tips"]].map(([path, label]) => (
-            <NavLink key={path} to={path}>{label}</NavLink>
+            <NavLink key={path} to={path}>
+              <NavigationIcon section={label} />
+              {label}
+            </NavLink>
           ))}
         </nav>
         <button className="secondary" onClick={() => void session.logout()}>
@@ -37,6 +45,10 @@ function Protected() {
         </button>
       </aside>
       <main id="main" tabIndex={-1}>
+        <header className="workspace-header">
+          <span className="eyebrow">Bienestar y Salud</span>
+          <span className="badge">Panel administrativo</span>
+        </header>
         <Outlet />
       </main>
     </div>

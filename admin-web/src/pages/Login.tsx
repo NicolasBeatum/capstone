@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../application/AuthProvider";
 import { errorMessage, Feedback } from "../components/Feedback";
+import { Brand } from "../components/Brand";
 export function Login() {
   const session = useAuth();
   const [email, setEmail] = useState(""),
@@ -24,10 +25,12 @@ export function Login() {
   }
   return (
     <main className="login">
-      <p className="brand">DUOCMIND</p>
-      <h1>Administración de Bienestar y Salud</h1>
-      <p>Acceso para funcionarios autorizados</p>
-      <form onSubmit={submit}>
+      <header className="auth-header">
+        <Brand />
+        <h1>Administración de Bienestar y Salud</h1>
+        <p>Acceso para funcionarios autorizados</p>
+      </header>
+      <form className="auth-body" onSubmit={submit}>
         <label>
           Correo institucional<input
             type="email"

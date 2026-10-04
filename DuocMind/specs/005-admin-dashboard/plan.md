@@ -60,6 +60,14 @@ nativa T023 de esta entrega administrativa; no se acredita esa comprobación.
 3. **Contratos:** documentar el JSON de la API y validar datos externos en cada
    adaptador. No introducir un paquete compartido ni un sistema de plugins.
 
+El panel toma la identidad visual de `DuocMind/src/shared/theme.ts`,
+`shared/styles/dashboard.styles.ts`, `shared/styles/login.styles.ts` y
+`shared/components/glass.tsx`: azul marino `#1a2b44`, crema `#f3ecda`, amarillo
+`#f3e7a0`, superficies claras translúcidas y tarjetas redondeadas. CSS mantiene
+estos valores en variables propias; usa tipografía del sistema, foco visible y
+controles de al menos 44 px. El diseño claro sigue el modo actualmente fijado en
+la app. No comparte componentes React Native ni requiere fuentes externas.
+
 En el panel reutilizar las versiones exactas actuales de React, TypeScript y
 Supabase. Resolver versiones estables compatibles de Vite, React Router y Playwright
 al preparar el proyecto, fijarlas sin rangos y versionar el lockfile. Usar Node

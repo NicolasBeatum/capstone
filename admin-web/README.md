@@ -44,6 +44,15 @@ Para detener los servicios locales:
 DuocMind/tools/node_modules/.bin/supabase stop --workdir DuocMind
 ```
 
+## Estilo visual
+
+El panel sigue la paleta y los componentes visuales de DuocMind: azul marino,
+fondos crema, acentos amarillos, tarjetas redondeadas y superficies translúcidas.
+Las variables de `src/styles.css` se basan en `DuocMind/src/shared/theme.ts`, los
+estilos de dashboard/acceso y `shared/components/glass.tsx`. Usa fuentes del
+sistema y diseño claro, como la app actual. Navegación, formularios y tablas
+se adaptan a escritorio y móvil, con foco visible y controles de al menos 44 px.
+
 ## Configuración
 
 `local-start` genera `admin-web/.env.local` con URL y clave publicable de la instancia local. La API usa las credenciales de servidor proporcionadas por el runtime y `ADMIN_WEB_ORIGIN`, en `DuocMind/tools/.local/functions.env`. La sesión administrativa se guarda en `sessionStorage`; los listados y formularios permanecen en memoria.
