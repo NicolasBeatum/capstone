@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   daysSinceApplication,
@@ -22,6 +22,11 @@ import {
   SAMPLE_WEEK_INSIGHT,
   type UpcomingKind,
 } from '../domain/dashboardSample';
+import { greetingName, studentInitials } from '../domain/studentName';
+import {
+  fetchStudentDisplayName,
+  type StudentDisplayName,
+} from '../infrastructure/studentProfileRepository';
 import { styles } from './DashboardScreen.styles';
 
 /* Datos de muestra hasta que el histórico real esté disponible */
@@ -62,17 +67,45 @@ const BADGE_TEXT_STYLE = {
   oral: 'dateTextOral',
 } as const satisfies Record<UpcomingKind, keyof typeof styles>;
 
+const NAME_TIMEOUT_MS = 5000;
+const SPINNER_DELAY_MS = 400;
+
 export default function DashboardScreen() {
   const router = useRouter();
   const now = new Date();
   const currentClass = SAMPLE_CURRENT_CLASS;
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [dismissedIds, setDismissedIds] = useState<string[] | null>(null);
+  const [student, setStudent] = useState<StudentDisplayName | null>(null);
+  // La vista espera al nombre para que el saludo no cambie después de aparecer.
+  const [nameLoaded, setNameLoaded] = useState(false);
+  const [showSpinner, setShowSpinner] = useState(false);
   const { lastStressTest, goToTest } = useStressTestLauncher();
 
   useEffect(() => {
     void getDismissedNotificationIds().then(setDismissedIds);
+
+    let active = true;
+    // Si la red tarda demasiado se muestra "Hola" para no dejar la vista bloqueada.
+    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), NAME_TIMEOUT_MS));
+    // Sin sesión o sin perfil el saludo queda en "Hola", sin nombre inventado.
+    void Promise.race([fetchStudentDisplayName(), timeout])
+      .catch(() => null)
+      .then((name) => {
+        if (!active) return;
+        setStudent(name);
+        setNameLoaded(true);
+      });
+    // El indicador solo aparece si la espera se nota; una carga rápida no parpadea.
+    const spinnerTimer = setTimeout(() => active && setShowSpinner(true), SPINNER_DELAY_MS);
+    return () => {
+      active = false;
+      clearTimeout(spinnerTimer);
+    };
   }, []);
+
+  const firstName = greetingName(student?.firstName);
+  const initials = studentInitials(student?.firstName, student?.lastName);
 
   const handleDismiss = (id: string) => {
     setDismissedIds((ids) => [...(ids ?? []), id]);
@@ -102,6 +135,18 @@ export default function DashboardScreen() {
   const notifications =
     dismissedIds === null ? [] : allNotifications.filter(({ id }) => !dismissedIds.includes(id));
 
+  if (!nameLoaded) {
+    return (
+      <View style={styles.safeArea}>
+        <LiquidBackground />
+        <View style={styles.loadingBox}>
+          {showSpinner ? <ActivityIndicator size="large" color="#1a2b44" accessibilityLabel="Cargando" /> : null}
+        </View>
+        <BottomNav currentTab="home" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.safeArea}>
       <LiquidBackground />
@@ -110,7 +155,14 @@ export default function DashboardScreen() {
         <View style={styles.headerRow}>
           <View style={styles.headerText}>
             <Text style={styles.dateEyebrow}>{formatToday(now)}</Text>
-            <Text style={styles.greetingTitle}>Hola, Camila</Text>
+            <Text
+              style={styles.greetingTitle}
+              numberOfLines={2}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+            >
+              {firstName ? `Hola, ${firstName}` : 'Hola'}
+            </Text>
           </View>
           <TouchableOpacity
             style={styles.bellButton}
@@ -126,8 +178,8 @@ export default function DashboardScreen() {
             <BellIcon size={20} />
             {notifications.length > 0 ? <View style={styles.bellDot} /> : null}
           </TouchableOpacity>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarInitials}>CM</Text>
+          <View style={styles.avatarCircle} accessibilityLabel={firstName ? `Perfil de ${firstName}` : 'Perfil'}>
+            <Text style={styles.avatarInitials}>{initials}</Text>
           </View>
         </View>
 

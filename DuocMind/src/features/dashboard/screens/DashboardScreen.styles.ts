@@ -27,8 +27,15 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 18,
   },
+  loadingBox: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerText: {
     flex: 1,
+    // Deja aire antes de la campana para que un nombre largo no la toque.
+    marginRight: 6,
   },
   dateEyebrow: {
     fontSize: 11,
@@ -38,6 +45,7 @@ export const styles = StyleSheet.create({
   },
   greetingTitle: {
     fontSize: 26,
+    lineHeight: 32,
     color: navy,
     marginTop: 2,
     fontFamily: font.extraBold,
