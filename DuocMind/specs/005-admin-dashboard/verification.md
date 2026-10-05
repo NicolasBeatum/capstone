@@ -167,3 +167,21 @@ acredita recuperación web remota completa ni entrega de correos. Los comandos
 de validación funcional anteriores siguen usando exclusivamente Supabase local.
 Ver `remote.md` para detalle, recuperación y límites. T023 permanece omitida;
 conectar ambas webs al mismo backend no implementa nuevo consumo Android.
+
+## Editor de tests guiado — 2026-10-04
+
+Refinamiento de T016/T021, CA-004/CA-005/CA-011: cuatro pasos con ejemplos,
+preguntas/respuestas separadas, explicación de puntajes, resultados por intervalo
+y simulación. Referencias de resultados automáticas y estables; guardar desde
+otro paso enfoca el campo pendiente. No cambia contratos ni contenido protegido.
+
+Pasaron `typecheck`, pruebas Node y build del panel. La primera ejecución E2E
+detectó un selector de pregunta ambiguo tras el cambio de etiquetas; se corrigió
+a coincidencia exacta. La ejecución final de
+`ADMIN_E2E_PORT=5174 npm --prefix admin-web run test:e2e -- tests.spec.ts protected.spec.ts`
+pasó cinco recorridos con Supabase local y cuentas sintéticas: creación,
+publicación/activación/clonación, conflicto, fallo de lectura, validación de
+pasos/cobertura/puntaje y protección de instrumentos. Las secciones nuevas se
+revisaron visualmente a 1440 px y 390 px; sin desbordamiento horizontal a 390 px.
+Capturas sintéticas permanecen ignoradas. No se repitió la suite de recuperación
+ni se modificó el backend remoto; la API local retorna a su origen habitual 5173.

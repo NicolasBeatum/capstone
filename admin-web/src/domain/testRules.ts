@@ -1,12 +1,12 @@
 import type { TestContent } from "./types";
 export function validatePublication(content: TestContent): string | null {
   if (!content.title.trim() || !content.questions.length) {
-    return "Añade un título y al menos una pregunta.";
+    return "Añade un nombre al test y al menos una pregunta.";
   }
   let minimum = 0, maximum = 0;
   for (const q of content.questions) {
     if (!q.text.trim() || q.options.length < 2) {
-      return "Cada pregunta requiere texto y al menos dos opciones.";
+      return "Escribe cada pregunta y añade al menos dos respuestas.";
     }
     if (
       q.options.some((o) =>
@@ -15,7 +15,7 @@ export function validatePublication(content: TestContent): string | null {
       ) || new Set(q.options.map((o) => o.text)).size !== q.options.length ||
       new Set(q.options.map((o) => o.score)).size !== q.options.length
     ) {
-      return "Las opciones requieren textos y puntajes únicos, enteros y no negativos.";
+      return "Cada respuesta necesita un texto distinto y puntos enteros entre 0 y 1000. No repitas textos ni puntajes dentro de una pregunta.";
     }
     minimum += Math.min(...q.options.map((o) => o.score));
     maximum += Math.max(...q.options.map((o) => o.score));
@@ -23,7 +23,9 @@ export function validatePublication(content: TestContent): string | null {
   if (
     !content.levels.length ||
     new Set(content.levels.map((l) => l.key)).size !== content.levels.length
-  ) return "Añade niveles con claves únicas.";
+  ) {
+    return "Añade al menos un resultado y comprueba que no haya resultados duplicados.";
+  }
   let expected = minimum;
   for (const l of [...content.levels].sort((a, b) => a.min - b.min)) {
     if (
@@ -31,13 +33,13 @@ export function validatePublication(content: TestContent): string | null {
       !l.content.trim() || !Number.isInteger(l.min) ||
       !Number.isInteger(l.max) || l.min !== expected || l.max < l.min
     ) {
-      return "Los niveles necesitan orientación y rangos completos sin huecos ni solapamientos.";
+      return "Completa el nombre y el mensaje de cada resultado. Los intervalos deben cubrir todos los puntajes, sin espacios ni superposiciones.";
     }
     expected = l.max + 1;
   }
   return expected === maximum + 1
     ? null
-    : "Los niveles deben cubrir el mínimo y el máximo posibles.";
+    : "Los resultados deben cubrir todo el puntaje posible, desde el mínimo hasta el máximo.";
 }
 export function previewResult(
   content: TestContent,

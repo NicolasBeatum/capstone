@@ -592,3 +592,21 @@ contenido y versiones. Corregir con migración nueva a partir de la copia de
 metadatos/contenido afectado, sin reabrir borradores ni borrar datos personales.
 Ver `remote.md` para el resultado real y las diferencias respecto de la entrega
 inicial local.
+
+## 11. Mejora del editor de tests — 2026-10-04
+
+Por solicitud del usuario, T016 presenta un recorrido guiado en cuatro pasos:
+datos, preguntas, resultados y revisión. Las explicaciones distinguen enunciado,
+indicaciones opcionales, respuestas, puntos y mensajes por intervalo; «nivel» se
+presenta como «resultado» al funcionario. Las referencias internas se generan al
+añadir resultados y se conservan al editar sus nombres. El editor muestra el
+puntaje posible y vuelve al campo inválido incluso desde otro paso. La revisión
+incluye simulación de respuestas y comprobación de cobertura de intervalos.
+Se conservan contratos, reglas de puntuación, versiones e instrumentos protegidos.
+
+T021 verifica el recorrido de creación/publicación/activación/clonación,
+conflictos, fallos de lectura y edición por pasos con Supabase local. Un puerto
+opcional `ADMIN_E2E_PORT` permite verificar el editor en 5174 con CORS de la API
+local en ese mismo origen, conservando el panel real en 5173. Las comprobaciones
+de recuperación mantienen el puerto habitual 5173 y su plantilla local; esta
+revisión no cambia la integración remota ni Android.

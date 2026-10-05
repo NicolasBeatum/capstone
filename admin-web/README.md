@@ -53,7 +53,17 @@ estilos de dashboard/acceso y `shared/components/glass.tsx`. Usa fuentes del
 sistema y diseño claro, como la app actual. Navegación, formularios y tablas
 se adaptan a escritorio y móvil, con foco visible y controles de al menos 44 px.
 
-## Configuración
+## Crear un cuestionario propio
+
+El editor organiza la creación en cuatro pasos: datos del test, preguntas,
+resultados y revisión. Explica qué texto verá el alumno, qué significan los
+puntos y cómo definir los mensajes según intervalos. Calcula el mínimo/máximo
+posible, prepara el primer intervalo y mantiene las referencias de resultados
+automáticamente. En revisión se pueden probar las respuestas sin guardarlas.
+Si falta un campo al guardar, muestra el paso y enfoca ese campo. Se conservan
+la separación entre guardar/publicar/activar y la protección de versiones.
+
+## Configuración del entorno
 
 `local-start` genera `admin-web/.env.local` con URL y clave publicable de la instancia local. La API usa las credenciales de servidor proporcionadas por el runtime y `ADMIN_WEB_ORIGIN`, en `DuocMind/tools/.local/functions.env`. La sesión administrativa se guarda en `sessionStorage`; los listados y formularios permanecen en memoria.
 
