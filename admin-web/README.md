@@ -63,7 +63,22 @@ automáticamente. En revisión se pueden probar las respuestas sin guardarlas.
 Si falta un campo al guardar, muestra el paso y enfoca ese campo. Se conservan
 la separación entre guardar/publicar/activar y la protección de versiones.
 
-## Configuración del entorno
+## Tips y dashboard
+
+Tips presenta tres pasos: contenido, cuándo se aplica y revisión. «General · sin
+condiciones» está disponible también en Nivel de resultado y elimina las
+condiciones anteriores. Las reglas por ánimo y resultado de test tienen ejemplos;
+basta una coincidencia y se conserva catálogo/versión/nivel. El resumen muestra
+las condiciones seleccionadas y una vista previa del mensaje. Un consejo
+personalizado necesita al menos una condición antes de guardarse.
+
+El menú Dashboard abre `/overview`, con total del registro, catálogos de
+sedes/carreras, accesos y hasta cinco alumnos con sus campos aprobados. La
+información emocional compartida voluntariamente está pendiente de definir y
+habilitar; no se consulta ni se deduce de los consentimientos para derivación.
+Ver [definición pendiente](../DuocMind/specs/005-admin-dashboard/sharing-discovery.md).
+
+## Configuración de Supabase
 
 `local-start` genera `admin-web/.env.local` con URL y clave publicable de la instancia local. La API usa las credenciales de servidor proporcionadas por el runtime y `ADMIN_WEB_ORIGIN`, en `DuocMind/tools/.local/functions.env`. La sesión administrativa se guarda en `sessionStorage`; los listados y formularios permanecen en memoria.
 

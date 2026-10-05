@@ -610,3 +610,27 @@ opcional `ADMIN_E2E_PORT` permite verificar el editor en 5174 con CORS de la API
 local en ese mismo origen, conservando el panel real en 5173. Las comprobaciones
 de recuperación mantienen el puerto habitual 5173 y su plantilla local; esta
 revisión no cambia la integración remota ni Android.
+
+## 12. Tips guiados y dashboard del registro — 2026-10-04
+
+Solicitud posterior del usuario: T019 presenta contenido, condiciones y revisión.
+«General» es una elección explícita sin reglas y aparece también en el selector
+de resultado. Elegirla elimina condiciones de ánimo/test, con explicación previa.
+Un resultado elegido se añade directamente y conserva catálogo/versión/nivel.
+Seleccionar «Personalizado» sin condiciones impide guardar hasta elegir una o
+volver a General. Se explica que basta una coincidencia y se conserva edición,
+publicación, desactivación y conflictos, sin cambiar contratos ni SQL.
+
+El dashboard `/overview` usa `GET /students?pageSize=5` para total y vista del
+registro, y `GET /catalogs` para sedes/carreras disponibles. Estos conteos describen
+registro/catálogos, no distribución emocional ni matrícula por carrera. Reutiliza
+autorización y contratos de T011/T013/T014; datos solo en memoria, estados de
+carga/error y recarga. La navegación ofrece accesos al registro y a contenidos.
+No presenta un contador ficticio de consentimientos ni lee tablas sensibles.
+
+El dashboard de información compartida exige definir qué autoriza el alumno,
+periodo y revocación. `alerta_bienestar.consentimiento_derivacion` corresponde a
+una derivación y no autoriza compartir historial en el panel. La app no persiste
+actualmente los resultados de sus tests en `aplicacion_test`; no se inventan
+resultados disponibles. La parte sensible permanece pendiente del alcance y
+consentimiento aprobados, independiente del dashboard de datos de registro.

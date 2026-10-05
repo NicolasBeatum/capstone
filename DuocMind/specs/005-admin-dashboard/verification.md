@@ -185,3 +185,27 @@ pasos/cobertura/puntaje y protección de instrumentos. Las secciones nuevas se
 revisaron visualmente a 1440 px y 390 px; sin desbordamiento horizontal a 390 px.
 Capturas sintéticas permanecen ignoradas. No se repitió la suite de recuperación
 ni se modificó el backend remoto; la API local retorna a su origen habitual 5173.
+
+## Tips guiados y dashboard del registro — 2026-10-04
+
+T019/T021: contenido, condiciones y revisión; opción explícita General en el
+selector de resultado, ánimo separado de resultado, condiciones alternativas
+explicadas sin «OR», vista previa y personalización vacía rechazada. General se
+envía como `rules:[]`, no como nivel inexistente ni condición universal. Reglas
+históricas mantienen sus referencias. Guardar, publicar, editar y desactivar
+preservan sus controles y manejo de conflictos.
+
+El dashboard `/overview` reutiliza lecturas autorizadas de T011/T013/T014 para
+total y datos del registro y catálogos institucionales. No lee información
+emocional ni muestra consentimientos supuestos. Alcance de compartición aún
+pendiente: `sharing-discovery.md` recoge el inventario y la decisión solicitada.
+
+Pasaron `typecheck`, pruebas Node, build y cinco recorridos E2E locales de
+`tips.spec.ts overview.spec.ts` en 5174: reglas históricas, publicación/edición/
+desactivación, conflicto, General explícito y validación, métricas del registro,
+errores y pérdida de autorización. La primera ejecución detectó una aserción de
+campo oculto en Revisión; se corrigió abriendo Contenido antes de comprobarlo.
+Capturas sintéticas de formulario y dashboard revisadas a 1440 px y 390 px.
+Se repitió únicamente el caso de General para obtener capturas legibles del
+formulario sin toda la biblioteca. Configuración de prueba vuelve a 5173.
+No se modifican esquema, API remota, Android ni permisos de datos sensibles.

@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthProvider";
 import { Login } from "../pages/Login";
+import { Overview } from "../pages/Overview";
 import { Students } from "../pages/Students";
 import { Recover } from "../pages/Recover";
 import { Tests } from "../pages/Tests";
@@ -24,13 +25,16 @@ function Protected() {
     <div className="shell">
       <a className="skip" href="#main">Ir al contenido</a>
       <aside>
-        <a className="brand-link" href="/students">
+        <a className="brand-link" href="/overview">
           <Brand />
         </a>
         <p className="sidebar-subtitle">Bienestar y Salud</p>
         <p className="eyebrow sidebar-label">Administración</p>
         <nav aria-label="Administración">
-          {[["/students", "Alumnos"], ["/tests", "Tests"], [
+          {[["/overview", "Dashboard"], ["/students", "Alumnos"], [
+            "/tests",
+            "Tests",
+          ], [
             "/events",
             "Eventos",
           ], ["/tips", "Tips"]].map(([path, label]) => (
@@ -62,6 +66,7 @@ export function App() {
           <Route path="/recover" element={<Recover />} />
           <Route path="/login" element={<Login />} />
           <Route element={<Protected />}>
+            <Route path="/overview" element={<Overview />} />
             <Route path="/students" element={<Students />} />
             <Route path="/tests" element={<Tests />} />
             <Route path="/tests/new" element={<TestEditor />} />

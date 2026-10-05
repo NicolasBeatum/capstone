@@ -1,5 +1,6 @@
 export function NavigationIcon({ section }: { section: string }) {
   const paths: Record<string, string> = {
+    Dashboard: "M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z",
     Alumnos:
       "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75",
     Tests: "M9 5H5v16h14V5h-4 M9 3h6v4H9z M8 12h8 M8 16h5",

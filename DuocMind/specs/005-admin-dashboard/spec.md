@@ -36,6 +36,8 @@ Incluido:
 - Incorporación del modelo de autorización administrativa vinculado a Supabase
   Auth, inicio y cierre de sesión y comprobación de permisos en el backend.
 - Consulta del registro de alumnos con búsqueda, paginación y filtros por carrera y sede.
+- Dashboard general con total de alumnos registrados, datos de registro aprobados
+  y accesos a las funciones del panel, sin datos emocionales individuales.
 - Envío de enlaces de recuperación y recorrido web para establecer una nueva contraseña.
 - Consulta y activación de instrumentos validados y creación de cuestionarios propios versionados.
 - Creación, edición, publicación y cancelación de eventos institucionales.
@@ -52,7 +54,7 @@ Fuera de alcance:
 - Acceso administrativo al historial emocional, resultados individuales, respuestas o derivaciones.
 - Creación, modificación o eliminación de perfiles de alumnos desde el panel.
 - Asignación de tests o tips a alumnos específicos y registro de consejos recibidos.
-- Exportaciones, notificaciones automáticas, inscripción a eventos y paneles estadísticos.
+- Exportaciones, notificaciones automáticas, inscripción a eventos y estadísticas emocionales.
 - Persistencia nueva de resultados o respuestas de tests.
 - Edición libre de instrumentos validados, código ejecutable configurable y diagnósticos.
 - Despliegue, cambios remotos, creación de otro proyecto Supabase o transición a producción.
@@ -193,6 +195,14 @@ Fuera de alcance:
 | CA-011 | La interfaz maneja errores y conflictos sin perder formularios ni afirmar éxito; idempotencia y limpieza respetan sus ventanas. | Fallos de red, reintentos, reloj controlado, limpieza sin tráfico, recuperación de Cron y revisión de accesibilidad. |
 
 ## 6. Supuestos y revisión
+
+La solicitud del 2026-10-04 amplía la presentación con un dashboard del registro
+y simplifica la administración de tips. «General» significa consejo sin
+condiciones (`rules:[]`), disponible como opción explícita. Los personalizados
+explican por separado ánimo y resultado de test; basta una coincidencia.
+El dashboard muestra solo los campos de RF-002 y su total de registros. La
+compartición voluntaria de información emocional requiere definir y aprobar su
+alcance y consentimiento por separado; esta ampliación no la habilita.
 
 - Bienestar y Salud comparte capacidades; no se incorpora administración de permisos al panel.
 - El registro de alumnos es de consulta y la recuperación es su única acción de cuenta incluida.
