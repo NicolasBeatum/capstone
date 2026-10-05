@@ -1,6 +1,10 @@
 # Administración de DuocMind
 
-Panel React + TypeScript de la Spec 005, en la rama `feature/admin-dashboard-implementation`. Administra alumnos, recuperación de contraseña, cuestionarios propios, disponibilidad de instrumentos protegidos, eventos y tips. Publicar/activar confirma el estado del backend; el consumo de contenido nuevo en Android corresponde a otra spec.
+Panel React + TypeScript de la Spec 005, en la rama
+`feature/admin-dashboard-implementation`. Administra alumnos, recuperación de
+contraseña, cuestionarios propios, disponibilidad de instrumentos protegidos,
+eventos y tips. Publicar/activar confirma el estado del backend; el consumo de
+contenido nuevo en Android corresponde a otra spec.
 
 ## Ejecutar en local
 
@@ -26,11 +30,19 @@ En otra terminal:
 npm --prefix admin-web run dev
 ```
 
-Abrir `http://127.0.0.1:5173`. Las credenciales aleatorias de prueba están únicamente en `DuocMind/tools/.local/fixtures.json`, ignorado por Git y con permisos privados: usar los campos `staff.email` y `staff.password`. No compartir ese archivo. Volver a ejecutar fixtures cambia las contraseñas sintéticas.
+Abrir `http://127.0.0.1:5173`. Las credenciales aleatorias de prueba están
+únicamente en `DuocMind/tools/.local/fixtures.json`, ignorado por Git y con
+permisos privados: usar los campos `staff.email` y `staff.password`. No
+compartir ese archivo. Volver a ejecutar fixtures cambia las contraseñas
+sintéticas.
 
-El buzón local está en `http://127.0.0.1:54324`. La cuenta `student` tiene un correo de perfil deliberadamente diferente del correo Auth; `unlinked` no tiene cuenta recuperable; `unassigned` no tiene permiso; `dual` permite comprobar aislamiento de una cuenta con perfil. `staff` no tiene perfil de alumno.
+El buzón local está en `http://127.0.0.1:54324`. La cuenta `student` tiene un
+correo de perfil deliberadamente diferente del correo Auth; `unlinked` no tiene
+cuenta recuperable; `unassigned` no tiene permiso; `dual` permite comprobar
+aislamiento de una cuenta con perfil. `staff` no tiene perfil de alumno.
 
-`local-start` aplica las migraciones al crear la base local. Para reconstruir **solo esa base sintética**, primero detener escrituras y ejecutar:
+`local-start` aplica las migraciones al crear la base local. Para reconstruir
+**solo esa base sintética**, primero detener escrituras y ejecutar:
 
 ```bash
 DuocMind/tools/node_modules/.bin/supabase db reset --local --workdir DuocMind
@@ -46,12 +58,12 @@ DuocMind/tools/node_modules/.bin/supabase stop --workdir DuocMind
 
 ## Estilo visual
 
-El panel sigue la paleta y los componentes visuales de DuocMind: azul marino,
-fondos crema, acentos amarillos, tarjetas redondeadas y superficies translúcidas.
-Las variables de `src/styles.css` se basan en `DuocMind/src/shared/theme.ts`, los
-estilos de dashboard/acceso y `shared/components/glass.tsx`. Usa fuentes del
-sistema y diseño claro, como la app actual. Navegación, formularios y tablas
-se adaptan a escritorio y móvil, con foco visible y controles de al menos 44 px.
+El panel conserva el azul marino y los acentos amarillos de DuocMind, adaptados
+a una interfaz administrativa: barra lateral oscura, fondos neutros, superficies
+opacas, tablas alineadas y encabezados con acciones principales. Los estados
+usan texto y color; navegación, formularios y tablas se adaptan a escritorio y
+móvil con foco visible. No se añaden fuentes externas ni dependencias de UI. Ver
+[criterios y referencias](../DuocMind/specs/005-admin-dashboard/ui-design.md).
 
 ## Crear un cuestionario propio
 
@@ -59,30 +71,44 @@ El editor organiza la creación en cuatro pasos: datos del test, preguntas,
 resultados y revisión. Explica qué texto verá el alumno, qué significan los
 puntos y cómo definir los mensajes según intervalos. Calcula el mínimo/máximo
 posible, prepara el primer intervalo y mantiene las referencias de resultados
-automáticamente. En revisión se pueden probar las respuestas sin guardarlas.
-Si falta un campo al guardar, muestra el paso y enfoca ese campo. Se conservan
-la separación entre guardar/publicar/activar y la protección de versiones.
+automáticamente. En revisión se pueden probar las respuestas sin guardarlas. Si
+falta un campo al guardar, muestra el paso y enfoca ese campo. Se conservan la
+separación entre guardar/publicar/activar y la protección de versiones.
 
 ## Tips y dashboard
 
-Tips presenta tres pasos: contenido, cuándo se aplica y revisión. «General · sin
-condiciones» está disponible también en Nivel de resultado y elimina las
-condiciones anteriores. Las reglas por ánimo y resultado de test tienen ejemplos;
-basta una coincidencia y se conserva catálogo/versión/nivel. El resumen muestra
-las condiciones seleccionadas y una vista previa del mensaje. Un consejo
-personalizado necesita al menos una condición antes de guardarse.
+Tips y eventos abren inicialmente un listado con búsqueda y filtros. «Nuevo» y
+«Ver o editar» abren una ventana modal, sin desplazar al usuario a un formulario
+fuera de pantalla. El teclado permanece dentro de la ventana y el foco regresa
+al botón de origen al cerrar. Cerrar con cambios solicita conservarlos o
+descartarlos; una escritura sin confirmar bloquea el cierre hasta reintentar o
+recargar el estado. Los conflictos conservan el formulario.
+
+El editor de tips presenta tres pasos: contenido, cuándo se aplica y revisión.
+«General · sin condiciones» está disponible también en Nivel de resultado y
+elimina las condiciones anteriores. Las reglas por ánimo y resultado de test
+tienen ejemplos; basta una coincidencia y se conserva catálogo/versión/nivel. El
+resumen muestra las condiciones seleccionadas y una vista previa del mensaje. Un
+consejo personalizado necesita al menos una condición antes de guardarse.
 
 El menú Dashboard abre `/overview`, con total del registro, catálogos de
 sedes/carreras, accesos y hasta cinco alumnos con sus campos aprobados. La
 información emocional compartida voluntariamente está pendiente de definir y
 habilitar; no se consulta ni se deduce de los consentimientos para derivación.
-Ver [definición pendiente](../DuocMind/specs/005-admin-dashboard/sharing-discovery.md).
+Ver
+[definición pendiente](../DuocMind/specs/005-admin-dashboard/sharing-discovery.md).
 
 ## Configuración de Supabase
 
-`local-start` genera `admin-web/.env.local` con URL y clave publicable de la instancia local. La API usa las credenciales de servidor proporcionadas por el runtime y `ADMIN_WEB_ORIGIN`, en `DuocMind/tools/.local/functions.env`. La sesión administrativa se guarda en `sessionStorage`; los listados y formularios permanecen en memoria.
+`local-start` genera `admin-web/.env.local` con URL y clave publicable de la
+instancia local. La API usa las credenciales de servidor proporcionadas por el
+runtime y `ADMIN_WEB_ORIGIN`, en `DuocMind/tools/.local/functions.env`. La
+sesión administrativa se guarda en `sessionStorage`; los listados y formularios
+permanecen en memoria.
 
-El `.env` existente de `DuocMind/` se conserva. Nunca copiar claves privilegiadas a variables `VITE_*` o `EXPO_PUBLIC_*`. Las suites automatizadas rechazan URLs remotas y no imprimen claves, contraseñas ni tokens.
+El `.env` existente de `DuocMind/` se conserva. Nunca copiar claves
+privilegiadas a variables `VITE_*` o `EXPO_PUBLIC_*`. Las suites automatizadas
+rechazan URLs remotas y no imprimen claves, contraseñas ni tokens.
 
 ## Probar contra el Supabase real autorizado
 
@@ -93,15 +119,16 @@ npm --prefix admin-web run dev:remote -- --port 5173 --strictPort
 npm --prefix DuocMind run web -- --port 8081 --localhost
 ```
 
-El primer comando genera `.env.remote.local` a partir de la URL y clave publicable
-del `.env` de DuocMind y arranca Vite en modo `remote`. Abrir el panel en
-`http://127.0.0.1:5173/login` y la previsualización en `http://localhost:8081`.
-El backend administrativo está aplicado al proyecto real por autorización
-posterior; la cuenta de prueba está habilitada. El consumo de nuevos tests,
-eventos y tips en Android sigue pendiente de otra spec. La recuperación por
-correo remota todavía requiere una plantilla compatible y SMTP o plan que la
-admita: ver [operación remota](../DuocMind/specs/005-admin-dashboard/remote.md).
-No ejecutar las suites locales de mutación contra el proyecto real.
+El primer comando genera `.env.remote.local` a partir de la URL y clave
+publicable del `.env` de DuocMind y arranca Vite en modo `remote`. Abrir el
+panel en `http://127.0.0.1:5173/login` y la previsualización en
+`http://localhost:8081`. El backend administrativo está aplicado al proyecto
+real por autorización posterior; la cuenta de prueba está habilitada. El consumo
+de nuevos tests, eventos y tips en Android sigue pendiente de otra spec. La
+recuperación por correo remota todavía requiere una plantilla compatible y SMTP
+o plan que la admita: ver
+[operación remota](../DuocMind/specs/005-admin-dashboard/remote.md). No ejecutar
+las suites locales de mutación contra el proyecto real.
 
 ## Validación
 
@@ -120,6 +147,15 @@ npm --prefix DuocMind run typecheck
 npm --prefix DuocMind test
 ```
 
-La primera ejecución de Playwright requiere `admin-web/node_modules/.bin/playwright install chromium`. CI usa `install --with-deps chromium` en Ubuntu. Los recorridos usan fixtures locales, no guardan trazas ni vídeos y restauran las contraseñas sintéticas que modifican. La imagen del listado contiene únicamente registros de prueba y permanece ignorada.
+La primera ejecución de Playwright requiere
+`admin-web/node_modules/.bin/playwright install chromium`. CI usa
+`install --with-deps chromium` en Ubuntu. Los recorridos usan fixtures locales,
+no guardan trazas ni vídeos y restauran las contraseñas sintéticas que
+modifican. La imagen del listado contiene únicamente registros de prueba y
+permanece ignorada.
 
-Ver [operación](../DuocMind/specs/005-admin-dashboard/operations.md), [contratos](../DuocMind/specs/005-admin-dashboard/contracts.md) y [evidencia](../DuocMind/specs/005-admin-dashboard/verification.md). La regresión nativa T023 fue omitida por decisión del usuario; no se acredita validación Android ni entrega remota de correos.
+Ver [operación](../DuocMind/specs/005-admin-dashboard/operations.md),
+[contratos](../DuocMind/specs/005-admin-dashboard/contracts.md) y
+[evidencia](../DuocMind/specs/005-admin-dashboard/verification.md). La regresión
+nativa T023 fue omitida por decisión del usuario; no se acredita validación
+Android ni entrega remota de correos.

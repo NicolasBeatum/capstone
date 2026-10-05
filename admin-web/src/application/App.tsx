@@ -1,10 +1,12 @@
 import {
   BrowserRouter,
+  Link,
   Navigate,
   NavLink,
   Outlet,
   Route,
   Routes,
+  useLocation,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthProvider";
 import { Login } from "../pages/Login";
@@ -19,15 +21,22 @@ import { Brand } from "../components/Brand";
 import { NavigationIcon } from "../components/NavigationIcon";
 function Protected() {
   const session = useAuth();
+  const location = useLocation();
+  const section = location.pathname.startsWith("/tests") ? "Tests" : ({
+    "/overview": "Dashboard",
+    "/students": "Alumnos",
+    "/events": "Eventos",
+    "/tips": "Tips",
+  }[location.pathname] ?? "Administración");
   if (session.loading) return <main role="status">Comprobando sesión…</main>;
   if (!session.allowed) return <Navigate to="/login" replace />;
   return (
     <div className="shell">
       <a className="skip" href="#main">Ir al contenido</a>
       <aside>
-        <a className="brand-link" href="/overview">
+        <Link className="brand-link" to="/overview">
           <Brand />
-        </a>
+        </Link>
         <p className="sidebar-subtitle">Bienestar y Salud</p>
         <p className="eyebrow sidebar-label">Administración</p>
         <nav aria-label="Administración">
@@ -44,14 +53,21 @@ function Protected() {
             </NavLink>
           ))}
         </nav>
-        <button className="secondary" onClick={() => void session.logout()}>
-          Cerrar sesión
-        </button>
+        <div className="sidebar-footer">
+          <span>Espacio de administración</span>
+          <button className="secondary" onClick={() => void session.logout()}>
+            Cerrar sesión
+          </button>
+        </div>
       </aside>
       <main id="main" tabIndex={-1}>
         <header className="workspace-header">
-          <span className="eyebrow">Bienestar y Salud</span>
-          <span className="badge">Panel administrativo</span>
+          <div className="workspace-breadcrumb">
+            <span>Bienestar y Salud</span>
+            <span aria-hidden="true">/</span>
+            <strong>{section}</strong>
+          </div>
+          <span className="workspace-label">Panel administrativo</span>
         </header>
         <Outlet />
       </main>

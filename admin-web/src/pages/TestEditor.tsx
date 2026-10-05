@@ -7,6 +7,7 @@ import { ProtectedInstrument } from "../components/ProtectedInstrument";
 import { TestQuestionEditor } from "../components/TestQuestionEditor";
 import { TestResultEditor } from "../components/TestResultEditor";
 import { validatePublication } from "../domain/testRules";
+import { PageHeader } from "../components/PageHeader";
 
 const steps = ["Datos del test", "Preguntas", "Resultados", "Revisión"];
 export function TestEditor() {
@@ -104,10 +105,15 @@ export function TestEditor() {
   }
   return (
     <>
-      <Link to="/tests">← Catálogos de tests</Link>
-      <h1>
-        {source ? "Versión " + source.version : "Crear cuestionario propio"}
-      </h1>
+      <Link className="back-link" to="/tests">← Catálogos de tests</Link>
+      <PageHeader
+        title={source
+          ? "Versión " + source.version
+          : "Crear cuestionario propio"}
+        description={source
+          ? source.title
+          : "Prepara tu cuestionario paso a paso: datos, preguntas, resultados y revisión."}
+      />
       <Feedback error={model.error || fieldError} message={model.message} />
       {model.loading
         ? <p role="status">Cargando versión…</p>

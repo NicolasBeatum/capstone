@@ -25,6 +25,7 @@ async function login(page: import("@playwright/test").Page) {
 }
 test("tip con ánimo y versión histórica, publicar, editar y desactivar", async ({ page }) => {
   await login(page);
+  await page.getByRole("button", { name: /Nuevo tip/ }).click();
   await page.getByLabel("Título del tip").fill(
     "Tip sintético " + crypto.randomUUID(),
   );
@@ -81,6 +82,7 @@ test("tip con ánimo y versión histórica, publicar, editar y desactivar", asyn
 });
 test("tip general y conflicto conservan contenido", async ({ page }) => {
   await login(page);
+  await page.getByRole("button", { name: /Nuevo tip/ }).click();
   await page.getByRole("button", { name: "Continuar a cuándo se aplica" })
     .click();
   await expect(page.getByLabel("Nivel de resultado")).toHaveValue("general");
@@ -122,6 +124,7 @@ test("tip general y conflicto conservan contenido", async ({ page }) => {
 test("general explícito elimina condiciones; personalizado vacío no se guarda", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await login(page);
+  await page.getByRole("button", { name: /Nuevo tip/ }).click();
   const title = "Consejo general explícito " + crypto.randomUUID();
   await page.getByLabel("Título del tip").fill(title);
   await page.getByLabel("Consejo para el alumno", { exact: true }).fill(
@@ -184,4 +187,103 @@ test("general explícito elimina condiciones; personalizado vacío no se guarda"
     .screenshot({
       path: "test-results/tips-mobile.png",
     });
+});
+
+test("edición desde el listado abre una ventana, protege cambios y devuelve el foco", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await login(page);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const title = "Ventana sintética " + crypto.randomUUID();
+  await page.getByRole("button", { name: /Nuevo tip/ }).click();
+  const dialog = page.getByRole("dialog", { name: "Crear consejo" });
+  await expect(dialog).toBeVisible();
+  await page.getByLabel("Título del tip").fill(title);
+  await page.getByLabel("Consejo para el alumno", { exact: true }).fill(
+    "Una recomendación breve.",
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("region", { name: "Cambios sin guardar" }))
+    .toBeVisible();
+  await expect(page.getByRole("button", { name: "Seguir editando" }))
+    .toBeFocused();
+  await page.getByRole("button", { name: "Seguir editando" }).click();
+  await expect(page.getByLabel("Título del tip")).toHaveValue(title);
+  await page.getByRole("button", { name: "Guardar tip", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("guardados");
+  await page.getByRole("button", { name: "Cerrar editor" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Nuevo tip/ })).toBeFocused();
+  await page.getByLabel("Buscar tips").fill(title);
+  const row = page.getByRole("row").filter({ hasText: title });
+  const edit = row.getByRole("button", { name: "Ver o editar tip" });
+  await edit.click();
+  await expect(page.getByRole("dialog", { name: "Editar tip" })).toBeVisible();
+  await expect(page.getByLabel("Título del tip")).toHaveValue(title);
+  await page.getByRole("button", { name: "Cerrar editor" }).focus();
+  await page.keyboard.press("Shift+Tab");
+  expect(
+    await page.getByRole("dialog").evaluate((el) =>
+      el.contains(document.activeElement)
+    ),
+  ).toBe(true);
+  await page.keyboard.press("Escape");
+  await expect(edit).toBeFocused();
+  await page.screenshot({
+    path: "test-results/tips-list-desktop.png",
+    fullPage: true,
+  });
+  await edit.click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByRole("dialog")).toBeVisible();
+  expect(
+    await page.getByRole("dialog").evaluate((el) =>
+      el.scrollWidth <= el.clientWidth + 1
+    ),
+  ).toBe(true);
+  expect(
+    await page.evaluate(() =>
+      document.documentElement.scrollWidth <= innerWidth
+    ),
+  ).toBe(true);
+  await page.getByRole("dialog").screenshot({
+    path: "test-results/tips-editor-mobile.png",
+  });
+  await page.getByLabel("Título del tip").fill("Cambios que serán descartados");
+  await page.getByRole("button", { name: "Cerrar editor" }).click();
+  await page.getByRole("button", { name: "Descartar y cerrar" }).click();
+  await edit.click();
+  await expect(page.getByLabel("Título del tip")).toHaveValue(title);
+});
+
+test("una escritura sin confirmar no se pierde al cerrar la ventana", async ({ page }) => {
+  await login(page);
+  await page.getByRole("button", { name: /Nuevo tip/ }).click();
+  await page.getByLabel("Título del tip").fill(
+    "Sin confirmar " + crypto.randomUUID(),
+  );
+  await page.getByLabel("Consejo para el alumno", { exact: true }).fill(
+    "Texto conservado.",
+  );
+  await page.route(
+    "**/admin-api/tips",
+    (route) =>
+      route.request().method() === "POST"
+        ? route.abort("failed")
+        : route.continue(),
+  );
+  await page.getByRole("button", { name: "Guardar tip", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("No se pudo confirmar");
+  await expect(page.getByRole("button", { name: "Cerrar editor" }))
+    .toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(
+    page.getByRole("textbox", { name: "Consejo para el alumno", exact: true }),
+  )
+    .toHaveValue("Texto conservado.");
+  await page.unroute("**/admin-api/tips");
+  await page.getByRole("button", { name: "Guardar tip", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("guardados");
+  await expect(page.getByRole("button", { name: "Cerrar editor" }))
+    .toBeEnabled();
 });

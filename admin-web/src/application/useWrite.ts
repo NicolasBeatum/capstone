@@ -6,6 +6,7 @@ export function useWrite() {
   >(null);
   const running = useRef(false);
   const [busy, setBusy] = useState(false);
+  const [unconfirmed, setUnconfirmed] = useState(false);
   async function run<T>(
     signature: string,
     operation: (id: string) => Promise<T>,
@@ -36,9 +37,11 @@ export function useWrite() {
     try {
       const value = await operation(pending.current.requestId);
       pending.current = null;
+      setUnconfirmed(false);
       return value;
     } catch (e) {
       if (e instanceof ApiError && e.status !== 503) pending.current = null;
+      setUnconfirmed(pending.current !== null);
       throw e;
     } finally {
       running.current = false;
@@ -48,8 +51,10 @@ export function useWrite() {
   return {
     run,
     busy,
+    unconfirmed,
     reset: () => {
       pending.current = null;
+      setUnconfirmed(false);
     },
   };
 }

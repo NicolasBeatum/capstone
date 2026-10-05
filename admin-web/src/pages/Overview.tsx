@@ -1,3 +1,4 @@
+import { PageHeader } from "../components/PageHeader";
 import { Link } from "react-router-dom";
 import { useOverview } from "../application/useOverview";
 import { Feedback } from "../components/Feedback";
@@ -23,21 +24,20 @@ export function Overview() {
   ] as const;
   return (
     <>
-      <h1>Dashboard de Bienestar y Salud</h1>
-      <p className="editor-intro">
-        Consulta el registro de alumnos y accede a las herramientas de
-        administración.
-      </p>
+      <PageHeader
+        title="Dashboard de Bienestar y Salud"
+        description="El registro de alumnos y las herramientas del equipo, en un solo lugar."
+        action={
+          <button
+            className="secondary"
+            disabled={model.loading}
+            onClick={() => void model.reload()}
+          >
+            Actualizar resumen
+          </button>
+        }
+      />
       <Feedback error={model.error} />
-      <div className="actions">
-        <button
-          className="secondary"
-          disabled={model.loading}
-          onClick={() => void model.reload()}
-        >
-          Actualizar resumen
-        </button>
-      </div>
       {model.loading && <p role="status">Cargando resumen…</p>}
       <div className="overview-metrics">
         {metrics.map(([title, value, detail]) => (
@@ -48,22 +48,6 @@ export function Overview() {
           </section>
         ))}
       </div>
-      <section
-        className="card sharing-status"
-        aria-label="Compartición voluntaria"
-      >
-        <span className="badge">Pendiente de habilitar</span>
-        <h2>Información de bienestar compartida voluntariamente</h2>
-        <p>
-          El acceso al historial emocional y a resultados individuales todavía
-          no está habilitado. Este dashboard muestra datos de registro.
-        </p>
-        <p className="field-help">
-          La compartición requiere que cada alumno elija qué datos compartir con
-          Bienestar y Salud y pueda retirar su autorización. El permiso para una
-          derivación no concede acceso a todo su historial.
-        </p>
-      </section>
       <h2>Herramientas del equipo</h2>
       <div className="overview-shortcuts">
         {[
@@ -87,6 +71,22 @@ export function Overview() {
           </Link>
         ))}
       </div>
+      <section
+        className="card sharing-status"
+        aria-label="Compartición voluntaria"
+      >
+        <span className="badge">Pendiente de habilitar</span>
+        <h2>Información de bienestar compartida voluntariamente</h2>
+        <p>
+          El acceso al historial emocional y a resultados individuales todavía
+          no está habilitado. Este dashboard muestra datos de registro.
+        </p>
+        <p className="field-help">
+          La compartición requiere que cada alumno elija qué datos compartir con
+          Bienestar y Salud y pueda retirar su autorización. El permiso para una
+          derivación no concede acceso a todo su historial.
+        </p>
+      </section>
       <section aria-label="Vista del registro de alumnos">
         <div className="overview-section-heading">
           <h2>Alumnos del registro</h2>

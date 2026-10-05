@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { useStudents } from "../application/useStudents";
 import { Feedback } from "../components/Feedback";
+import { PageHeader } from "../components/PageHeader";
 import type { Student } from "../domain/types";
 export function Students() {
   const model = useStudents();
@@ -22,8 +23,10 @@ export function Students() {
   }
   return (
     <>
-      <h1>Alumnos</h1>
-      <p className="muted">Datos de registro y recuperación de acceso</p>
+      <PageHeader
+        title="Alumnos"
+        description="Consulta el registro estudiantil y ayuda a recuperar el acceso a DuocMind."
+      />
       <form className="toolbar" onSubmit={submit}>
         <label>
           Buscar por nombre o correo<input
@@ -68,7 +71,7 @@ export function Students() {
             Se enviará al correo vigente de la cuenta de {selected.name}:{" "}
             {selected.email}.
           </p>
-          <div className="actions">
+          <div className="actions pagination">
             <button
               disabled={model.busy}
               onClick={() =>
@@ -134,7 +137,7 @@ export function Students() {
               No hay alumnos que coincidan con los filtros.
             </p>
           )}
-          <div className="actions">
+          <div className="actions pagination">
             <button
               className="secondary"
               disabled={model.loading || model.data.page <= 1}

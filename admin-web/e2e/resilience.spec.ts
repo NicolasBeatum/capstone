@@ -17,6 +17,7 @@ async function login(page: import("@playwright/test").Page) {
 test("respuesta perdida reintenta con UUID igual y crea un solo evento", async ({ page }) => {
   await login(page);
   await page.getByRole("link", { name: "Eventos", exact: true }).click();
+  await page.getByRole("button", { name: /Nuevo evento/ }).click();
   const title = "Respuesta perdida " + crypto.randomUUID();
   await page.getByLabel("Título del evento").fill(title);
   await page.getByLabel("Lugar", { exact: true }).fill("Local");
@@ -47,7 +48,10 @@ test("respuesta perdida reintenta con UUID igual y crea un solo evento", async (
   await page.getByRole("button", { name: "Guardar evento", exact: true })
     .click();
   await expect(page.getByRole("status")).toContainText("Evento guardado");
-  await expect(page.getByRole("region", { name: title, exact: true }))
+  await expect(page.getByRole("button", { name: "Cerrar editor" }))
+    .toBeEnabled();
+  await page.getByRole("button", { name: "Cerrar editor" }).click();
+  await expect(page.getByRole("row").filter({ hasText: title }))
     .toHaveCount(1);
 });
 test("teclado, etiquetas y respuesta 403 limpian los datos del alumno", async ({ page }) => {

@@ -16,6 +16,7 @@ async function login(page: import("@playwright/test").Page) {
 }
 test("crear, publicar y cancelar evento conserva contenido", async ({ page }) => {
   await login(page);
+  await page.getByRole("button", { name: /Nuevo evento/ }).click();
   await page.getByLabel("Título del evento", { exact: true }).fill(
     "Feria sintética " + crypto.randomUUID(),
   );
@@ -45,6 +46,7 @@ test("crear, publicar y cancelar evento conserva contenido", async ({ page }) =>
 });
 test("hora inexistente se rechaza; conflicto conserva formulario", async ({ page }) => {
   await login(page);
+  await page.getByRole("button", { name: /Nuevo evento/ }).click();
   await page.getByLabel("Título del evento", { exact: true }).fill(
     "Fixture hora " + crypto.randomUUID(),
   );
