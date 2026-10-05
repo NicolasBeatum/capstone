@@ -23,6 +23,9 @@ export interface TestResult {
 
 export interface Instrument {
   id: string;
+  /** id_test y version en test_bienestar; necesarios para guardar en aplicacion_test */
+  testId?: number;
+  testVersion?: number;
   /** Subtítulo del header, ej. 'Escala de Estrés Percibido (PSS-10)' */
   name: string;
   /** Etiqueta de progreso sobre la barra, ej. 'TEST DE BIENESTAR' */

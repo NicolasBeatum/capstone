@@ -33,7 +33,7 @@ const MOOD_VALUES: Record<CheckinMood, number> = {
   'Muy bien': 5,
 };
 
-async function getStudentId(): Promise<number> {
+export async function getStudentId(): Promise<number> {
   const client = getSupabaseClient();
   const { data: userData, error: userError } = await client.auth.getUser();
   if (userError) throw userError;

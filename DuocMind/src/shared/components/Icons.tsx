@@ -325,3 +325,48 @@ export function ShieldIcon({ size = 14, color = '#94a3b8' }: IconProps) {
     </Svg>
   );
 }
+
+export function CheckSquareIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Rect x={4.5} y={4.5} width={15} height={15} rx={3.5} stroke={color} strokeWidth={STROKE} fill="none" />
+      <Path d="M8.5 12.2 l2.4 2.4 l4.6 -5" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function SproutIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M12 20.5 V11" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+      <Path d="M12 12 C12 7.5 9 5 4.5 5 C4.5 9.5 7.5 12 12 12 z" stroke={color} strokeWidth={STROKE} fill="none" strokeLinejoin="round" />
+      <Path d="M12 10.5 C12 6.5 14.5 4 19.5 4 C19.5 8.5 16.5 10.5 12 10.5 z" stroke={color} strokeWidth={STROKE} fill="none" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function PlusIcon({ size = 24, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M12 5 V19 M5 12 H19" stroke={color} strokeWidth={2.4} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function JournalIcon({ size = 22, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M6 3.5 h8.5 l3.5 3.5 v13.5 h-12 z" stroke={color} strokeWidth={STROKE} fill="none" strokeLinejoin="round" />
+      <Path d="M9 11 h6 M9 14.5 h6 M9 18 h4" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function StretchIcon({ size = 22, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Circle cx={12} cy={4.5} r={1.8} stroke={color} strokeWidth={STROKE} fill="none" />
+      <Path d="M5.5 9 h13 M12 8 v6.5 M12 14.5 l-3.5 6 M12 14.5 l3.5 6" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
