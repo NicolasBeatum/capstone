@@ -84,6 +84,12 @@ export default function IndexRoute() {
       desc: 'Recursos, autoevaluación guiada y tips de salud mental.',
       icon: '🌿',
     },
+    {
+      title: 'Agenda',
+      path: '/agenda',
+      desc: 'Organiza actividades y pendientes por asignatura.',
+      icon: '🗓️',
+    },
   ];
 
   return (
