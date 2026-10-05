@@ -4,13 +4,14 @@ import { styles } from './BottomNav.styles';
 import { type Href, useRouter } from 'expo-router';
 import { useTheme } from '@/shared/theme/theme';
 import {
+  CalendarIcon,
   HomeIcon,
   SmileIcon,
   SparkleIcon,
 } from './Icons';
 
 interface BottomNavProps {
-  currentTab: 'home' | 'checkin' | 'wellness';
+  currentTab: 'home' | 'checkin' | 'wellness' | 'agenda';
 }
 
 export function BottomNav({ currentTab }: BottomNavProps) {
@@ -27,6 +28,7 @@ export function BottomNav({ currentTab }: BottomNavProps) {
     { id: 'home' as const, label: 'Inicio', route: '/dashboard', a11y: 'Ir al inicio', Icon: HomeIcon },
     { id: 'checkin' as const, label: 'Check-in', route: '/checkin', a11y: 'Ir a Check-in', Icon: SmileIcon },
     { id: 'wellness' as const, label: 'Bienestar', route: '/wellness', a11y: 'Ir al centro de bienestar', Icon: SparkleIcon },
+    { id: 'agenda' as const, label: 'Agenda', route: '/agenda', a11y: 'Ir a la agenda', Icon: CalendarIcon },
   ];
 
   return (

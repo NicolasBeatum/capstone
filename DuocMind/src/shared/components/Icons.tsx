@@ -72,6 +72,16 @@ export function BellIcon({ size = 20, color = '#1a2b44' }: IconProps) {
   );
 }
 
+export function CalendarIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Rect x={4} y={5.5} width={16} height={15} rx={2} stroke={color} strokeWidth={STROKE} fill="none" />
+      <Path d="M8 3.5 v4 M16 3.5 v4 M4 9.5 h16" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+      <Path d="M8 13 h.01 M12 13 h.01 M16 13 h.01 M8 16.5 h.01 M12 16.5 h.01" stroke={color} strokeWidth={2.5} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 export function GradCapIcon({ size = 16, color = '#1a2b44' }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
