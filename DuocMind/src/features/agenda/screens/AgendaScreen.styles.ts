@@ -43,9 +43,28 @@ export const styles = StyleSheet.create({
   },
   weekTitle: {
     color: navy,
-    fontSize: 14,
-    marginBottom: 12,
+    fontSize: 12,
     fontFamily: font.extraBold,
+  },
+  weekHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  weekArrow: {
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    backgroundColor: 'rgba(26, 43, 68, 0.07)',
+  },
+  weekArrowText: {
+    color: navy,
+    fontSize: 22,
+    lineHeight: 25,
+    fontFamily: font.bold,
   },
   weekRow: {
     flexDirection: 'row',
@@ -61,6 +80,9 @@ export const styles = StyleSheet.create({
   },
   dayButtonSelected: {
     backgroundColor: navy,
+  },
+  dayButtonPast: {
+    opacity: 0.4,
   },
   dayName: {
     color: textSecondary,
@@ -78,6 +100,9 @@ export const styles = StyleSheet.create({
   },
   dayNumberSelected: {
     color: '#ffffff',
+  },
+  dayTextPast: {
+    color: '#a39b8b',
   },
   addButton: {
     minHeight: 52,
@@ -140,6 +165,9 @@ export const styles = StyleSheet.create({
     backgroundColor: yellow,
     marginRight: 12,
   },
+  activityAccentActive: {
+    backgroundColor: '#10a875',
+  },
   activityDetails: {
     flex: 1,
   },
@@ -153,6 +181,20 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 3,
     fontFamily: font.semiBold,
+  },
+  activityNoSubject: {
+    color: textSecondary,
+    fontSize: 11,
+    marginTop: 3,
+    fontStyle: 'italic',
+    fontFamily: font.regular,
+  },
+  inProgressLabel: {
+    color: '#087a55',
+    fontSize: 9,
+    letterSpacing: 0.5,
+    marginBottom: 3,
+    fontFamily: font.extraBold,
   },
   deleteButton: {
     justifyContent: 'center',
@@ -206,6 +248,7 @@ export const styles = StyleSheet.create({
     backgroundColor: cream,
     borderRadius: 24,
     padding: 22,
+    maxHeight: '92%',
     ...glassTokens.shadow,
   },
   modalTitle: {
@@ -219,6 +262,12 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 18,
     fontFamily: font.regular,
+  },
+  formScroll: {
+    flexShrink: 1,
+  },
+  formContent: {
+    paddingBottom: 2,
   },
   fieldLabel: {
     color: navy,
@@ -237,6 +286,192 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 13,
     marginBottom: 13,
     fontFamily: font.regular,
+  },
+  optionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -3,
+    marginBottom: 15,
+  },
+  optionChip: {
+    minHeight: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+    borderColor: 'rgba(26, 43, 68, 0.12)',
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 9,
+    marginHorizontal: 3,
+    marginBottom: 7,
+  },
+  optionChipSelected: {
+    backgroundColor: navy,
+    borderColor: navy,
+  },
+  optionChipDisabled: {
+    backgroundColor: 'rgba(26, 43, 68, 0.04)',
+    borderColor: 'rgba(26, 43, 68, 0.06)',
+  },
+  optionChipText: {
+    color: navy,
+    fontSize: 11,
+    fontFamily: font.semiBold,
+  },
+  optionChipTextSelected: {
+    color: '#ffffff',
+    fontFamily: font.bold,
+  },
+  optionChipTextDisabled: {
+    color: '#a39b8b',
+  },
+  datePickerButton: {
+    minHeight: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+    borderColor: 'rgba(26, 43, 68, 0.12)',
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    marginBottom: 14,
+  },
+  datePickerButtonText: {
+    flex: 1,
+  },
+  datePickerValue: {
+    color: navy,
+    fontSize: 14,
+    fontFamily: font.extraBold,
+  },
+  datePickerHint: {
+    color: textSecondary,
+    fontSize: 11,
+    marginTop: 2,
+    fontFamily: font.regular,
+  },
+  datePickerChevron: {
+    color: navy,
+    fontSize: 23,
+    paddingLeft: 10,
+    fontFamily: font.bold,
+  },
+  calendarPanel: {
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderColor: 'rgba(26, 43, 68, 0.10)',
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 16,
+  },
+  calendarMonthHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  calendarMonthArrow: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 11,
+    backgroundColor: 'rgba(26, 43, 68, 0.07)',
+  },
+  calendarMonthArrowText: {
+    color: navy,
+    fontSize: 23,
+    lineHeight: 27,
+    fontFamily: font.bold,
+  },
+  calendarMonthArrowDisabled: {
+    color: '#c9c2b5',
+  },
+  calendarMonthTitle: {
+    color: navy,
+    fontSize: 15,
+    textTransform: 'capitalize',
+    fontFamily: font.extraBold,
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 14,
+  },
+  calendarCell: {
+    width: '14.2857%',
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calendarWeekday: {
+    color: textSecondary,
+    fontSize: 11,
+    fontFamily: font.bold,
+  },
+  calendarDayButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 11,
+  },
+  calendarDayButtonSelected: {
+    backgroundColor: navy,
+  },
+  calendarDayButtonDisabled: {
+    opacity: 0.35,
+  },
+  calendarDayText: {
+    color: navy,
+    fontSize: 12,
+    fontFamily: font.semiBold,
+  },
+  calendarDayTextSelected: {
+    color: '#ffffff',
+    fontFamily: font.extraBold,
+  },
+  calendarDayTextDisabled: {
+    color: textSecondary,
+  },
+  subjectOptions: {
+    marginBottom: 10,
+  },
+  subjectRow: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.78)',
+    borderColor: 'rgba(26, 43, 68, 0.10)',
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    marginBottom: 7,
+  },
+  radioOuter: {
+    width: 19,
+    height: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: '#a39b8b',
+    borderRadius: 10,
+    borderWidth: 1.5,
+    marginRight: 10,
+  },
+  radioOuterSelected: {
+    borderColor: navy,
+  },
+  radioInner: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: navy,
+  },
+  subjectRowText: {
+    color: navy,
+    fontSize: 12,
+    fontFamily: font.semiBold,
   },
   modalActions: {
     flexDirection: 'row',
@@ -265,9 +500,14 @@ export const styles = StyleSheet.create({
     marginLeft: 8,
     backgroundColor: navy,
   },
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
   saveText: {
     color: '#ffffff',
-    fontSize: 13,
+    fontSize: 12,
+    textAlign: 'center',
+    paddingHorizontal: 4,
     fontFamily: font.bold,
   },
 });

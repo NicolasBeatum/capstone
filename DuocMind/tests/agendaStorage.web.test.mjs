@@ -35,7 +35,14 @@ test('la agenda web guarda, recupera y elimina actividades', async () => {
   await saveAgendaActivity(activity);
   assert.deepEqual(await getAgendaActivities(), [activity]);
 
+  const withoutSubject = { ...activity, id: 'activity-2', subject: null };
+  await saveAgendaActivity(withoutSubject);
+  assert.deepEqual(await getAgendaActivities(), [activity, withoutSubject]);
+
   await deleteAgendaActivity(activity.id);
+  assert.deepEqual(await getAgendaActivities(), [withoutSubject]);
+
+  await deleteAgendaActivity(withoutSubject.id);
   assert.deepEqual(await getAgendaActivities(), []);
   assert.equal(values.get(STORAGE_KEY), '[]');
 });

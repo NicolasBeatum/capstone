@@ -12,7 +12,7 @@ function isAgendaActivity(value: unknown): value is AgendaActivity {
     'title' in value &&
     typeof value.title === 'string' &&
     'subject' in value &&
-    typeof value.subject === 'string' &&
+    (typeof value.subject === 'string' || value.subject === null) &&
     'time' in value &&
     typeof value.time === 'string'
   );

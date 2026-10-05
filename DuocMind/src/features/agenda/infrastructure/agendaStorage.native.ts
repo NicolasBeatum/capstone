@@ -42,7 +42,7 @@ export async function saveAgendaActivity(activity: AgendaActivity): Promise<void
     activity.id,
     activity.date,
     activity.title,
-    activity.subject,
+    activity.subject ?? '',
     activity.time,
   );
 }
