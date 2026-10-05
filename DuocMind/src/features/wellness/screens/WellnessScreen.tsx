@@ -1,91 +1,129 @@
 import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { AppHeader } from '@/shared/components/AppHeader';
+import {
+  daysSinceApplication,
+  formatDaysAgo,
+  isStressTestDue,
+} from '@/features/emotional-checkin/domain/stressTestRecency';
+import { useStressTestLauncher, type LastStressTest } from '@/features/emotional-checkin/hooks/useStressTestLauncher';
 import { BottomNav } from '@/shared/components/BottomNav';
-import { GlassCard, LiquidBackground, LiquidPanel } from '@/shared/components/Glass';
-import { ClipboardIcon, MeditationIcon, MoonIcon, SparkleIcon, TimerIcon } from '@/shared/components/Icons';
+import { JournalIcon, PhoneIcon, StretchIcon, TimerIcon, WindIcon } from '@/shared/components/Icons';
+import { ScalePress } from '@/shared/components/ScalePress';
 import { styles } from './WellnessScreen.styles';
 
-const tips = [
+const tools = [
   {
-    id: 'pomodoro',
-    title: 'Técnica Pomodoro 25/5',
-    desc: 'Para días de alta carga cognitiva. Alterna trabajo concentrado con pausas sin pantallas.',
-    icon: <TimerIcon size={22} color="#b95c3b" />,
-    iconBg: '#f7dcd2',
+    id: 'breathe',
+    title: 'Respira',
+    desc: 'Ejercicios guiados de 1 a 5 min',
+    icon: <WindIcon size={26} color="#5b4a9e" />,
+    tile: styles.toolBreathe,
+    descColor: '#5f5878',
   },
   {
-    id: 'meditation',
-    title: 'Meditación Guiada (3 min)',
-    desc: 'Reduce la ansiedad pre-examen centrando tu atención en la respiración diafragmática.',
-    icon: <MeditationIcon size={22} color="#c1912c" />,
-    iconBg: '#f6ead0',
+    id: 'study',
+    title: 'Modo estudio',
+    desc: 'Pomodoro 25/5 sin notificaciones',
+    icon: <TimerIcon size={26} color="#a4511a" />,
+    tile: styles.toolStudy,
+    descColor: '#7a5a3c',
   },
   {
-    id: 'sleep',
-    title: 'Higiene del Sueño',
-    desc: 'Evita trasnochar repasando materia. La consolidación de la memoria ocurre en el sueño profundo.',
-    icon: <MoonIcon size={22} color="#6b5fbe" />,
-    iconBg: '#e7e2f6',
+    id: 'journal',
+    title: 'Diario',
+    desc: 'Escribe lo que te da vueltas',
+    icon: <JournalIcon size={26} color="#2f7a55" />,
+    tile: styles.toolJournal,
+    descColor: '#4b6e5c',
+  },
+  {
+    id: 'stretch',
+    title: 'Pausa activa',
+    desc: 'Estírate entre clases, 2 min',
+    icon: <StretchIcon size={26} color="#2f4ea3" />,
+    tile: styles.toolStretch,
+    descColor: '#4a5a86',
   },
 ];
 
+function testSummary(lastStressTest: LastStressTest): { badge: string; detail: string } {
+  const base = 'Escala de Estrés Percibido (PSS-10) · 10 preguntas · 3 min.';
+  if (lastStressTest.status !== 'ready') {
+    return { badge: 'Test Estrés Percibido', detail: base };
+  }
+  const { lastAppliedAt, lastLevel } = lastStressTest;
+  if (!lastAppliedAt) {
+    return { badge: 'Test disponible', detail: `${base} Aún no lo has respondido.` };
+  }
+  const last = `Último resultado: ${lastLevel ?? 'sin nivel'}, ${formatDaysAgo(daysSinceApplication(lastAppliedAt))}.`;
+  return {
+    badge: isStressTestDue(lastAppliedAt) ? 'Test mensual disponible' : 'Respondido este mes',
+    detail: `${base} ${last}`,
+  };
+}
+
 export default function WellnessScreen() {
   const router = useRouter();
+  const stressTest = useStressTestLauncher();
+  const summary = testSummary(stressTest.lastStressTest);
 
   return (
     <View style={styles.safeArea}>
-      <LiquidBackground />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <AppHeader title="Centro de Bienestar" subtitle="Herramientas y descanso" />
+        <Text style={styles.eyebrow}>TU ESPACIO</Text>
+        <Text style={styles.title}>Bienestar</Text>
 
-        <GlassCard style={styles.centerCard}>
-          <Text style={styles.centerCardTitle}>Tu Centro de Bienestar</Text>
-          <Text style={styles.centerCardSubtitle}>Herramientas y descanso</Text>
-          <LiquidPanel from="#f9e9b8" to="#f3d98a" radius={18} style={styles.testCard}>
-            <View style={styles.testCardContent}>
-              <Text style={styles.testCardTitle}>Test emocional</Text>
-              <Text style={styles.testCardDesc}>
-                Identifica tu emoción del día y recibe una mirada rápida sobre tu estado general.
-              </Text>
-            </View>
-            <View style={styles.testIllustration}>
-              <SparkleIcon size={10} />
-              <ClipboardIcon size={46} />
-              <SparkleIcon size={8} color="#e8a93c" />
-            </View>
-          </LiquidPanel>
-        </GlassCard>
-
-        <View style={styles.tipsHeader}>
-          <Text style={styles.tipsTitle}>Tips Personalizados</Text>
-          <Text style={styles.tipsBadge}>Basado en tu estado</Text>
+        {/* ── Test Estrés Percibido ── */}
+        <View style={styles.heroCard}>
+          <View style={styles.heroBadge}>
+            <Text style={styles.heroBadgeText}>{summary.badge}</Text>
+          </View>
+          <Text style={styles.heroTitle}>¿Cuánto estrés has sentido este mes?</Text>
+          <Text style={styles.heroDesc}>{summary.detail}</Text>
+          <ScalePress
+            style={styles.heroButton}
+            onPress={() => void stressTest.open()}
+            accessibilityRole="button"
+            accessibilityLabel="Comenzar Test Estrés Percibido"
+          >
+            <Text style={styles.heroButtonText}>Comenzar test</Text>
+          </ScalePress>
         </View>
-        <View style={styles.tipsGrid}>
-          {tips.map((tip) => (
-            <View key={tip.id} style={styles.tipCardWrap}>
-              <GlassCard style={styles.tipCard}>
-                <View style={[styles.tipIconBox, { backgroundColor: tip.iconBg }]}>{tip.icon}</View>
-                <Text style={styles.tipTitle}>{tip.title}</Text>
-                <Text style={styles.tipDesc}>{tip.desc}</Text>
-              </GlassCard>
+
+        {/* ── Herramientas rápidas ── */}
+        <Text style={styles.sectionTitle}>Herramientas rápidas</Text>
+        <View style={styles.toolsGrid}>
+          {tools.map((tool) => (
+            <View key={tool.id} style={[styles.toolTile, tool.tile]}>
+              {tool.icon}
+              <Text style={styles.toolTitle}>{tool.title}</Text>
+              <Text style={[styles.toolDesc, { color: tool.descColor }]}>{tool.desc}</Text>
             </View>
           ))}
         </View>
 
+        {/* ── Para esta semana ── */}
+        <Text style={styles.sectionTitle}>Para esta semana</Text>
         <TouchableOpacity
-          style={styles.ctaButton}
-          onPress={() => router.push('/daily-test')}
+          style={styles.helpCard}
+          onPress={() => router.push('/wellness/crisis-resources')}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel="Comenzar test emocional"
+          accessibilityLabel="¿Necesitas hablar con alguien? Ver líneas de ayuda"
         >
-          <Text style={styles.ctaText}>Comenzar Test</Text>
-          <Text style={styles.ctaArrow}>→</Text>
+          <View style={styles.helpIcon}>
+            <PhoneIcon size={22} color="#9a3b1c" />
+          </View>
+          <View style={styles.helpText}>
+            <Text style={styles.helpTitle}>¿Necesitas hablar con alguien?</Text>
+            <Text style={styles.helpDesc}>Líneas de ayuda y apoyo de tu institución</Text>
+          </View>
+          <Text style={styles.helpArrow}>›</Text>
         </TouchableOpacity>
       </ScrollView>
       <BottomNav currentTab="wellness" />
+      {stressTest.modal}
     </View>
   );
 }

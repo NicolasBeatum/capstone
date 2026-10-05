@@ -1,6 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import {
+  daysSinceApplication,
+  formatDaysAgo,
+  isStressTestDue,
+} from '@/features/emotional-checkin/domain/stressTestRecency';
+import { useStressTestLauncher } from '@/features/emotional-checkin/hooks/useStressTestLauncher';
+import { NotificationsModal, type AppNotification } from '../components/NotificationsModal';
+import {
+  dismissNotification,
+  getDismissedNotificationIds,
+} from '../infrastructure/dismissedNotificationsStorage';
 import { BottomNav } from '@/shared/components/BottomNav';
 import { LiquidBackground, LiquidCard } from '@/shared/components/Glass';
 import { WeekChart, type WeekDayData } from '@/shared/components/WeekChart';
@@ -55,6 +66,41 @@ export default function DashboardScreen() {
   const router = useRouter();
   const now = new Date();
   const currentClass = SAMPLE_CURRENT_CLASS;
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [dismissedIds, setDismissedIds] = useState<string[] | null>(null);
+  const { lastStressTest, goToTest } = useStressTestLauncher();
+
+  useEffect(() => {
+    void getDismissedNotificationIds().then(setDismissedIds);
+  }, []);
+
+  const handleDismiss = (id: string) => {
+    setDismissedIds((ids) => [...(ids ?? []), id]);
+    void dismissNotification(id);
+  };
+
+  const allNotifications: AppNotification[] = [];
+  // Solo se avisa cuando el historial se pudo consultar; sin sesión no se sabe si falta el test.
+  if (lastStressTest.status === 'ready' && isStressTestDue(lastStressTest.lastAppliedAt, now)) {
+    const { lastAppliedAt } = lastStressTest;
+    allNotifications.push({
+      // La id incluye la última fecha: si se descarta, vuelve a aparecer recién
+      // cuando el estudiante responda el test y vuelvan a pasar 30 días.
+      id: `stress-test-due:${lastAppliedAt ?? 'never'}`,
+      title: 'Haz tu Test Estrés Percibido de este mes',
+      description: lastAppliedAt
+        ? `Lo respondiste por última vez ${formatDaysAgo(daysSinceApplication(lastAppliedAt, now))}.`
+        : 'Aún no lo has respondido. Toma 3 minutos.',
+      icon: <ClipboardIcon size={22} color="#b4561a" />,
+      onPress: () => {
+        setNotificationsOpen(false);
+        goToTest();
+      },
+    });
+  }
+  // Hasta leer las descartadas no se muestra nada, para que el punto no parpadee.
+  const notifications =
+    dismissedIds === null ? [] : allNotifications.filter(({ id }) => !dismissedIds.includes(id));
 
   return (
     <View style={styles.safeArea}>
@@ -68,12 +114,17 @@ export default function DashboardScreen() {
           </View>
           <TouchableOpacity
             style={styles.bellButton}
+            onPress={() => setNotificationsOpen(true)}
             activeOpacity={0.8}
             accessibilityRole="button"
-            accessibilityLabel="Notificaciones"
+            accessibilityLabel={
+              notifications.length > 0
+                ? `Notificaciones, ${notifications.length} nueva${notifications.length === 1 ? '' : 's'}`
+                : 'Notificaciones'
+            }
           >
             <BellIcon size={20} />
-            <View style={styles.bellDot} />
+            {notifications.length > 0 ? <View style={styles.bellDot} /> : null}
           </TouchableOpacity>
           <View style={styles.avatarCircle}>
             <Text style={styles.avatarInitials}>CM</Text>
@@ -179,17 +230,6 @@ export default function DashboardScreen() {
             <Text style={styles.forYouTitleText}>Respira 3 min</Text>
             <Text style={styles.forYouDesc}>Antes de tu prueba de mañana</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.forYouTile, styles.forYouTest]}
-            onPress={() => router.push('/daily-test')}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel="Test semanal de estrés percibido"
-          >
-            <ClipboardIcon size={26} color="#b4561a" />
-            <Text style={styles.forYouTitleText}>Test semanal</Text>
-            <Text style={styles.forYouDesc}>Estrés percibido · 3 min</Text>
-          </TouchableOpacity>
         </View>
 
         <TouchableOpacity
@@ -203,6 +243,12 @@ export default function DashboardScreen() {
       </ScrollView>
 
       <BottomNav currentTab="home" />
+      <NotificationsModal
+        visible={notificationsOpen}
+        notifications={notifications}
+        onClose={() => setNotificationsOpen(false)}
+        onDismiss={handleDismiss}
+      />
     </View>
   );
 }

@@ -310,7 +310,6 @@ export const styles = StyleSheet.create({
     borderColor: glassTokens.border,
   },
   forYouBreathe: { backgroundColor: '#e6e0f5' },
-  forYouTest: { backgroundColor: '#fbe9c4' },
   forYouTitleText: {
     fontSize: 15,
     color: navy,

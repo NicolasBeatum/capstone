@@ -5,8 +5,11 @@ import { BottomNav } from '@/shared/components/BottomNav';
 import { styles } from './DailyTestScreen.styles';
 import { TestOffer } from '../components/TestOffer';
 import { TestRunner } from '../components/TestRunner';
-import type { Instrument, TestQuestion } from '../domain/types';
-import { fetchStressTestInstrument } from '../infrastructure/stressTestRepository';
+import type { Instrument, TestQuestion, TestResult } from '../domain/types';
+import {
+  fetchStressTestInstrument,
+  saveStressTestApplication,
+} from '../infrastructure/stressTestRepository';
 
 /** Resultados de estrés alto que derivan a recursos de crisis sin mostrar resultado. */
 const HIGH_STRESS_CATEGORIES = ['alto', 'muy_alto', 'muy alto', 'severo', 'alta'];
@@ -17,6 +20,8 @@ export default function DailyTestScreen() {
   const [error, setError] = useState<string | null>(null);
   const [instrument, setInstrument] = useState<Instrument | null>(null);
   const [finished, setFinished] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const loadTest = async () => {
     setLoading(true);
@@ -35,13 +40,37 @@ export default function DailyTestScreen() {
     void loadTest();
   }, []);
 
-  const handleComplete = (answers: Record<number, number>) => {
-    if (!instrument) return;
+  const saveApplication = async (answers: Record<number, number>, result: TestResult) => {
+    if (!instrument?.testId || !instrument.testVersion) {
+      setSaveError('No se pudo identificar la versión del test.');
+      return;
+    }
+    try {
+      await saveStressTestApplication({
+        testId: instrument.testId,
+        testVersion: instrument.testVersion,
+        result,
+        criticalItemDetected: instrument.questions.some(
+          (question) => question.isCritica && (answers[question.id] ?? 0) > 0,
+        ),
+      });
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : 'Error desconocido al guardar el test');
+    }
+  };
+
+  const handleComplete = async (answers: Record<number, number>) => {
+    if (!instrument || saving) return;
     const result = instrument.score(answers);
     const isHighStress =
       HIGH_STRESS_CATEGORIES.includes(String(result.category).toLowerCase()) ||
       result.score >= Math.round(result.maxScore * 0.7);
 
+    setSaving(true);
+    await saveApplication(answers, result);
+    setSaving(false);
+
+    // La derivación a recursos de crisis no depende de que el guardado haya funcionado.
     if (isHighStress) {
       router.replace('/wellness/crisis-resources');
       return;
@@ -62,7 +91,7 @@ export default function DailyTestScreen() {
         <View style={styles.container}>
           <View style={[styles.panel, { alignItems: 'center', paddingVertical: 40 }]}>
             <ActivityIndicator size="large" color="#1a2b44" style={{ marginBottom: 16 }} />
-            <Text style={styles.questionText}>Cargando test de estrés...</Text>
+            <Text style={styles.questionText}>Cargando Test Estrés Percibido...</Text>
             <Text style={styles.helperText}>Obteniendo preguntas desde Supabase</Text>
           </View>
         </View>
@@ -98,7 +127,11 @@ export default function DailyTestScreen() {
         <TestOffer
           title="Gracias por responder"
           subtitle="Registro de hoy"
-          description="Tomarte un momento para revisar cómo estás es un buen paso. Puedes volver cuando quieras."
+          description={
+            saveError
+              ? `No pudimos guardar tu resultado: ${saveError}`
+              : 'Tomarte un momento para revisar cómo estás es un buen paso. Puedes volver cuando quieras.'
+          }
           primaryLabel="Volver"
           onPrimary={() => router.back()}
         />
