@@ -1,0 +1,56 @@
+name: Validar administración local
+permissions:
+  contents: read
+on:
+  pull_request:
+    branches: [dev, main]
+    paths: [
+      "admin-web/**",
+      "DuocMind/supabase/**",
+      "DuocMind/tools/**",
+      "DuocMind/scripts/**",
+      ".github/workflows/admin.yml",
+    ]
+  push:
+    branches: [dev, main]
+    paths: [
+      "admin-web/**",
+      "DuocMind/supabase/**",
+      "DuocMind/tools/**",
+      "DuocMind/scripts/**",
+      ".github/workflows/admin.yml",
+    ]
+jobs:
+  admin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            admin-web/package-lock.json
+            DuocMind/tools/package-lock.json
+      - run: npm install --global npm@11.13.0
+      - run: npm ci --prefix DuocMind/tools
+      - run: npm ci --prefix admin-web
+      - run: ./node_modules/.bin/playwright install --with-deps chromium
+        working-directory: admin-web
+      - run: node DuocMind/tools/scripts/local-start.mjs
+      - run: node DuocMind/tools/scripts/fixtures.mjs
+      - run: node DuocMind/tools/scripts/staff.mjs staff enable
+      - name: Iniciar API local sin imprimir secretos
+        run: |
+          node DuocMind/tools/scripts/local-serve.mjs > /tmp/duocmind-edge-ready.log 2>&1 &
+          node DuocMind/tools/scripts/local-ready.mjs
+      - run: DuocMind/tools/node_modules/.bin/deno check --frozen --config DuocMind/supabase/functions/admin-api/deno.json DuocMind/supabase/functions/admin-api/index.ts
+      - run: DuocMind/tools/node_modules/.bin/deno test --frozen --config DuocMind/supabase/functions/admin-api/deno.json DuocMind/supabase/functions/admin-api/recovery_test.ts
+      - run: node DuocMind/tools/scripts/backend-tests.mjs
+      - run: DuocMind/tools/node_modules/.bin/supabase db advisors --local --workdir DuocMind --type all --level warn --fail-on error
+      - run: npm run typecheck && npm test && npm run build && npm run test:e2e
+        working-directory: admin-web
+      - name: Detener únicamente el proyecto local
+        if: always()
+        run: DuocMind/tools/node_modules/.bin/supabase stop --workdir DuocMind

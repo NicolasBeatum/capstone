@@ -1,0 +1,7 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><title>Recuperar contraseña · DuocMind</title><body><h1>Establece tu nueva contraseña</h1><p>Recibimos una solicitud para recuperar tu acceso a DuocMind.</p>
+{{ if eq .RedirectTo "http://127.0.0.1:5173/recover" }}
+<p><a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&amp;type=recovery">Establecer nueva contraseña</a></p>
+{{ else }}
+<p><a href="{{ .ConfirmationURL }}">Recuperar acceso</a></p>
+{{ end }}
+<p>Si no solicitaste este cambio, puedes ignorar este correo.</p></body></html>

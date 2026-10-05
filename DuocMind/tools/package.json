@@ -1,0 +1,27 @@
+{
+  "name": "duocmind-local-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=11 <12"
+  },
+  "packageManager": "npm@11.13.0",
+  "scripts": {
+    "supabase": "supabase",
+    "deno": "deno",
+    "local:env": "node scripts/local-env.mjs",
+    "local:fixtures": "node scripts/fixtures.mjs",
+    "local:start": "node scripts/local-start.mjs",
+    "local:serve": "node scripts/local-serve.mjs",
+    "local:ready": "node scripts/local-ready.mjs",
+    "test:backend": "node scripts/backend-tests.mjs"
+  },
+  "devDependencies": {
+    "supabase": "2.119.0",
+    "deno": "2.9.6",
+    "pg": "8.16.3",
+    "@supabase/supabase-js": "2.116.0"
+  }
+}
