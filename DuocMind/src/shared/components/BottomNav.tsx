@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, Text, TouchableOpacity, View, type ViewStyle } from 'react-native';
+import { Platform, Text, View, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { styles } from './BottomNav.styles';
 import { type Href, useRouter } from 'expo-router';
@@ -52,11 +52,10 @@ export function BottomNav({ currentTab }: BottomNavProps) {
     const isActive = currentTab === tab.id;
     const color = isActive ? (theme.isDark ? '#f3e7a0' : '#1a2b44') : theme.textMuted;
     return (
-      <TouchableOpacity
+      <ScalePress
         key={tab.id}
         style={[styles.tab, isActive && styles.activePill]}
         onPress={() => router.push(tab.route)}
-        activeOpacity={0.8}
         accessibilityRole="button"
         accessibilityLabel={tab.a11y}
         accessibilityState={{ selected: isActive }}
@@ -65,7 +64,7 @@ export function BottomNav({ currentTab }: BottomNavProps) {
         <Text style={[styles.tabLabel, { color }]} numberOfLines={1}>
           {tab.label}
         </Text>
-      </TouchableOpacity>
+      </ScalePress>
     );
   };
 

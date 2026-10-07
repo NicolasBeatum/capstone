@@ -24,6 +24,18 @@ Crear una migración forward-only que:
 
 No aplicar la migración al proyecto remoto como parte de la implementación local. La revisión y despliegue remoto requieren una autorización separada y verificación posterior.
 
+### Enmienda 2026-10-07: ánimo general directo
+
+Aprobada por la persona responsable el 2026-10-07. Una migración forward-only adicional (`20261007120000_registro_emocion_general.sql`):
+
+1. Añade `emocion_general_id_emocion` a `registro_emocional` y la rellena desde la emoción específica de cada fila existente.
+2. La declara `NOT NULL`, elimina `emocion_especifica_id_emocionesp` y su índice, crea un índice nuevo y concede `INSERT` de la columna nueva a `authenticated`.
+3. Elimina la tabla `emocion_especifica`, sin otras referencias en el esquema.
+
+El gateway resuelve `emocion_general` por `valor_escala` y guarda su ID directo; el historial lee `emocion_general!inner(nombre_emocion)`. Las menciones anteriores a `Sin especificar` quedan reemplazadas por esta enmienda.
+
+Reversión: la migración elimina una tabla de catálogo sin uso; restaurarla requiere un respaldo previo o recrearla con una migración nueva. No se aplica al proyecto remoto sin autorización explícita; antes de hacerlo, respaldar `registro_emocional`.
+
 ## Sesión y perfil
 
 - El inicio de sesión real sustituye la navegación simulada actual.

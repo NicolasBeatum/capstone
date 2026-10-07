@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { BottomNav } from '@/shared/components/BottomNav';
+import { GotaLoader } from '@/shared/components/GotaLoader';
 import { styles } from './DailyTestScreen.styles';
 import { TestOffer } from '../components/TestOffer';
 import { TestRunner } from '../components/TestRunner';
@@ -90,7 +91,7 @@ export default function DailyTestScreen() {
       <View style={styles.safeArea}>
         <View style={styles.container}>
           <View style={[styles.panel, { alignItems: 'center', paddingVertical: 40 }]}>
-            <ActivityIndicator size="large" color="#1a2b44" style={{ marginBottom: 16 }} />
+            <GotaLoader style={{ marginBottom: 16 }} />
             <Text style={styles.questionText}>Cargando Test Estrés Percibido...</Text>
             <Text style={styles.helperText}>Obteniendo preguntas desde Supabase</Text>
           </View>

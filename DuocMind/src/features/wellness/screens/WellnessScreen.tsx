@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   daysSinceApplication,
@@ -10,6 +10,7 @@ import { useStressTestLauncher, type LastStressTest } from '@/features/emotional
 import { BottomNav } from '@/shared/components/BottomNav';
 import { JournalIcon, PhoneIcon, StretchIcon, TimerIcon, WindIcon } from '@/shared/components/Icons';
 import { ScalePress } from '@/shared/components/ScalePress';
+import { Reveal } from '@/shared/motion/Reveal';
 import { styles } from './WellnessScreen.styles';
 
 const tools = [
@@ -71,56 +72,63 @@ export default function WellnessScreen() {
   return (
     <View style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.eyebrow}>TU ESPACIO</Text>
-        <Text style={styles.title}>Bienestar</Text>
+        <Reveal>
+          <Text style={styles.eyebrow}>TU ESPACIO</Text>
+          <Text style={styles.title}>Bienestar</Text>
+        </Reveal>
 
         {/* ── Test Estrés Percibido ── */}
-        <View style={styles.heroCard}>
-          <View style={styles.heroBadge}>
-            <Text style={styles.heroBadgeText}>{summary.badge}</Text>
+        <Reveal index={1}>
+          <View style={styles.heroCard}>
+            <View style={styles.heroBadge}>
+              <Text style={styles.heroBadgeText}>{summary.badge}</Text>
+            </View>
+            <Text style={styles.heroTitle}>¿Cuánto estrés has sentido este mes?</Text>
+            <Text style={styles.heroDesc}>{summary.detail}</Text>
+            <ScalePress
+              style={styles.heroButton}
+              onPress={() => void stressTest.open()}
+              accessibilityRole="button"
+              accessibilityLabel="Comenzar Test Estrés Percibido"
+            >
+              <Text style={styles.heroButtonText}>Comenzar test</Text>
+            </ScalePress>
           </View>
-          <Text style={styles.heroTitle}>¿Cuánto estrés has sentido este mes?</Text>
-          <Text style={styles.heroDesc}>{summary.detail}</Text>
-          <ScalePress
-            style={styles.heroButton}
-            onPress={() => void stressTest.open()}
-            accessibilityRole="button"
-            accessibilityLabel="Comenzar Test Estrés Percibido"
-          >
-            <Text style={styles.heroButtonText}>Comenzar test</Text>
-          </ScalePress>
-        </View>
+        </Reveal>
 
         {/* ── Herramientas rápidas ── */}
-        <Text style={styles.sectionTitle}>Herramientas rápidas</Text>
+        <Reveal index={2}>
+          <Text style={styles.sectionTitle}>Herramientas rápidas</Text>
+        </Reveal>
         <View style={styles.toolsGrid}>
-          {tools.map((tool) => (
-            <View key={tool.id} style={[styles.toolTile, tool.tile]}>
+          {tools.map((tool, index) => (
+            <Reveal key={tool.id} index={3 + index} style={[styles.toolTile, tool.tile]}>
               {tool.icon}
               <Text style={styles.toolTitle}>{tool.title}</Text>
               <Text style={[styles.toolDesc, { color: tool.descColor }]}>{tool.desc}</Text>
-            </View>
+            </Reveal>
           ))}
         </View>
 
         {/* ── Para esta semana ── */}
-        <Text style={styles.sectionTitle}>Para esta semana</Text>
-        <TouchableOpacity
-          style={styles.helpCard}
-          onPress={() => router.push('/wellness/crisis-resources')}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel="¿Necesitas hablar con alguien? Ver líneas de ayuda"
-        >
-          <View style={styles.helpIcon}>
-            <PhoneIcon size={22} color="#9a3b1c" />
-          </View>
-          <View style={styles.helpText}>
-            <Text style={styles.helpTitle}>¿Necesitas hablar con alguien?</Text>
-            <Text style={styles.helpDesc}>Líneas de ayuda y apoyo de tu institución</Text>
-          </View>
-          <Text style={styles.helpArrow}>›</Text>
-        </TouchableOpacity>
+        <Reveal index={7}>
+          <Text style={styles.sectionTitle}>Para esta semana</Text>
+          <ScalePress
+            style={styles.helpCard}
+            onPress={() => router.push('/wellness/crisis-resources')}
+            accessibilityRole="button"
+            accessibilityLabel="¿Necesitas hablar con alguien? Ver líneas de ayuda"
+          >
+            <View style={styles.helpIcon}>
+              <PhoneIcon size={22} color="#9a3b1c" />
+            </View>
+            <View style={styles.helpText}>
+              <Text style={styles.helpTitle}>¿Necesitas hablar con alguien?</Text>
+              <Text style={styles.helpDesc}>Líneas de ayuda y apoyo de tu institución</Text>
+            </View>
+            <Text style={styles.helpArrow}>›</Text>
+          </ScalePress>
+        </Reveal>
       </ScrollView>
       <BottomNav currentTab="wellness" />
       {stressTest.modal}

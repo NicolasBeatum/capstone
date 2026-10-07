@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -12,6 +11,7 @@ import {
 } from 'react-native';
 import { BottomNav } from '@/shared/components/BottomNav';
 import { GlassCard, LiquidBackground } from '@/shared/components/Glass';
+import { GotaLoader } from '@/shared/components/GotaLoader';
 import {
   getAgendaActivityEndTime,
   getAgendaActivityStatus,
@@ -320,7 +320,7 @@ export default function AgendaScreen() {
         )}
 
         {isLoading ? (
-          <ActivityIndicator size="large" color="#1a2b44" />
+          <GotaLoader text="Respira mientras cargamos…" />
         ) : dayActivities.length > 0 ? (
           dayActivities.map((activity) => {
             const isInProgress = getAgendaActivityStatus(activity, now) === 'in-progress';

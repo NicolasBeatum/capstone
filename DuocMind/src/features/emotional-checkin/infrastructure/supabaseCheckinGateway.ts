@@ -10,18 +10,12 @@ interface GeneralEmotionRow {
   id_emocion: number;
 }
 
-interface SpecificEmotionRow {
-  id_emocionesp: number;
-}
-
 interface RemoteCheckinRow {
   id_registro: number;
   fecha_hora: string;
   client_request_id: string;
-  emocion_especifica: {
-    emocion_general: {
-      nombre_emocion: string;
-    };
+  emocion_general: {
+    nombre_emocion: string;
   };
 }
 
@@ -49,27 +43,18 @@ export async function getStudentId(): Promise<number> {
   return data.id_estudiante;
 }
 
-async function getSpecificEmotionId(mood: CheckinMood): Promise<number> {
-  const client = getSupabaseClient();
-  const { data: generalEmotion, error: generalError } = await client
+async function getGeneralEmotionId(mood: CheckinMood): Promise<number> {
+  const { data, error } = await getSupabaseClient()
     .from('emocion_general')
     .select('id_emocion')
     .eq('valor_escala', MOOD_VALUES[mood])
     .single<GeneralEmotionRow>();
-  if (generalError) throw generalError;
-
-  const { data: specificEmotion, error: specificError } = await client
-    .from('emocion_especifica')
-    .select('id_emocionesp')
-    .eq('emocion_general_id_emocion', generalEmotion.id_emocion)
-    .eq('nombre_emocionesp', 'Sin especificar')
-    .single<SpecificEmotionRow>();
-  if (specificError) throw specificError;
-  return specificEmotion.id_emocionesp;
+  if (error) throw error;
+  return data.id_emocion;
 }
 
 function mapRemoteRow(row: RemoteCheckinRow): CheckinHistoryEntry | null {
-  const mood = row.emocion_especifica?.emocion_general?.nombre_emocion;
+  const mood = row.emocion_general?.nombre_emocion;
   if (!mood || !Object.keys(MOOD_VALUES).includes(mood)) return null;
 
   return {
@@ -82,14 +67,14 @@ function mapRemoteRow(row: RemoteCheckinRow): CheckinHistoryEntry | null {
 
 export const supabaseCheckinGateway: CheckinRemoteGateway = {
   async save(checkin: Omit<LocalCheckin, 'syncStatus'>) {
-    const [studentId, specificEmotionId] = await Promise.all([
+    const [studentId, generalEmotionId] = await Promise.all([
       getStudentId(),
-      getSpecificEmotionId(checkin.mood),
+      getGeneralEmotionId(checkin.mood),
     ]);
     const { error } = await getSupabaseClient().from('registro_emocional').upsert(
       {
         client_request_id: checkin.clientRequestId,
-        emocion_especifica_id_emocionesp: specificEmotionId,
+        emocion_general_id_emocion: generalEmotionId,
         estudiante_id_estudiante: studentId,
         fecha_hora: checkin.createdAt,
       },
@@ -106,9 +91,7 @@ export const supabaseCheckinGateway: CheckinRemoteGateway = {
         id_registro,
         fecha_hora,
         client_request_id,
-        emocion_especifica!inner(
-          emocion_general!inner(nombre_emocion)
-        )
+        emocion_general!inner(nombre_emocion)
       `)
       .eq('estudiante_id_estudiante', studentId)
       .order('fecha_hora', { ascending: false })

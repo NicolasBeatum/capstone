@@ -41,7 +41,7 @@ export function NotificationsModal({ visible, notifications, onClose, onDismiss 
   useEffect(() => {
     if (!visible) return;
     panel.setValue(0);
-    Animated.spring(panel, { toValue: 1, speed: 16, bounciness: 6, useNativeDriver: true }).start();
+    Animated.spring(panel, { toValue: 1, speed: 16, bounciness: 0, useNativeDriver: true }).start();
   }, [visible, panel]);
 
   const panelStyle = {

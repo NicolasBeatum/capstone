@@ -53,6 +53,7 @@ src/
 └── shared/
     ├── backend/              # Cliente Supabase y almacenamiento seguro comunes
     ├── components/           # Componentes usados por dos o más funcionalidades
+    ├── motion/               # Tokens y componentes de movimiento
     └── theme/                # Tema y tipografía
 ```
 
@@ -75,6 +76,20 @@ src/
 - Escribir código, nombres de archivos e identificadores en inglés. Escribir documentación, comentarios, textos de interfaz y etiquetas de accesibilidad en español.
 - Mantener componentes pequeños y accesibles. Los comentarios explican decisiones, no repiten el código. Evitar dependencias circulares y acceso a detalles internos de otra funcionalidad.
 - No registrar secretos, sesiones, datos personales ni respuestas emocionales. No incluir claves privilegiadas en el cliente ni versionar archivos de entorno reales.
+
+## Diseño y movimiento
+
+La interfaz debe sentirse calmada, como si respirara. Todo movimiento nuevo sigue esta línea:
+
+- Los valores viven en `src/shared/motion/motionTokens.ts` (duraciones, curvas y distancias). No se escriben duraciones, curvas ni escalas sueltas en pantallas o componentes.
+- Sin rebotes: no usar `Animated.spring` con `bounciness` mayor a 0 ni curvas que sobrepasen su valor final. Se usa `Animated` de React Native; una librería de animación nueva requiere justificación en el plan.
+- Entrada de pantallas con fundido y ascenso de 12 px en 500 ms (`ScreenTransition`, ya aplicado en `src/app/_layout.tsx`); la animación nativa del `Stack` queda en `'none'`.
+- Tarjetas y listas entran con `Reveal`, con 70 ms entre elementos.
+- Botones y elementos tocables usan `ScalePress` (escala 0.96, sin rebote) en lugar de `TouchableOpacity`.
+- El fondo `LiquidBackground` respira en ciclos de 10 s (4 s inhalar, 6 s exhalar) de forma muy sutil; el movimiento decorativo no debe distraer.
+- Todo movimiento respeta la preferencia del sistema mediante `useReducedMotion`: con movimiento reducido no hay entradas, escala ni bucles. La única excepción es `GotaLoader`, que conserva un pulso suave de opacidad.
+- Todo indicador de carga usa `GotaLoader` (`src/shared/components/GotaLoader.tsx`); no usar `ActivityIndicator`.
+- El movimiento no es el único medio de comunicar un estado; mantener etiquetas de accesibilidad y texto.
 
 ## Verificación y entrega
 
