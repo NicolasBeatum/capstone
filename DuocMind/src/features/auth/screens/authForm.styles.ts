@@ -19,6 +19,15 @@ export const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
+  // Cubre el formulario mientras se valida la sesión para que no se pueda reenviar.
+  loadingOverlay: {
+    ...StyleSheet.absoluteFill,
+    zIndex: 50,
+    elevation: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: cream,
+  },
   scrollContent: {
     padding: 20,
     paddingTop: 24,

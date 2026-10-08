@@ -20,6 +20,12 @@ export const motionDuration = {
   snap: 400,
   /** Un ciclo del indicador de carga (la gota); lento a propósito. */
   loaderCycle: 2400,
+  /** Tiempo que el saludo de bienvenida queda en el centro antes de moverse. */
+  welcomeHold: 2000,
+  /** Viaje del saludo de bienvenida hasta su lugar en el dashboard. */
+  welcomeFlight: 800,
+  /** Medio paso del baile del Brote de bienvenida. */
+  danceStep: 450,
   /** Inhalar: el fondo se expande. */
   inhale: 4000,
   /** Exhalar: el fondo se recoge. */
@@ -45,6 +51,12 @@ export const motionDistance = {
   /** Opacidad del fondo al exhalar y al inhalar. */
   breathOpacityMin: 0.82,
   breathOpacityMax: 1,
+  /** Inclinación del Brote al bailar, en grados hacia cada lado. */
+  danceTilt: 7,
+  /** Altura que sube el Brote en cada paso de baile, en px. */
+  danceLift: 6,
+  /** Escala del saludo de bienvenida mientras está en el centro. */
+  welcomeScale: 1.3,
 } as const;
 
 /** El driver nativo no existe en web; evita advertencias en la previsualización. */

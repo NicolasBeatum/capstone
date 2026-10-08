@@ -50,6 +50,9 @@ export const styles = StyleSheet.create({
     marginTop: 2,
     fontFamily: font.extraBold,
   },
+  greetingHidden: {
+    opacity: 0,
+  },
   bellButton: {
     width: 42,
     height: 42,

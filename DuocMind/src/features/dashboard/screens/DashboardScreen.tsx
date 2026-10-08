@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   daysSinceApplication,
   formatDaysAgo,
@@ -8,6 +8,7 @@ import {
 } from '@/features/emotional-checkin/domain/stressTestRecency';
 import { useStressTestLauncher } from '@/features/emotional-checkin/hooks/useStressTestLauncher';
 import { NotificationsModal, type AppNotification } from '../components/NotificationsModal';
+import { WelcomeIntro, type GreetingTarget } from '../components/WelcomeIntro';
 import {
   dismissNotification,
   getDismissedNotificationIds,
@@ -84,6 +85,11 @@ export default function DashboardScreen() {
   const [nameLoaded, setNameLoaded] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
   const { lastStressTest, goToTest } = useStressTestLauncher();
+  // El login llega con ?welcome=1 para mostrar la bienvenida una sola vez.
+  const { welcome } = useLocalSearchParams<{ welcome?: string }>();
+  const [introVisible, setIntroVisible] = useState(welcome === '1');
+  const rootRef = useRef<View>(null);
+  const greetingRef = useRef<Text>(null);
 
   useEffect(() => {
     void getDismissedNotificationIds().then(setDismissedIds);
@@ -109,6 +115,30 @@ export default function DashboardScreen() {
 
   const firstName = greetingName(student?.firstName);
   const initials = studentInitials(student?.firstName, student?.lastName);
+
+  const measureGreeting = useCallback(
+    () =>
+      new Promise<GreetingTarget | null>((resolve) => {
+        const root = rootRef.current;
+        const greeting = greetingRef.current;
+        if (!root || !greeting) {
+          resolve(null);
+          return;
+        }
+        root.measureInWindow((rootX, rootY) => {
+          greeting.measureInWindow((x, y, width, height) => {
+            resolve(width > 0 && height > 0 ? { x: x - rootX, y: y - rootY } : null);
+          });
+        });
+      }),
+    [],
+  );
+
+  const handleIntroDone = useCallback(() => {
+    setIntroVisible(false);
+    // Recargar la página web no debe repetir la bienvenida.
+    router.setParams({ welcome: undefined });
+  }, [router]);
 
   const handleDismiss = (id: string) => {
     setDismissedIds((ids) => [...(ids ?? []), id]);
@@ -145,13 +175,16 @@ export default function DashboardScreen() {
         <View style={styles.loadingBox}>
           {showSpinner ? <GotaLoader text="Respira mientras cargamos…" /> : null}
         </View>
-        <BottomNav currentTab="home" />
+        {/* Tras el login la navegación aparece junto con el dashboard, no antes del saludo. */}
+        {introVisible ? null : <BottomNav currentTab="home" />}
       </View>
     );
   }
 
+  const greeting = firstName ? `Hola, ${firstName}` : 'Hola';
+
   return (
-    <View style={styles.safeArea}>
+    <View ref={rootRef} style={styles.safeArea}>
       <LiquidBackground />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* ── Header: fecha y saludo ── */}
@@ -160,12 +193,14 @@ export default function DashboardScreen() {
             <View style={styles.headerText}>
               <Text style={styles.dateEyebrow}>{formatToday(now)}</Text>
               <Text
-                style={styles.greetingTitle}
+                ref={greetingRef}
+                // Durante la bienvenida el saludo que viaja ocupa su lugar.
+                style={[styles.greetingTitle, introVisible && styles.greetingHidden]}
                 numberOfLines={2}
                 adjustsFontSizeToFit
                 minimumFontScale={0.75}
               >
-                {firstName ? `Hola, ${firstName}` : 'Hola'}
+                {greeting}
               </Text>
             </View>
             <ScalePress
@@ -314,6 +349,14 @@ export default function DashboardScreen() {
         onClose={() => setNotificationsOpen(false)}
         onDismiss={handleDismiss}
       />
+      {introVisible ? (
+        <WelcomeIntro
+          greeting={greeting}
+          textStyle={styles.greetingTitle}
+          measureTarget={measureGreeting}
+          onDone={handleIntroDone}
+        />
+      ) : null}
     </View>
   );
 }
