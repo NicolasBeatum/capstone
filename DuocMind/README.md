@@ -81,12 +81,15 @@ exista allí. Después de su primera ejecución de merge, si GitHub lo tiene
 registrado, se puede solicitar otra ejecución sobre dev con GitHub CLI:
 
 ```bash
-gh workflow run android-release.yml --ref dev
+gh workflow run 379235114 --ref dev
 ```
 
-Si GitHub no permite la ejecución manual porque el workflow no está disponible
-en la rama por defecto, conservar esa limitación y seguir el proceso normal de
-PR; no editar main para habilitar el botón ni hacer un merge solo para probar.
+`379235114` es el ID registrado de este workflow en este repositorio; la
+ejecución por ID sobre dev fue comprobada. Usar el nombre del archivo desde
+GitHub CLI puede devolver 404 si todavía no existe en main. Si se elimina y
+recrea el workflow, consultar su nuevo ID con
+`gh api repos/NicolasBeatum/capstone/actions/workflows`. No editar main para habilitar
+el botón ni hacer un merge solo para probar.
 
 Si falla el run, revisar el paso que falla: preparación para variables o versión,
 checks para errores de tipos/tests, prebuild/Gradle para compilación nativa y
