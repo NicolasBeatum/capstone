@@ -6,6 +6,7 @@ on:
     branches: [dev, main]
     paths: [
       "admin-web/**",
+      "compose.yaml",
       "DuocMind/supabase/**",
       "DuocMind/tools/**",
       "DuocMind/scripts/**",
@@ -15,6 +16,7 @@ on:
     branches: [dev, main]
     paths: [
       "admin-web/**",
+      "compose.yaml",
       "DuocMind/supabase/**",
       "DuocMind/tools/**",
       "DuocMind/scripts/**",

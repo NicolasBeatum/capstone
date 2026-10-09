@@ -6,6 +6,51 @@ contraseña, cuestionarios propios, disponibilidad de instrumentos protegidos,
 eventos y tips. Publicar/activar confirma el estado del backend; el consumo de
 contenido nuevo en Android corresponde a otra spec.
 
+## Ejecutar con Docker y Supabase cloud
+
+Desde la raíz del repositorio, con Docker en ejecución y `DuocMind/.env`
+configurado con la URL y clave publicable del proyecto cloud:
+
+```bash
+docker --context default compose up --build -d
+```
+
+El panel abre en `http://127.0.0.1:5173/login` y Expo en
+`http://localhost:8081`. Ambos usan el Supabase de `DuocMind/.env`; cada servicio
+tiene su imagen Node y volumen de dependencias. El generador remoto produce
+`.env.remote.local`, ignorado por Git, sin necesitar las dependencias de
+`DuocMind/tools`. Solo se monta el generador y su configuración de origen;
+las claves de servidor y las fixtures del backend no se incorporan a la imagen.
+
+Para arrancar o detener únicamente administración:
+
+```bash
+docker --context default compose up --build -d admin
+docker --context default compose restart admin
+docker --context default compose stop admin
+docker --context default compose down
+```
+
+`npm ci --prefer-offline` sincroniza las dependencias al arrancar; el código
+montado recarga automáticamente. Usa `up --build` para reconstruir la imagen
+después de cambiar dependencias o Dockerfile. Reinicia después de cambiar el
+`.env`; el hook remoto vuelve a generar la configuración publicable.
+`down` conserva los volúmenes.
+
+Aquí se usa el contexto Docker `default`. Utiliza el contexto operativo de tu
+equipo u omite esa opción si ya está seleccionado. Si Expo tiene 8081 ocupado,
+arranca ambos con `MOBILE_WEB_PORT=18081 docker --context default compose up
+--build -d`; vuelve a especificar esa variable en posteriores comandos `up`.
+Los puertos están publicados solo localmente. El panel conserva 5173 para
+mantener el origen de autenticación configurado.
+
+La ausencia del `.env`, un proyecto cloud distinto al autorizado o una clave
+privilegiada impide el arranque remoto. El archivo se monta como solo lectura;
+las imágenes excluyen archivos de entorno. El usuario `node` de la imagen usa
+UID 1000 y necesita lectura de los archivos montados y escritura en `admin-web/`
+para generar su configuración. No hace falta Node instalado en el host para
+este arranque. Ver [operación Docker](../DuocMind/README.md#ejecución-con-docker).
+
 ## Ejecutar en local
 
 Desde la raíz del repositorio, con Node 24, npm 11.13.0 y Docker en ejecución:
@@ -131,6 +176,11 @@ o plan que la admita: ver
 las suites locales de mutación contra el proyecto real.
 
 ## Validación
+
+Las suites usan Supabase local y cuentas sintéticas; no se ejecutan contra el
+backend cloud. Detén el panel Docker con `docker --context default compose stop
+admin` desde la raíz para liberar 5173; después de validar, puedes restaurarlo
+con `docker --context default compose up -d admin`.
 
 Con el backend local en ejecución:
 

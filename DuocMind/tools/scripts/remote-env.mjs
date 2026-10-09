@@ -1,9 +1,19 @@
 import fs from "node:fs";
 import path from "node:path";
-import { projectRoot } from "./runtime.mjs";
+const projectRoot = path.resolve(import.meta.dirname, "../..");
+
+let source;
+try {
+  source = fs.readFileSync(path.join(projectRoot, ".env"), "utf8");
+} catch {
+  console.error(
+    "No se pudo leer DuocMind/.env. Configura la URL y clave publicable del proyecto y comprueba los permisos del archivo.",
+  );
+  process.exit(1);
+}
 
 const values = Object.fromEntries(
-  fs.readFileSync(path.join(projectRoot, ".env"), "utf8")
+  source
     .split("\n")
     .filter((line) => line.includes("=") && !line.trim().startsWith("#"))
     .map((line) => {

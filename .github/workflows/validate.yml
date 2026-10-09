@@ -26,3 +26,13 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - run: node --test tools/tests/*.test.mjs
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker compose config --quiet
+      - run: docker compose -f DuocMind/compose.yaml config --quiet
+      - run: docker compose --parallel 1 build

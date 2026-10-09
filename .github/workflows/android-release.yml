@@ -1,0 +1,149 @@
+name: APK Android de pruebas
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [dev]
+  workflow_dispatch:
+
+jobs:
+  apk:
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'dev') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/dev')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: DuocMind
+        shell: bash
+    env:
+      CI: 'true'
+      EXPO_NO_DOTENV: '1'
+      EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      ANDROID_VERSION_CODE: ${{ github.run_number }}
+    steps:
+      - name: Obtener el commit del merge o de la ejecución manual
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+          persist-credentials: false
+
+      - name: Identificar la revisión compilada
+        id: revision
+        run: |
+          sha="$(git rev-parse HEAD)"
+          short_sha="$(git rev-parse --short=12 HEAD)"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Preparar Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: DuocMind/package-lock.json
+
+      - name: Instalar npm y dependencias fijadas
+        run: |
+          npm install --global npm@11.13.0
+          npm ci
+
+      - name: Comprobar tipos y pruebas
+        run: |
+          npm run typecheck
+          npm test
+
+      - name: Validar configuración cloud y preparar versión
+        run: node scripts/prepareAndroidRelease.mjs
+
+      - name: Generar Android con SQLCipher y firma de pruebas
+        run: |
+          npx --no-install expo prebuild --platform android --no-install
+          grep -qx 'expo.sqlite.useSQLCipher=true' android/gradle.properties
+          test -s android/app/debug.keystore
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const gradle = readFileSync('android/app/build.gradle', 'utf8');
+          assert.match(gradle, /release\s*\{\s*(?:\/\/[^\n]*\n\s*)*signingConfig signingConfigs\.debug/,
+            'La variante release debe conservar la firma de pruebas de Expo.');
+          NODE
+
+      - name: Preparar Java 21 y cache Gradle
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            DuocMind/package-lock.json
+            DuocMind/android/**/*.gradle*
+            DuocMind/android/gradle/wrapper/gradle-wrapper.properties
+            DuocMind/android/gradle.properties
+
+      - name: Preparar componentes del SDK Android
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            'platforms;android-36' 'build-tools;36.0.0' \
+            'ndk;27.1.12297006' 'cmake;3.22.1'
+
+      - name: Compilar APK release universal
+        working-directory: DuocMind/android
+        run: ./gradlew :app:assembleRelease --no-daemon --max-workers=2 '-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g'
+
+      - name: Comprobar firma, manifiesto y contenido nativo
+        run: |
+          apk='android/app/build/outputs/apk/release/app-release.apk'
+          test -s "$apk"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify "$apk"
+          analyzer="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          test "$("$analyzer" manifest application-id "$apk")" = 'com.duocmind.app'
+          test "$("$analyzer" manifest version-code "$apk")" = "$ANDROID_VERSION_CODE"
+          test "$("$analyzer" manifest debuggable "$apk")" = 'false'
+          unzip -Z1 "$apk" > "$RUNNER_TEMP/duocmind-apk-entries.txt"
+          grep -qx 'assets/index.android.bundle' "$RUNNER_TEMP/duocmind-apk-entries.txt"
+          grep -Eq '^lib/[^/]+/libexpo-sqlite\.so$' "$RUNNER_TEMP/duocmind-apk-entries.txt"
+
+      - name: Preparar APK y checksum
+        id: artifact
+        env:
+          BUILD_SHORT_SHA: ${{ steps.revision.outputs.short_sha }}
+        run: |
+          artifact_name="duocmind-dev-r${GITHUB_RUN_NUMBER}-a${GITHUB_RUN_ATTEMPT}-${BUILD_SHORT_SHA}"
+          apk_name="${artifact_name}.apk"
+          mkdir -p dist/android
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/android/$apk_name"
+          (cd dist/android && sha256sum "$apk_name" > "$apk_name.sha256")
+          echo "name=$artifact_name" >> "$GITHUB_OUTPUT"
+          echo "apk=$apk_name" >> "$GITHUB_OUTPUT"
+
+      - name: Subir APK de pruebas
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: |
+            DuocMind/dist/android/${{ steps.artifact.outputs.apk }}
+            DuocMind/dist/android/${{ steps.artifact.outputs.apk }}.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Resumir build y descarga
+        env:
+          BUILD_SHA: ${{ steps.revision.outputs.sha }}
+          ARTIFACT_NAME: ${{ steps.artifact.outputs.name }}
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+        run: |
+          {
+            echo '## APK release de pruebas'
+            printf '\nCommit: `%s`\n\n' "$BUILD_SHA"
+            printf 'VersionCode: `%s` · intento: `%s`\n\n' "$ANDROID_VERSION_CODE" "$GITHUB_RUN_ATTEMPT"
+            printf '[Descargar %s](%s)\n\n' "$ARTIFACT_NAME" "$ARTIFACT_URL"
+            echo 'El ZIP contiene el APK y su checksum SHA-256. Firma de pruebas de Expo; comprobar Android con datos sintéticos.'
+          } >> "$GITHUB_STEP_SUMMARY"
