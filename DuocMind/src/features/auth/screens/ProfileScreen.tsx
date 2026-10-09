@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -26,6 +27,7 @@ export default function StudentProfileScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
+    Keyboard.dismiss();
     setIsSubmitting(true);
     try {
       await completeStudentProfile({ rut, firstName, lastName }, supabaseAuthGateway);
