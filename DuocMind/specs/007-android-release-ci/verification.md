@@ -95,11 +95,36 @@ La spec sigue abierta hasta verificar builds reales y Android (T006–T008).
   existente de la app era suficiente. No se inició build, creó commit, hizo
   push ni integró PR. T006 permanece abierta hasta verificar integración y APK.
 
+## Integración y primer run
+
+- Commit baf87f7433471a4816cc6c104b253a80eb6d9825 publicado con identidad Git
+  humana configurada, sin créditos o trailers de herramientas.
+- [PR #16](https://github.com/NicolasBeatum/capstone/pull/16) creado e integrado
+  el 2026-10-09 tras validate, docker y admin correctos, sin modificar
+  protecciones. Merge ea91b4c452f3cdbead281122108f1e32cb3ca334.
+- [Run APK 37878618783](https://github.com/NicolasBeatum/capstone/actions/runs/37878618783)
+  activado por pull_request.closed de ese merge. La metadata headSha del evento
+  corresponde a la rama origen; checkout y artefacto deben acreditar el SHA del
+  merge resultante, conforme al plan. Build y descarga todavía no acreditados.
+- Consulta de workflow por nombre con gh devuelve 404 porque no existe en la
+  rama por defecto main. Se localizó el run con la lista general de ejecuciones
+  y el workflow registrado por ID 379235114, sin cambiar main.
+
 ## Pendientes
+
+Durante el primer build se revisó la clave de cache Gradle: incluir todos los
+Gradle generados hacía cambiar su hash al incrementar versionCode. Comparación
+sintética de app/build.gradle con versiones 42/43 confirmó la diferencia.
+Se corrige para usar lockfile, wrapper y gradle.properties estables, conforme
+al plan; la corrección se publicará mediante un PR posterior.
+
+El usuario indicó que instalará el APK en su Android. La prueba funcional
+T008 permanece abierta hasta su resultado; no se ejecutó instalación desde
+este equipo.
 
 T001–T005 completas localmente y variables públicas de T006 configuradas.
 El 2026-10-09 el usuario respondió «hazlo» después de señalar que faltaba
 integrar a dev y comprobar el primer APK: publicación de esta rama mediante PR,
 integración respetando protecciones y builds de verificación autorizados.
-T006–T008 pendientes de ejecución de esos pasos, descarga de APK reales y prueba
-en Android. No se acredita ningún build o merge todavía.
+Publicación e integración realizadas. T006–T008 pendientes de build correcto,
+descarga de APK reales, comparación de firmas/versiones y prueba en Android.

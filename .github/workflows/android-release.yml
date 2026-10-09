@@ -82,7 +82,6 @@ jobs:
           cache: gradle
           cache-dependency-path: |
             DuocMind/package-lock.json
-            DuocMind/android/**/*.gradle*
             DuocMind/android/gradle/wrapper/gradle-wrapper.properties
             DuocMind/android/gradle.properties
 
