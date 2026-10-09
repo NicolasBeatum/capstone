@@ -105,3 +105,8 @@ El 2026-10-09 el usuario autorizó publicar e integrar esta rama a dev mediante
 PR y comprobar el workflow de APK del incremento 007. Se conservan e incluyen
 los cambios Docker aprobados del 006. La integración está sujeta a checks y
 protecciones de dev; no cierra la comprobación Android pendiente.
+
+PR #16 integrado el 2026-10-09, commit ea91b4c452f3cdbead281122108f1e32cb3ca334.
+Checks remotos del PR correctos: validate (36 s), docker (40 s) y admin
+(3 min 3 s), runs 37878340224 y 37878340288. CI remoto queda acreditado; la
+prueba Android del incremento 006 continúa pendiente.

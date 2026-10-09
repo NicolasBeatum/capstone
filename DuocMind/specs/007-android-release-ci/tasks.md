@@ -111,6 +111,9 @@ Las verificaciones locales no cierran las tareas de build remoto o Android.
   - Trazabilidad: RF-002; CA-004. Dependencia: T006.
 
 - [ ] T008 Validar instalación Android y completar aceptación del incremento.
+  - El 2026-10-09 el usuario indicó «Lo instalaré yo en mi Android». Entregar
+    el APK verificado y mantener esta tarea abierta hasta recibir el resultado
+    de la instalación, apertura sin Metro y actualización.
   - En dispositivo/emulador, instalar el primer APK, abrir sin Metro y
     comprobar uso de Supabase cloud con cuenta y datos sintéticos. Relanzar
     y actualizar con el segundo APK conservando la instalación.
