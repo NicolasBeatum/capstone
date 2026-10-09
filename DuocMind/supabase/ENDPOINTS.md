@@ -140,6 +140,8 @@ La migración `20260927230000_emotional_checkin_history.sql` agrega una clave UU
 
 La migración posterior `20260928010000_grant_checkin_timestamp.sql` concede a `authenticated` el privilegio de insertar la columna `fecha_hora`, que el cliente envía para conservar la fecha original del check-in al sincronizar. No amplía lectura ni acceso a otras cuentas; la política RLS de inserción sigue exigiendo que el estudiante pertenezca a `auth.uid()`.
 
+La migración `20261009120000_registro_emocional_realtime.sql` agrega `registro_emocional` a la publicación `supabase_realtime`. El dashboard se suscribe por WebSocket solo a eventos `INSERT` filtrados por `estudiante_id_estudiante=eq.<id propio>` para refrescar el gráfico semanal; Realtime entrega cada evento únicamente a quien pasa la política RLS de lectura. La app no escucha `DELETE`, porque esos eventos no admiten filtro. El historial semanal se lee con `GET /rest/v1/registro_emocional` acotado por `fecha_hora` (`gte`/`lt`).
+
 Para borrar la cuenta, la app invoca la Edge Function `delete-account` con el JWT de la sesión. La función usa `service_role` solo en el servidor para llamar `erase_student_personal_data` y eliminar el usuario de Auth. No se habilita `DELETE` global ni se expone ese secreto al cliente. El despliegue se hace por separado con `supabase functions deploy delete-account` después de revisar/aplicar la migración.
 
 Solicitud de derivación tras aceptar el consentimiento en la app:

@@ -26,6 +26,8 @@ export const motionDuration = {
   welcomeFlight: 800,
   /** Medio paso del baile del Brote de bienvenida. */
   danceStep: 450,
+  /** Crecimiento de una barra del gráfico semanal. */
+  chartBar: 700,
   /** Inhalar: el fondo se expande. */
   inhale: 4000,
   /** Exhalar: el fondo se recoge. */

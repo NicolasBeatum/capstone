@@ -7,6 +7,7 @@ import {
   isStressTestDue,
 } from '@/features/emotional-checkin/domain/stressTestRecency';
 import { useStressTestLauncher } from '@/features/emotional-checkin/hooks/useStressTestLauncher';
+import { useWeekMood } from '@/features/emotional-checkin/hooks/useWeekMood';
 import { NotificationsModal, type AppNotification } from '../components/NotificationsModal';
 import { WelcomeIntro, type GreetingTarget } from '../components/WelcomeIntro';
 import {
@@ -32,17 +33,6 @@ import {
   type StudentDisplayName,
 } from '../infrastructure/studentProfileRepository';
 import { styles } from './DashboardScreen.styles';
-
-/* Datos de muestra hasta que el histórico real esté disponible */
-const SAMPLE_WEEK: WeekDayData[] = [
-  { day: 'L', mood: 'Bien', value: 62 },
-  { day: 'M', mood: 'Muy bien', value: 78 },
-  { day: 'X', mood: 'Neutro', value: 48 },
-  { day: 'J', mood: 'Mal', value: 30 },
-  { day: 'V', mood: 'Bien', value: 66 },
-  { day: 'S', mood: 'Muy bien', value: 85 },
-  { day: 'D', mood: 'Bien', value: 58 },
-];
 
 const WEEKDAYS = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
 const MONTHS = [
@@ -85,6 +75,13 @@ export default function DashboardScreen() {
   const [nameLoaded, setNameLoaded] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
   const { lastStressTest, goToTest } = useStressTestLauncher();
+  const weekMood = useWeekMood();
+  const weekData: WeekDayData[] = weekMood.map((day) => ({
+    day: day.label,
+    dayName: day.name,
+    mood: day.mood,
+    value: day.level === null ? null : day.level * 100,
+  }));
   // El login llega con ?welcome=1 para mostrar la bienvenida una sola vez.
   const { welcome } = useLocalSearchParams<{ welcome?: string }>();
   const [introVisible, setIntroVisible] = useState(welcome === '1');
@@ -231,7 +228,7 @@ export default function DashboardScreen() {
                 <Text style={styles.weekCardLink}>Ver detalle →</Text>
               </TouchableOpacity>
             </View>
-            <WeekChart data={SAMPLE_WEEK} todayIndex={todayWeekIndex(now)} />
+            <WeekChart data={weekData} todayIndex={todayWeekIndex(now)} />
             <View style={styles.insightBox}>
               <View style={styles.insightIcon}>
                 <SparkleIcon size={16} color="#d4912c" />

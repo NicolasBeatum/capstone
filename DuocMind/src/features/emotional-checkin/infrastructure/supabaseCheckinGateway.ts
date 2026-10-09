@@ -1,5 +1,9 @@
 import type { CheckinMood, LocalCheckin } from '../application/localCheckinStore';
-import type { CheckinHistoryEntry, CheckinRemoteGateway } from '../application/checkinHistory';
+import type {
+  CheckinHistoryEntry,
+  CheckinRange,
+  CheckinRemoteGateway,
+} from '../application/checkinHistory';
 import { getSupabaseClient } from '@/shared/backend/infrastructure/supabaseClient';
 
 interface StudentRow {
@@ -83,9 +87,9 @@ export const supabaseCheckinGateway: CheckinRemoteGateway = {
     if (error) throw error;
   },
 
-  async list() {
+  async list(range?: CheckinRange) {
     const studentId = await getStudentId();
-    const { data, error } = await getSupabaseClient()
+    let query = getSupabaseClient()
       .from('registro_emocional')
       .select(`
         id_registro,
@@ -93,7 +97,9 @@ export const supabaseCheckinGateway: CheckinRemoteGateway = {
         client_request_id,
         emocion_general!inner(nombre_emocion)
       `)
-      .eq('estudiante_id_estudiante', studentId)
+      .eq('estudiante_id_estudiante', studentId);
+    if (range) query = query.gte('fecha_hora', range.from).lt('fecha_hora', range.to);
+    const { data, error } = await query
       .order('fecha_hora', { ascending: false })
       .returns<RemoteCheckinRow[]>();
     if (error) throw error;
