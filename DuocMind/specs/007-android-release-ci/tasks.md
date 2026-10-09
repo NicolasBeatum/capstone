@@ -83,11 +83,12 @@ Las verificaciones locales no cierran las tareas de build remoto o Android.
     correctos; no afirmar que un APK fue construido o instalado sin evidencia.
   - Trazabilidad: RF-001–004; CA-008. Dependencia: T004.
 
-- [ ] T006 Activar mediante PR y verificar el primer build y artefacto reales.
+- [x] T006 Activar mediante PR y verificar el primer build y artefacto reales.
   - Avance 2026-10-09: el usuario pidió configurar las variables; ambas se
     configuraron en NicolasBeatum/capstone y se verificó que coinciden con
-    el .env local validado, sin mostrar valores. PR/build/artefacto siguen
-    pendientes; esta tarea permanece abierta.
+    el .env local validado, sin mostrar valores. PR #16 integrado y run
+    37878618783 correcto; APK descargado e inspeccionado y checksum aprobado.
+    Evidencia completa en verification.md.
   - Después de tener código revisable y las autorizaciones correspondientes,
     configurar las dos variables publicables equivalentes al `.env` local,
     sin mostrar sus valores ni copiar el archivo completo.
@@ -101,7 +102,10 @@ Las verificaciones locales no cierran las tareas de build remoto o Android.
     inspeccionado. Si no hay autorización, acceso o build, mantener abierta.
   - Trazabilidad: RF-001–004; CA-001–006. Dependencia: T005 y autorizaciones externas.
 
-- [ ] T007 Comprobar firma estable y versionCode entre dos builds.
+- [x] T007 Comprobar firma estable y versionCode entre dos builds.
+  - Verificada el 2026-10-09 con APK descargados de runs 37878618783 y
+    37880233738: mismo certificado y paquete, versionCode 1 → 3,
+    checksums correctos. Evidencia completa en verification.md.
   - Con el workflow registrado y autorización de ejecución remota, obtener
     otro run nuevo sobre dev, descargar ambos APK y cotejar firmantes,
     paquete y versionCode creciente. Un rerun conserva el versionCode del run.
