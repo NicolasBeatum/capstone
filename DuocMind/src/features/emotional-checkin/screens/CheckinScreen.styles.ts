@@ -5,7 +5,6 @@ import { fontFamily as font } from '@/shared/theme/typography';
 /* ── Paleta cálida compartida con el dashboard ── */
 const cream = '#f3ecda';
 const navy = '#1a2b44';
-const yellow = '#f2c14e';
 const textSecondary = '#8a8272';
 
 export const styles = StyleSheet.create({
@@ -69,17 +68,11 @@ export const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 6,
   },
-  registerButtonSaved: {
-    backgroundColor: yellow,
-  },
   registerText: {
     color: '#ffffff',
     fontSize: 16,
     letterSpacing: 0.4,
     fontFamily: font.extraBold,
-  },
-  registerTextSaved: {
-    color: navy,
   },
   feedback: {
     minHeight: 34,

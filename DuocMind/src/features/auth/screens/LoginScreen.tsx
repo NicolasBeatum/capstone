@@ -11,6 +11,8 @@ import {
 import { useRouter } from 'expo-router';
 import { LiquidBackground, LiquidCard } from '@/shared/components/Glass';
 import { AuthActionButton } from '@/shared/components/AuthActionButton';
+import { GotaLoader } from '@/shared/components/GotaLoader';
+import { Reveal } from '@/shared/motion/Reveal';
 import { getAuthenticationErrorMessage, loginAccount } from '@/features/auth/application/authentication';
 import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
 import {
@@ -42,10 +44,14 @@ export default function LoginScreen() {
     setIsSubmitting(true);
     try {
       const destination = await loginAccount(email, password, supabaseAuthGateway);
-      router.replace(destination === 'profile' ? '/profile' : '/dashboard');
+      // La gota sigue visible hasta que la pantalla de destino reemplaza al login.
+      if (destination === 'profile') {
+        router.replace('/profile');
+      } else {
+        router.replace({ pathname: '/dashboard', params: { welcome: '1' } });
+      }
     } catch (error) {
       setFeedback({ tone: 'error', message: getAuthenticationErrorMessage(error) });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -181,6 +187,13 @@ export default function LoginScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {isSubmitting ? (
+        <Reveal style={styles.loadingOverlay}>
+          <LiquidBackground />
+          <GotaLoader size="lg" text="Ingresando a tu espacio…" />
+        </Reveal>
+      ) : null}
     </View>
   );
 }

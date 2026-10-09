@@ -69,7 +69,7 @@ Las siguientes tablas permiten `GET` público con la clave publicable. No contie
 | `/asignatura` | Catálogo de asignaturas |
 | `/carrera_asignatura` | Asignaturas disponibles por carrera |
 | `/estado`, `/tipo_evento` | Catálogos de agenda |
-| `/emocion_general`, `/emocion_especifica` | Opciones del check-in |
+| `/emocion_general` | Opciones del check-in |
 | `/test_bienestar`, `/test_resultado_nivel`, `/pregunta_test`, `/opcion_respuesta` | Instrumentos, versiones, rangos y preguntas configurados |
 | `/material_apoyo`, `/material_emocion`, `/material_test` | Recursos y reglas de recomendación |
 | `/tipo_alerta`, `/estado_alerta` | Catálogos de derivación |
@@ -130,13 +130,13 @@ Prefer: return=representation
 
 {
   "client_request_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-  "emocion_especifica_id_emocionesp": 1,
+  "emocion_general_id_emocion": 1,
   "estudiante_id_estudiante": 1,
   "fecha_hora": "2026-09-27T22:00:00Z"
 }
 ```
 
-La migración `20260927230000_emotional_checkin_history.sql` agrega `Sin especificar` para cada fila de `emocion_general` y una clave UUID única de reintento. La app resuelve el ánimo general por `valor_escala`, lo relaciona con ese valor técnico y nunca lo presenta como un sentimiento elegido. Repetir el mismo `client_request_id` no crea otro registro. RLS sigue derivando el propietario de `auth.uid()`; la app consulta su perfil y no acepta un `estudiante_id_estudiante` externo.
+La migración `20260927230000_emotional_checkin_history.sql` agrega una clave UUID única de reintento. La migración `20261007120000_registro_emocion_general.sql` reemplaza la referencia a `emocion_especifica` por `emocion_general_id_emocion` en `registro_emocional` (conserva los registros existentes por su ánimo general) y elimina la tabla `emocion_especifica`. La app resuelve el ánimo general por `valor_escala` y lo guarda directamente. Repetir el mismo `client_request_id` no crea otro registro. RLS sigue derivando el propietario de `auth.uid()`; la app consulta su perfil y no acepta un `estudiante_id_estudiante` externo.
 
 La migración posterior `20260928010000_grant_checkin_timestamp.sql` concede a `authenticated` el privilegio de insertar la columna `fecha_hora`, que el cliente envía para conservar la fecha original del check-in al sincronizar. No amplía lectura ni acceso a otras cuentas; la política RLS de inserción sigue exigiendo que el estudiante pertenezca a `auth.uid()`.
 
@@ -166,7 +166,7 @@ El ejemplo con IDs `1` es ilustrativo; no se deben asumir IDs. El API devuelve e
 ## Cómo cargar datos para pruebas
 
 1. Carga catálogos académicos y recursos desde **Supabase Dashboard → Table Editor** o **SQL Editor**, en orden de dependencias: `sede`, `carrera`, `asignatura`, `carrera_asignatura`; luego recursos e instrumentos (`test_bienestar`, `test_resultado_nivel`, `pregunta_test`, `opcion_respuesta`).
-2. La migración ya insertó emociones generales (`Muy mal` a `Muy bien`), emociones específicas de ejemplo y estados/tipos básicos para agenda y derivaciones.
+2. La migración ya insertó emociones generales (`Muy mal` a `Muy bien`), y estados/tipos básicos para agenda y derivaciones.
 3. Para datos personales de prueba, usa cuentas y valores sintéticos. Registra primero un usuario en Auth y crea su perfil `estudiante`; después carga desde el Dashboard la fila de `estudiante_carrera` que corresponde a esa persona. La sesión autenticada podrá crear sus inscripciones, eventos y registros propios.
 4. No entregues una clave `service_role` al compañero ni a la app. Los cambios de catálogos se hacen con acceso al Dashboard; la app pública solo puede leerlos.
 

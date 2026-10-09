@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Animated,
   StyleSheet,
   View,
   useWindowDimensions,
@@ -7,6 +8,8 @@ import {
   type ViewStyle,
 } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
+import { useBreath } from '@/shared/motion/breath';
+import { motionDistance } from '@/shared/motion/motionTokens';
 
 /* Tokens del efecto glass/liquid compartidos con las hojas de estilo */
 export const glassTokens = {
@@ -84,12 +87,31 @@ export function LiquidCard({ children, style }: GlassCardProps) {
   );
 }
 
-/* Orbes de luz suaves detrás del contenido; dan el fondo líquido del glassmorphism */
+/* Orbes de luz suaves detrás del contenido; dan el fondo líquido del glassmorphism.
+ * Respiran en ciclos de 10 s (4 s inhalar, 6 s exhalar) con un cambio muy sutil. */
 export function LiquidBackground() {
   const { width, height } = useWindowDimensions();
+  const breath = useBreath();
+
+  const breathStyle = breath
+    ? {
+        opacity: breath.interpolate({
+          inputRange: [0, 1],
+          outputRange: [motionDistance.breathOpacityMin, motionDistance.breathOpacityMax],
+        }),
+        transform: [
+          {
+            scale: breath.interpolate({
+              inputRange: [0, 1],
+              outputRange: [1, motionDistance.breathScale],
+            }),
+          },
+        ],
+      }
+    : null;
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <Animated.View style={[StyleSheet.absoluteFill, breathStyle]} pointerEvents="none">
       <Svg width={width} height={height}>
         <Defs>
           <RadialGradient id="orbYellow" cx="50%" cy="50%" r="50%">
@@ -109,7 +131,7 @@ export function LiquidBackground() {
         <Circle cx={width * 0.02} cy={height * 0.46} r={300} fill="url(#orbSage)" />
         <Circle cx={width * 0.85} cy={height * 0.82} r={320} fill="url(#orbAmber)" />
       </Svg>
-    </View>
+    </Animated.View>
   );
 }
 

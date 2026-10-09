@@ -1,20 +1,21 @@
 import React, { useMemo, useRef, useState } from 'react';
 import {
   Animated,
-  Easing,
   PanResponder,
+  Platform,
   StyleSheet,
   Text,
   View,
   type GestureResponderEvent,
 } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import { moodColorAt } from '@/shared/components/broteParams';
+import { motionDuration, motionEasing, NATIVE_DRIVER } from '@/shared/motion/motionTokens';
 import { fontFamily as font } from '@/shared/theme/typography';
 import {
   MOOD_MAX,
   MOOD_SCALE,
   clampMoodValue,
-  faceColorForValue,
   moodFromValue,
 } from '../domain/moodScale';
 
@@ -63,21 +64,31 @@ export function MoodSlider({ value, onChange }: MoodSliderProps) {
         onPanResponderGrant: (event) => {
           measure();
           snap.stopAnimation();
-          Animated.spring(thumbScale, { toValue: 1.18, speed: 30, bounciness: 8, useNativeDriver: true }).start();
+          Animated.timing(thumbScale, {
+            toValue: 1.12,
+            duration: motionDuration.pressIn,
+            easing: motionEasing.soft,
+            useNativeDriver: NATIVE_DRIVER,
+          }).start();
           onChangeRef.current(valueAt(event));
         },
         onPanResponderMove: (event) => onChangeRef.current(valueAt(event)),
         onPanResponderRelease: () => {
-          Animated.spring(thumbScale, { toValue: 1, speed: 24, bounciness: 10, useNativeDriver: true }).start();
-          // Acomoda el pulgar en el estado más cercano con una transición corta.
+          Animated.timing(thumbScale, {
+            toValue: 1,
+            duration: motionDuration.pressOut,
+            easing: motionEasing.soft,
+            useNativeDriver: NATIVE_DRIVER,
+          }).start();
+          // Acomoda el pulgar en el estado más cercano con una transición suave.
           const from = valueRef.current;
           const to = Math.round(from);
           snap.setValue(from);
           const listener = snap.addListener(({ value: next }) => onChangeRef.current(next));
           Animated.timing(snap, {
             toValue: to,
-            duration: 160,
-            easing: Easing.out(Easing.quad),
+            duration: motionDuration.snap,
+            easing: motionEasing.soft,
             useNativeDriver: false,
           }).start(() => {
             snap.removeListener(listener);
@@ -92,6 +103,18 @@ export function MoodSlider({ value, onChange }: MoodSliderProps) {
   const thumbLeft = (clampMoodValue(value) / MOOD_MAX) * Math.max(0, width - THUMB);
   const currentMood = moodFromValue(value);
 
+  // Teclado en web: las flechas mueven entre los cinco estados.
+  const handleKeyDown = (event: { key: string; preventDefault: () => void }) => {
+    const deltas: Record<string, number> = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 };
+    if (event.key === 'Home') onChange(0);
+    else if (event.key === 'End') onChange(MOOD_MAX);
+    else if (event.key in deltas) step(deltas[event.key]);
+    else return;
+    event.preventDefault();
+  };
+  const keyboardProps: Record<string, unknown> =
+    Platform.OS === 'web' ? { tabIndex: 0, onKeyDown: handleKeyDown } : {};
+
   return (
     <View>
       <View
@@ -104,9 +127,11 @@ export function MoodSlider({ value, onChange }: MoodSliderProps) {
         accessible
         accessibilityRole="adjustable"
         accessibilityLabel="Estado de ánimo"
-        accessibilityValue={{ text: currentMood }}
+        accessibilityValue={{ min: 0, max: MOOD_MAX, now: Math.round(clampMoodValue(value)), text: currentMood }}
+        focusable
         accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
         onAccessibilityAction={(event) => step(event.nativeEvent.actionName === 'increment' ? 1 : -1)}
+        {...keyboardProps}
         {...responder.panHandlers}
       >
         <View style={styles.track} pointerEvents="none">
@@ -114,7 +139,7 @@ export function MoodSlider({ value, onChange }: MoodSliderProps) {
             <Defs>
               <LinearGradient id="moodTrack" x1="0" y1="0" x2="1" y2="0">
                 {MOOD_SCALE.map((mood, index) => (
-                  <Stop key={mood} offset={index / MOOD_MAX} stopColor={faceColorForValue(index)} />
+                  <Stop key={mood} offset={index / MOOD_MAX} stopColor={moodColorAt(index / MOOD_MAX)} />
                 ))}
               </LinearGradient>
             </Defs>
@@ -132,7 +157,7 @@ export function MoodSlider({ value, onChange }: MoodSliderProps) {
           pointerEvents="none"
           style={[
             styles.thumb,
-            { left: thumbLeft, borderColor: faceColorForValue(value), transform: [{ scale: thumbScale }] },
+            { left: thumbLeft, borderColor: moodColorAt(clampMoodValue(value) / MOOD_MAX), transform: [{ scale: thumbScale }] },
           ]}
         />
       </View>

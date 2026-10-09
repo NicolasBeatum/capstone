@@ -40,7 +40,7 @@ export function SwipeToDismiss({ children, onDismiss, style }: SwipeToDismissPro
       onPanResponderRelease: (_event, { dx, vx }) => {
         const passed = Math.abs(dx) > width.current * DISMISS_RATIO || Math.abs(vx) > DISMISS_VELOCITY;
         if (!passed) {
-          Animated.spring(translateX, { toValue: 0, bounciness: 6, useNativeDriver: false }).start();
+          Animated.spring(translateX, { toValue: 0, bounciness: 0, useNativeDriver: false }).start();
           return;
         }
         const direction = dx === 0 ? Math.sign(vx) || 1 : Math.sign(dx);

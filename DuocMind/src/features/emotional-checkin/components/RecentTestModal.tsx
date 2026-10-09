@@ -68,7 +68,7 @@ export function RecentTestModal({ visible, days, onClose, onContinue }: RecentTe
     const entrance = Animated.spring(card, {
       toValue: 1,
       speed: 16,
-      bounciness: 6,
+      bounciness: 0,
       useNativeDriver: true,
     });
     // El contador re-renderiza cada frame, así que parte cuando la tarjeta ya se asentó.

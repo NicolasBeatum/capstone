@@ -14,6 +14,7 @@ import {
   Inter_700Bold,
   Inter_800ExtraBold,
 } from '@expo-google-fonts/inter';
+import { ScreenTransition } from '@/shared/motion/ScreenTransition';
 import { ThemeProvider } from '@/shared/theme/theme';
 
 export default function RootLayout() {
@@ -34,7 +35,12 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <Stack screenOptions={{ headerShown: false, animation: 'fade_from_bottom' }} />
+      <Stack
+        screenOptions={{ headerShown: false, animation: 'none' }}
+        screenLayout={({ children, navigation }) => (
+          <ScreenTransition navigation={navigation}>{children}</ScreenTransition>
+        )}
+      />
       <StatusBar style={isDark ? 'light' : 'dark'} />
     </ThemeProvider>
   );
