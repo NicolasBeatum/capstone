@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -35,6 +36,9 @@ export default function LoginScreen() {
   const [feedback, setFeedback] = useState<{ message: string; tone: 'error' | 'success' } | null>(null);
 
   const handleLogin = async () => {
+    // Al tocar el botón el teclado no se cierra solo (keyboardShouldPersistTaps) y en
+    // Android sigue abierto sobre la carga y la pantalla siguiente.
+    Keyboard.dismiss();
     setFeedback(null);
     if (!email || !password) {
       setFeedback({ tone: 'error', message: 'Ingresa tu correo y contraseña.' });

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -51,6 +52,7 @@ export default function RegisterScreen() {
   const metCount = requirements.filter((requirement) => requirement.met).length;
 
   const handleRegister = async () => {
+    Keyboard.dismiss();
     setFeedback(null);
     setNeedsEmailConfirmation(false);
     if (!email || !password || !confirmPassword) {

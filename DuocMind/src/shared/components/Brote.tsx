@@ -346,12 +346,15 @@ export function Brote({ t, size = 200, idle = true }: BroteProps) {
   }, [twinkling, twinkle]);
 
   const height = (size * VIEW_H) / VIEW_W;
-  // La rotación pivota en la base del tallo, no en el centro del dibujo.
+  // La rotación pivota en la base del tallo, no en el centro del dibujo. Los
+  // porcentajes van enteros: en Android, React Native no lee decimales en
+  // transformOrigin (de "68.18%" toma solo "18%"), el pivote queda lejísimos y
+  // la planta sale de la pantalla al balancearse.
   const swayStyle = useMemo(
     () =>
       animate
         ? {
-            transformOrigin: `${(CENTER_X / VIEW_W) * 100}% ${(STEM_BASE_Y / VIEW_H) * 100}%`,
+            transformOrigin: `${Math.round((CENTER_X / VIEW_W) * 100)}% ${Math.round((STEM_BASE_Y / VIEW_H) * 100)}%`,
             transform: [
               {
                 rotate: sway.interpolate({
