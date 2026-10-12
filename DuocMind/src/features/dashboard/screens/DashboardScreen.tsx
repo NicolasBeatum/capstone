@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   daysSinceApplication,
@@ -20,7 +20,7 @@ import { GotaLoader } from '@/shared/components/GotaLoader';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { WeekChart, type WeekDayData } from '@/shared/components/WeekChart';
 import { Reveal } from '@/shared/motion/Reveal';
-import { BellIcon, ClipboardIcon, SparkleIcon, WindIcon } from '@/shared/components/Icons';
+import { BellIcon, CalendarIcon, ClipboardIcon, SparkleIcon, WindIcon } from '@/shared/components/Icons';
 import {
   SAMPLE_CURRENT_CLASS,
   SAMPLE_UPCOMING,
@@ -66,6 +66,8 @@ const SPINNER_DELAY_MS = 400;
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const { width, fontScale } = useWindowDimensions();
+  const compactHeader = width < 390 || fontScale > 1.15;
   const now = new Date();
   const currentClass = SAMPLE_CURRENT_CLASS;
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -186,8 +188,8 @@ export default function DashboardScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* ── Header: fecha y saludo ── */}
         <Reveal>
-          <View style={styles.headerRow}>
-            <View style={styles.headerText}>
+          <View style={[styles.headerRow, compactHeader && styles.headerCompact]}>
+            <View style={[styles.headerText, compactHeader && styles.headerTextCompact]}>
               <Text style={styles.dateEyebrow}>{formatToday(now)}</Text>
               <Text
                 ref={greetingRef}
@@ -200,6 +202,15 @@ export default function DashboardScreen() {
                 {greeting}
               </Text>
             </View>
+            <View style={[styles.headerControls, compactHeader && styles.headerControlsCompact]}>
+            <ScalePress
+              style={styles.bellButton}
+              onPress={() => router.push('/events')}
+              accessibilityRole="button"
+              accessibilityLabel="Ver calendario de eventos"
+            >
+              <CalendarIcon size={20} />
+            </ScalePress>
             <ScalePress
               style={styles.bellButton}
               onPress={() => setNotificationsOpen(true)}
@@ -215,6 +226,7 @@ export default function DashboardScreen() {
             </ScalePress>
             <View style={styles.avatarCircle} accessibilityLabel={firstName ? `Perfil de ${firstName}` : 'Perfil'}>
               <Text style={styles.avatarInitials}>{initials}</Text>
+            </View>
             </View>
           </View>
         </Reveal>

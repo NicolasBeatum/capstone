@@ -18,6 +18,12 @@ export const styles = StyleSheet.create({
     paddingTop: 28,
     paddingBottom: 32,
   },
+  eventsLink: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start', paddingHorizontal: 8, marginBottom: 10 },
+  eventsLinkText: { fontSize: 13, fontFamily: font.bold, color: navy },
+  eventCard: { padding: 18, gap: 10, marginBottom: 12 },
+  eventBadge: { fontSize: 11, fontFamily: font.bold, color: '#36517b' },
+  eventBody: { fontSize: 13, lineHeight: 20, fontFamily: font.regular, color: navy },
+  eventNotice: { fontSize: 13, lineHeight: 20, fontFamily: font.bold, color: '#665125', marginBottom: 8 },
   eyebrow: {
     color: textSecondary,
     fontSize: 11,
@@ -53,8 +59,8 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
   },
   weekArrow: {
-    width: 30,
-    height: 30,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 10,
@@ -126,6 +132,8 @@ export const styles = StyleSheet.create({
     fontFamily: font.bold,
   },
   sectionHeader: {
+    flexWrap: 'wrap',
+    gap: 8,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

@@ -83,6 +83,10 @@ export interface EventContent {
   location: string;
   startsAt: string;
   endsAt: string;
+  requiresRegistration: boolean;
+  registrationUrl: string | null;
+  registrationDeadline: string | null;
+  registrationClosed: boolean;
 }
 export interface InstitutionalEvent extends EventContent {
   id: string;

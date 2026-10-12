@@ -10,3 +10,7 @@ export function createSupabaseAuthOptions(storage: SupportedStorage) {
     },
   };
 }
+
+export function supabaseAuthStorageKey(url: string): string {
+  return `sb-${new URL(url).hostname.split('.')[0]}-auth-token`;
+}

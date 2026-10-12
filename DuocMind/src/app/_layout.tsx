@@ -15,6 +15,8 @@ import {
   Inter_800ExtraBold,
 } from '@expo-google-fonts/inter';
 import { ScreenTransition } from '@/shared/motion/ScreenTransition';
+import { EventProvider } from '@/shared/events/infrastructure/EventProvider';
+import { AgendaProvider } from '@/features/agenda/infrastructure/AgendaProvider';
 import { ThemeProvider } from '@/shared/theme/theme';
 
 export default function RootLayout() {
@@ -35,13 +37,17 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <Stack
-        screenOptions={{ headerShown: false, animation: 'none' }}
-        screenLayout={({ children, navigation }) => (
-          <ScreenTransition navigation={navigation}>{children}</ScreenTransition>
-        )}
-      />
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <EventProvider>
+        <AgendaProvider>
+          <Stack
+            screenOptions={{ headerShown: false, animation: 'none' }}
+            screenLayout={({ children, navigation }) => (
+              <ScreenTransition navigation={navigation}>{children}</ScreenTransition>
+            )}
+          />
+          <StatusBar style={isDark ? 'light' : 'dark'} />
+        </AgendaProvider>
+      </EventProvider>
     </ThemeProvider>
   );
 }

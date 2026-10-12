@@ -94,10 +94,43 @@ export function validateMutation(
       "location",
       "startsAt",
       "endsAt",
-    ]);
+      "requiresRegistration",
+      "registrationUrl",
+      "registrationDeadline",
+      "registrationClosed",
+    ], [...base, "title", "description", "location", "startsAt", "endsAt"]);
     text(p.title, 160);
     text(p.description, 5000, true);
     text(p.location, 160);
+    for (const key of ["requiresRegistration", "registrationClosed"]) {
+      if (key in p && typeof p[key] !== "boolean") {
+        throw new HttpError(422, "Condición inválida.");
+      }
+    }
+    if (p.registrationUrl !== undefined && p.registrationUrl !== null) {
+      if (
+        typeof p.registrationUrl !== "string" ||
+        p.registrationUrl.length > 2048 ||
+        /[\s\\\u0000-\u001f\u007f]/.test(p.registrationUrl)
+      ) throw new HttpError(422, "Enlace inválido.");
+      let url: URL;
+      try {
+        url = new URL(p.registrationUrl);
+      } catch {
+        throw new HttpError(422, "Enlace inválido.");
+      }
+      if (
+        !/^https:\/\//i.test(p.registrationUrl) || url.protocol !== "https:" ||
+        !url.hostname || url.username || url.password
+      ) throw new HttpError(422, "Enlace HTTPS requerido.");
+    }
+    if (
+      p.registrationDeadline !== undefined && p.registrationDeadline !== null &&
+      (typeof p.registrationDeadline !== "string" ||
+        !/(Z|[+-]\d{2}:\d{2})$/.test(p.registrationDeadline) ||
+        !Number.isFinite(Date.parse(p.registrationDeadline)))
+    ) throw new HttpError(422, "Plazo inválido.");
+
     for (const key of ["startsAt", "endsAt"]) {
       if (
         typeof p[key] !== "string" || !/(Z|[+-]\d{2}:\d{2})$/.test(p[key]) ||

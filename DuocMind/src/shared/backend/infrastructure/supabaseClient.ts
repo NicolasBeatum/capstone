@@ -3,7 +3,7 @@ import 'react-native-url-polyfill/auto';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 import { platformAuthStorage } from './platformSecureStorage';
-import { createSupabaseAuthOptions } from './supabaseAuthOptions';
+import { createSupabaseAuthOptions, supabaseAuthStorageKey } from './supabaseAuthOptions';
 
 let client: SupabaseClient | undefined;
 
@@ -12,7 +12,8 @@ export function initializeSupabaseClient(url: string, publishableKey: string): S
     throw new Error('Falta la configuración pública de Supabase.');
   }
 
-  client ??= createClient(url, publishableKey, createSupabaseAuthOptions(platformAuthStorage));
+  const options = createSupabaseAuthOptions(platformAuthStorage);
+  client ??= createClient(url, publishableKey, { ...options, auth: { ...options.auth, storageKey: supabaseAuthStorageKey(url) } });
 
   return client;
 }

@@ -3,6 +3,9 @@ import { getSupabaseClient } from '@/shared/backend/infrastructure/supabaseClien
 import { deleteLocalCheckinData } from '@/features/emotional-checkin/infrastructure/encryptedCheckinDatabase';
 import { platformSecureKeyValueStorage } from '@/shared/backend/infrastructure/platformSecureStorage';
 
+import { deleteEventData } from '@/shared/events/infrastructure/eventStorage';
+import { blockEventAccount } from '@/shared/events/infrastructure/eventSessionGateway';
+
 const PROFILE_VERIFIED_KEY_PREFIX = 'duocmind.student-profile-verified.v1.';
 
 function throwIfError(error: { code?: string } | null): void {
@@ -91,8 +94,9 @@ export const supabaseAuthGateway: AuthGateway = {
     const userId = sessionData.session?.user.id;
     if (!userId) throw new Error('Inicia sesión para eliminar tu cuenta.');
 
-    await completeAccountDeletion({
-      clearLocalData: () => deleteLocalCheckinData(userId),
+    const releaseEvents = blockEventAccount(userId);
+    try { await completeAccountDeletion({
+      clearLocalData: async () => { await deleteEventData(userId); await deleteLocalCheckinData(userId); },
       deleteRemoteAccount: async () => {
         const { error } = await client.functions.invoke('delete-account', { body: {} });
         throwIfError(error);
@@ -101,6 +105,6 @@ export const supabaseAuthGateway: AuthGateway = {
         const { error } = await client.auth.signOut({ scope: 'local' });
         throwIfError(error);
       },
-    });
+    }); } finally { releaseEvents(); }
   },
 };

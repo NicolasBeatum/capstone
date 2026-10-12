@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+import { database, authClient, fixtures } from '../scripts/runtime.mjs';
+const f = fixtures(), auth = authClient();
+const login = await auth.auth.signInWithPassword({ email: f.staff.email, password: f.staff.password });
+assert(!login.error);
+const session = JSON.parse(Buffer.from(login.data.session.access_token.split('.')[1], 'base64url')).session_id;
+const db = await database();
+try {
+  await db.query('begin'); await db.query('set local role service_role');
+  const call = async (method, path, body) => (await db.query('select public.admin_mutate($1,$2,$3,$4,$5) result', [f.staff.id, session, method, path, { requestId: crypto.randomUUID(), ...body }])).rows[0].result;
+  const reject = async fn => { await db.query('savepoint negative'); await assert.rejects(fn, e => e.code === 'P0422'); await db.query('rollback to savepoint negative'); };
+  const startsAt = new Date(Date.now() + 7 * 86400000).toISOString();
+  const content = { title: 'Evento sintético', description: '', location: 'Local', startsAt, endsAt: new Date(Date.parse(startsAt) + 5400000).toISOString(), requiresRegistration: true, registrationUrl: null, registrationDeadline: null, registrationClosed: false };
+  const draft = await call('POST', '/events', content), path = '/events/' + draft.id;
+  await reject(() => call('POST', path + '/publish', { expectedRevision: 1 }));
+  await reject(() => call('PUT', path, { ...content, expectedRevision: 1, registrationUrl: 'https://user:pass@example.com/form' }));
+  await reject(() => call('PUT', path, { ...content, expectedRevision: 1, registrationDeadline: new Date(Date.parse(startsAt) + 1000).toISOString() }));
+  const valid = { ...content, registrationUrl: 'https://example.com/form', registrationDeadline: new Date(Date.parse(startsAt) - 3600000).toISOString() };
+  const saved = await call('PUT', path, { ...valid, expectedRevision: 1 });
+  const published = await call('POST', path + '/publish', { expectedRevision: saved.revision });
+  const closed = await call('PUT', path, { ...valid, registrationClosed: true, expectedRevision: published.revision });
+  const reopened = await call('PUT', path, { ...valid, expectedRevision: closed.revision });
+  assert.equal(reopened.revision, closed.revision + 1);
+  await reject(() => call('PUT', path, { ...valid, registrationDeadline: null, expectedRevision: reopened.revision }));
+  await call('POST', path + '/cancel', { expectedRevision: reopened.revision });
+  await reject(() => call('PUT', path, { ...valid, expectedRevision: reopened.revision + 1 }));
+  const past = await call('POST', '/events', { ...valid, startsAt: '2020-01-01T00:00:00Z', endsAt: '2020-01-01T01:00:00Z', registrationDeadline: '2019-12-31T00:00:00Z', registrationClosed: true });
+  await call('POST', '/events/' + past.id + '/publish', { expectedRevision: 1 });
+  await reject(() => call('PUT', '/events/' + past.id, { ...valid, startsAt: '2020-01-01T00:00:00Z', endsAt: '2020-01-01T01:00:00Z', registrationDeadline: '2019-12-31T00:00:00Z', expectedRevision: 2 }));
+  await db.query('rollback');
+  console.log('Eventos: borrador, publicación, validación, cierre, reapertura y cancelación verificados.');
+} finally { await db.end(); await auth.auth.signOut(); }

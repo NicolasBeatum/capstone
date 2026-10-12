@@ -180,3 +180,60 @@ El ejemplo con IDs `1` es ilustrativo; no se deben asumir IDs. El API devuelve e
 - Una alerta que asocia aplicación de test y estudiante debe apuntar al mismo dueño. La política de inserción exige consentimiento con fecha y versión.
 - El equipo de bienestar todavía no tiene una política de lectura por rol. Por ahora la API de usuario no expone derivaciones a terceros; solo las ve el estudiante dueño y el equipo administrador puede revisarlas desde el Dashboard.
 - Antes de usar información real, el equipo debe fijar retención y eliminación de datos y definir cómo se asignará el rol institucional de bienestar.
+
+
+## Catálogo de eventos para estudiantes (incremento 009)
+
+Contrato versionado en las migraciones `20261011200847_student_event_registration.sql`
+y `20261011200855_student_event_catalog.sql`. Verificado en local y aplicado al proyecto cloud de desarrollo
+el 2026-10-11 con autorización explícita.
+
+```http
+POST /rest/v1/rpc/get_student_events
+apikey: <PUBLISHABLE_KEY>
+Authorization: Bearer <JWT_DE_SESION>
+Content-Type: application/json
+
+{}
+```
+
+El parámetro opcional `p_event_id` es UUID; filtra solo el evento indicado y no
+sustituye una descarga completa. Respuesta única JSON:
+
+```json
+{
+  "serverTime": "2026-10-11T12:00:00Z",
+  "events": [{
+    "id": "00000000-0000-0000-0000-000000000001",
+    "title": "Taller sintético",
+    "description": "Actividad de ejemplo",
+    "location": "Patio sintético",
+    "startsAt": "2030-10-12T12:00:00Z",
+    "endsAt": "2030-10-12T14:30:00Z",
+    "status": "published",
+    "publishedAt": "2026-10-11T12:00:00Z",
+    "revision": 1,
+    "requiresRegistration": true,
+    "registrationUrl": "https://example.com/form",
+    "registrationDeadline": "2030-10-11T12:00:00Z",
+    "registrationClosed": false
+  }]
+}
+```
+
+La función es SECURITY INVOKER, aplica RLS y concede EXECUTE solo a
+`authenticated`. Incluye publicados y cancelados con publicación previa; oculta
+borradores. Un ID ausente o nunca publicado devuelve `events: []`. La agregación
+JSON devuelve el catálogo completo sin truncarlo a 1000 filas.
+
+El panel administra las cuatro condiciones mediante los contratos existentes
+`/events`: revisión, permiso, sesión e idempotencia siguen vigentes. Un evento
+libre tiene `requiresRegistration: false`, enlace/plazo nulos y cierre falso.
+Se admiten condiciones incompletas en borradores; al publicar se exige HTTPS sin
+credenciales y un plazo no posterior al inicio. No se reabre un plazo vencido.
+El estado temporal se deriva del intervalo y las inscripciones se verifican con
+`serverTime` antes de abrir el enlace.
+
+No existe endpoint de asistentes ni de intereses. El guardado es local, por
+cuenta, y no equivale a completar la inscripción externa. Agenda conserva el
+intervalo aceptado ante una reprogramación hasta que el usuario la confirme.

@@ -24,6 +24,51 @@ Si el `.env` falta o tiene los marcadores sin reemplazar, la pantalla inicial mu
 
 La pantalla inicial muestra el resultado de una comprobación remota de Supabase Auth. Este estado no verifica escrituras en tablas ni persistencia offline. El check-in requiere aplicar la migración documentada y usar una cuenta Auth con perfil estudiante; revisa [configurar-env-supabase.md](docs/configurar-env-supabase.md) antes de probar el guardado. La vista web no acredita el cifrado de SQLite.
 
+## Eventos y agenda personal (incremento 009)
+
+El calendario discreto del encabezado de Inicio y la tarjeta Eventos de Bienestar
+abren `/events`. La lista ofrece Próximos, Por fecha y Anteriores; el detalle
+muestra descripción, ubicación, intervalo en Santiago, inscripción y motivo de
+cierre. «Inscribirme» reconsulta el evento y la hora del servidor antes de abrir
+el enlace HTTPS externo. «Agregar a mi agenda» guarda interés; no confirma una
+inscripción ni envía datos al organizador.
+
+«Mi agenda» muestra los eventos en su fecha y con su duración real, incluyendo
+continuaciones, finalizados y cancelados. Cambios de fecha/hora/lugar conservan
+la versión guardada hasta elegir Actualizar o Quitar. Las actividades personales
+anteriores mantienen sus reglas y su almacenamiento; no se migran a una cuenta.
+
+Las migraciones `20261011200847_student_event_registration.sql` y
+`20261011200855_student_event_catalog.sql` agregan condiciones y la RPC autenticada
+`get_student_events`. El código necesita ambas para consultar el catálogo nuevo.
+Verificadas en local y aplicadas al proyecto cloud de desarrollo el 2026-10-11
+con autorización explícita. Consulta la evidencia en `specs/009-student-events/verification.md`.
+
+Intereses y catálogo se separan por UUID: SQLCipher/SecureStore en Android,
+`sessionStorage` en la previsualización. Cerrar sesión conserva los intereses;
+eliminar la cuenta limpia su archivo, clave y cachés. La comprobación de cifrado,
+reinicio y eliminación en Android sigue pendiente: se necesita un development
+build con SQLCipher. La web solo se utiliza con datos sintéticos; cerrar la pestaña
+elimina su almacenamiento de sesión. La agenda personal heredada sigue sin tener
+propietario por cuenta y no recibe esa garantía con este incremento.
+
+Para el recorrido local, preparar backend y fixtures con la guía de
+[administración](../admin-web/README.md), e iniciar su API. Desde la raíz:
+
+```bash
+npm --prefix DuocMind/tools run student:preview
+# En otra terminal, cuando Expo esté disponible:
+npm --prefix DuocMind/tools run test:student-events
+```
+
+El servidor usa únicamente la configuración local generada en `tools/.local`,
+sin cargar `.env` remoto ni imprimir claves. Puerto predeterminado: 8089;
+`STUDENT_PREVIEW_PORT` y `STUDENT_E2E_URL` permiten elegir otro puerto local.
+El recorrido necesita Chromium de Playwright y las dependencias de `admin-web`;
+crea eventos sintéticos y los retira al terminar. No ejecutar simultáneamente
+suites que cambian las mismas cuentas. Evidencia, criterios y comprobaciones
+pendientes: [verificación 009](specs/009-student-events/verification.md).
+
 ## APK release de pruebas en GitHub Actions
 
 El workflow [APK Android de pruebas](../.github/workflows/android-release.yml)
