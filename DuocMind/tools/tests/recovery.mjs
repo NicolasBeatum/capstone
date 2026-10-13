@@ -5,8 +5,9 @@ import {
   database,
   fixtures,
   runtime,
+  requireLocal,
 } from "../scripts/runtime.mjs";
-const r = runtime(), f = fixtures(), c = authClient(), db = await database();
+const r = runtime(), mailOrigin = requireLocal(r.MAILPIT_URL ?? r.INBUCKET_URL), f = fixtures(), c = authClient(), db = await database();
 const login = await c.auth.signInWithPassword({
   email: f.staff.email,
   password: f.staff.password,
@@ -30,7 +31,7 @@ const send = async (studentId, body) =>
     },
   );
 const mailList = async () => {
-  const response = await fetch("http://127.0.0.1:54324/api/v1/messages");
+  const response = await fetch(mailOrigin + "/api/v1/messages");
   assert.equal(response.status, 200);
   return response.json();
 };
@@ -75,7 +76,7 @@ try {
   );
   assert(message);
   const full =
-    await (await fetch("http://127.0.0.1:54324/api/v1/message/" + message.ID))
+    await (await fetch(mailOrigin + "/api/v1/message/" + message.ID))
       .json();
   assert(full.HTML.includes("http://127.0.0.1:5173/recover?token_hash="));
   assert(!full.HTML.includes("perfil-student"));
@@ -88,7 +89,7 @@ try {
     m.To.some((t) => t.Address === f.unassigned.email)
   );
   const legacyFull = await (await fetch(
-    "http://127.0.0.1:54324/api/v1/message/" + legacyMessage.ID,
+    mailOrigin + "/api/v1/message/" + legacyMessage.ID,
   )).json();
   assert(legacyFull.HTML.includes("/auth/v1/verify?"));
   assert(!legacyFull.HTML.includes("/recover?token_hash="));

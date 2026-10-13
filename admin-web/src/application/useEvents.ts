@@ -59,7 +59,10 @@ export function useEvents() {
         publishedAt: source?.publishedAt ?? null,
       });
       await load(result.id);
-      setMessage("Evento guardado en el backend.");
+      const registrationMessage = content.registrationClosed !== source?.registrationClosed
+        ? content.registrationClosed ? " Inscripción cerrada por la organización." : source?.registrationClosed ? " Inscripción reabierta." : ""
+        : "";
+      setMessage("Evento guardado en el backend." + registrationMessage);
       return true;
     } catch (e) {
       setError(errorMessage(e));

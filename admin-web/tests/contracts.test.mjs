@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   catalog,
+  events,
   mutation,
   students,
 } from "../src/infrastructure/contracts.ts";
@@ -47,4 +48,11 @@ test("contratos de mutaciones y catálogo rechazan identidad/revisión ambiguas"
       versions: [],
     })
   );
+});
+
+test("evento administrativo conserva condiciones de inscripción y rechaza tipos inválidos", () => {
+  const e={id:'00000000-0000-0000-0000-000000000001',title:'Taller',description:'',location:'Patio',startsAt:'2030-10-12T12:00:00Z',endsAt:'2030-10-12T14:30:00Z',status:'published',publishedAt:'2026-10-11T12:00:00Z',revision:1,requiresRegistration:true,registrationUrl:'https://example.com/form',registrationDeadline:'2030-10-11T12:00:00Z',registrationClosed:false};
+  assert.equal(events([e])[0].requiresRegistration,true);
+  assert.throws(()=>events([{...e,requiresRegistration:'true'}]));
+  assert.throws(()=>events([{...e,registrationDeadline:'ayer'}]));
 });

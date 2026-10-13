@@ -34,6 +34,11 @@ export const styles = StyleSheet.create({
     fontFamily: font.extraBold,
   },
 
+  eventsCard: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 22, backgroundColor: '#e1e7f8', marginBottom: 22, minHeight: 72 },
+  eventsTitle: { fontFamily: font.extraBold, fontSize: 17, color: navy },
+  eventsDesc: { fontFamily: font.regular, fontSize: 13, color: navy, marginTop: 4 },
+  eventsArrow: { fontSize: 24, color: navy },
+
   /* ── Tarjeta principal del test ── */
   heroCard: {
     backgroundColor: navy,

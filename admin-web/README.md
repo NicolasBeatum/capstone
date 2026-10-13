@@ -169,7 +169,7 @@ publicable del `.env` de DuocMind y arranca Vite en modo `remote`. Abrir el
 panel en `http://127.0.0.1:5173/login` y la previsualización en
 `http://localhost:8081`. El backend administrativo está aplicado al proyecto
 real por autorización posterior; la cuenta de prueba está habilitada. El consumo
-de nuevos tests, eventos y tips en Android sigue pendiente de otra spec. La
+de nuevos tests y tips en Android sigue pendiente de otra spec; Eventos se implementa en el incremento 009, con validación nativa todavía pendiente. La
 recuperación por correo remota todavía requiere una plantilla compatible y SMTP
 o plan que la admita: ver
 [operación remota](../DuocMind/specs/005-admin-dashboard/remote.md). No ejecutar
@@ -209,3 +209,20 @@ Ver [operación](../DuocMind/specs/005-admin-dashboard/operations.md),
 [evidencia](../DuocMind/specs/005-admin-dashboard/verification.md). La regresión
 nativa T023 fue omitida por decisión del usuario; no se acredita validación
 Android ni entrega remota de correos.
+
+
+## Condiciones de inscripción de eventos (incremento 009)
+
+El editor permite participación libre o inscripción externa, enlace HTTPS, plazo
+en Santiago y cierre manual. Reutiliza la selección de desfase para horas ambiguas;
+rechaza horas inexistentes. Los borradores pueden quedar incompletos; publicar
+exige condiciones válidas. Guardar un cierre o reapertura aumenta la revisión;
+no se permite reabrir después del plazo. Cambiar fecha, hora o lugar muestra el
+aviso de actualización pendiente para estudiantes que guardaron el evento.
+
+El panel no guarda asistentes ni consulta intereses privados. Las migraciones
+aditivas del incremento deben aplicarse antes de usar estos contratos; solo se
+han verificado localmente en esta entrega. Consultar
+[verificación 009](../DuocMind/specs/009-student-events/verification.md).
+Las pruebas de recuperación usan el buzón local de `runtime.json`, sin asumir
+un puerto fijo que pudiera pertenecer a otro proyecto.

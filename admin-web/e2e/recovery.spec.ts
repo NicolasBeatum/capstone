@@ -17,6 +17,8 @@ const r = JSON.parse(
 if (!["localhost", "127.0.0.1"].includes(new URL(r.API_URL).hostname)) {
   throw Error("Solo local.");
 }
+const mailOrigin = r.MAILPIT_URL ?? r.INBUCKET_URL;
+if (!["localhost", "127.0.0.1"].includes(new URL(mailOrigin).hostname)) throw Error("Solo correo local.");
 const client = createClient(r.API_URL, r.ANON_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
@@ -34,13 +36,13 @@ test("enlace web, confirmación, cambio y sesión administrativa independiente",
     redirectTo: "http://127.0.0.1:5173/recover",
   });
   if (reset.error) throw Error("No se pudo crear correo sintético.");
-  const messages = await (await fetch("http://127.0.0.1:54324/api/v1/messages"))
+  const messages = await (await fetch(mailOrigin + "/api/v1/messages"))
     .json();
   const message = messages.messages.find((m: { To: { Address: string }[] }) =>
     m.To.some((t) => t.Address === f.student.email)
   );
   const full =
-    await (await fetch("http://127.0.0.1:54324/api/v1/message/" + message.ID))
+    await (await fetch(mailOrigin + "/api/v1/message/" + message.ID))
       .json();
   const link = String(full.HTML).match(/href="([^"]+)"/)?.[1].replaceAll(
     "&amp;",
@@ -107,13 +109,13 @@ test("enlace vencido y fallo de conexión no confirman cambio", async ({ page })
     redirectTo: "http://127.0.0.1:5173/recover",
   });
   if (response.error) throw Error("Fixture de correo no disponible.");
-  const messages = await (await fetch("http://127.0.0.1:54324/api/v1/messages"))
+  const messages = await (await fetch(mailOrigin + "/api/v1/messages"))
     .json();
   const message = messages.messages.find((m: { To: { Address: string }[] }) =>
     m.To.some((t) => t.Address === f.unassigned.email)
   );
   const full =
-    await (await fetch("http://127.0.0.1:54324/api/v1/message/" + message.ID))
+    await (await fetch(mailOrigin + "/api/v1/message/" + message.ID))
       .json();
   const link = String(full.HTML).match(/href="([^"]+)"/)?.[1].replaceAll(
     "&amp;",

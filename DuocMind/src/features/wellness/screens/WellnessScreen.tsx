@@ -8,7 +8,7 @@ import {
 } from '@/features/emotional-checkin/domain/stressTestRecency';
 import { useStressTestLauncher, type LastStressTest } from '@/features/emotional-checkin/hooks/useStressTestLauncher';
 import { BottomNav } from '@/shared/components/BottomNav';
-import { JournalIcon, PhoneIcon, StretchIcon, TimerIcon, WindIcon } from '@/shared/components/Icons';
+import { JournalIcon, CalendarIcon, PhoneIcon, StretchIcon, TimerIcon, WindIcon } from '@/shared/components/Icons';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { Reveal } from '@/shared/motion/Reveal';
 import { styles } from './WellnessScreen.styles';
@@ -75,6 +75,22 @@ export default function WellnessScreen() {
         <Reveal>
           <Text style={styles.eyebrow}>TU ESPACIO</Text>
           <Text style={styles.title}>Bienestar</Text>
+        </Reveal>
+
+        <Reveal index={1}>
+          <ScalePress
+            style={styles.eventsCard}
+            onPress={() => router.push('/events')}
+            accessibilityRole="button"
+            accessibilityLabel="Eventos, ver calendario de actividades"
+          >
+            <View style={styles.helpIcon}><CalendarIcon size={22} color="#1a2b44" /></View>
+            <View style={styles.helpText}>
+              <Text style={styles.eventsTitle}>Eventos</Text>
+              <Text style={styles.eventsDesc}>Actividades, encuentros y talleres para tu agenda</Text>
+            </View>
+            <Text style={styles.eventsArrow}>›</Text>
+          </ScalePress>
         </Reveal>
 
         {/* ── Test Estrés Percibido ── */}

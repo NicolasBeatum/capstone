@@ -17,12 +17,17 @@ const empty = {
   location: "",
   startsAt: "",
   endsAt: "",
+  requiresRegistration: false,
+  registrationUrl: "",
+  registrationDeadline: "",
+  registrationClosed: false,
 };
 export function Events() {
   const model = useEvents();
   const [form, setForm] = useState(empty),
     [startChoice, setStartChoice] = useState(""),
     [endChoice, setEndChoice] = useState(""),
+    [deadlineChoice, setDeadlineChoice] = useState(""),
     [localError, setLocalError] = useState(""),
     [confirm, setConfirm] = useState<"publish" | "cancel" | null>(null);
   const [opened, setOpened] = useState(false);
@@ -39,6 +44,10 @@ export function Events() {
           location: event.location,
           startsAt: santiagoInput(event.startsAt),
           endsAt: santiagoInput(event.endsAt),
+          requiresRegistration: event.requiresRegistration,
+          registrationUrl: event.registrationUrl ?? "",
+          registrationDeadline: event.registrationDeadline ? santiagoInput(event.registrationDeadline) : "",
+          registrationClosed: event.registrationClosed,
         }
         : empty,
     );
@@ -46,6 +55,7 @@ export function Events() {
       event?.startsAt ? new Date(event.startsAt).toISOString() : "",
     );
     setEndChoice(event?.endsAt ? new Date(event.endsAt).toISOString() : "");
+    setDeadlineChoice(event?.registrationDeadline ? new Date(event.registrationDeadline).toISOString() : "");
     setLocalError("");
     setConfirm(null);
   }
@@ -58,7 +68,16 @@ export function Events() {
       if (endsAt < startsAt) {
         throw Error("El término debe ser posterior o igual al inicio.");
       }
-      await model.save({ ...form, startsAt, endsAt });
+      const registrationDeadline = form.requiresRegistration && form.registrationDeadline
+        ? localToInstant(form.registrationDeadline, deadlineChoice) : null;
+      if (registrationDeadline && registrationDeadline > startsAt) throw Error("El plazo no puede ser posterior al inicio.");
+      if (form.requiresRegistration && form.registrationUrl) {
+        const url = new URL(form.registrationUrl);
+        if (url.protocol !== "https:" || url.username || url.password || /[\s\\]/.test(form.registrationUrl)) throw Error("Usa un enlace HTTPS válido, sin credenciales.");
+      }
+      await model.save({ ...form, startsAt, endsAt, registrationDeadline,
+        registrationUrl: form.requiresRegistration ? form.registrationUrl || null : null,
+        registrationClosed: form.requiresRegistration && form.registrationClosed });
     } catch (e) {
       setLocalError(errorMessage(e));
     }
@@ -68,11 +87,16 @@ export function Events() {
       form.description !== model.source.description ||
       form.location !== model.source.location ||
       form.startsAt !== santiagoInput(model.source.startsAt) ||
-      form.endsAt !== santiagoInput(model.source.endsAt))
+      form.endsAt !== santiagoInput(model.source.endsAt) ||
+      form.requiresRegistration !== model.source.requiresRegistration ||
+      form.registrationUrl !== (model.source.registrationUrl ?? "") ||
+      form.registrationDeadline !== (model.source.registrationDeadline ? santiagoInput(model.source.registrationDeadline) : "") ||
+      form.registrationClosed !== model.source.registrationClosed)
     : Object.values(form).some(Boolean);
   const disabled = model.source?.status === "cancelled" || model.busy;
   const startCandidates = possibleInstants(form.startsAt),
-    endCandidates = possibleInstants(form.endsAt);
+    endCandidates = possibleInstants(form.endsAt),
+    deadlineCandidates = possibleInstants(form.registrationDeadline);
   const visible = model.data.filter((e) =>
     (!status || e.status === status) &&
     `${e.title} ${e.location}`.toLocaleLowerCase("es").includes(
@@ -294,6 +318,26 @@ export function Events() {
                     </select>
                   </label>
                 )}
+                <section aria-label="Condiciones de inscripción">
+                  <h3>Inscripción</h3>
+                  <label>Tipo de participación<select value={form.requiresRegistration ? "required" : "free"}
+                    onChange={(e) => setForm({ ...form, requiresRegistration: e.target.value === "required", registrationUrl: "", registrationDeadline: "", registrationClosed: false })}>
+                    <option value="free">No requiere inscripción</option><option value="required">Requiere inscripción</option>
+                  </select></label>
+                  {form.requiresRegistration && <>
+                    <label>Enlace de inscripción<input type="url" maxLength={2048} placeholder="https://…"
+                      value={form.registrationUrl} onChange={(e) => setForm({ ...form, registrationUrl: e.target.value })} /></label>
+                    <label>Plazo de inscripción en Santiago<input type="datetime-local" value={form.registrationDeadline}
+                      onChange={(e) => { setForm({ ...form, registrationDeadline: e.target.value }); setDeadlineChoice(""); }} /></label>
+                    {deadlineCandidates.length > 1 && <label>Desfase horario del plazo<select value={deadlineChoice} onChange={(e) => setDeadlineChoice(e.target.value)}>
+                      <option value="">Selecciona el desfase</option>{deadlineCandidates.map((instant) => <option key={instant} value={instant}>{offsetLabel(instant)}</option>)}
+                    </select></label>}
+                    <label><input type="checkbox" checked={form.registrationClosed} onChange={(e) => setForm({ ...form, registrationClosed: e.target.checked })} />Cerrar inscripción manualmente</label>
+                    <p>El enlace y el plazo pueden completarse en el borrador; son obligatorios al publicar. Reabrir exige un plazo e inicio futuros.</p>
+                  </>}
+                  <p>Agregar a la agenda guarda el interés del estudiante; la inscripción se realiza en el sitio externo.</p>
+                  {model.source?.status === "published" && <p>Cambiar fecha, horario o ubicación pedirá al estudiante actualizar su agenda.</p>}
+                </section>
                 <button disabled={disabled}>Guardar evento</button>
               </fieldset>
             </form>
