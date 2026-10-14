@@ -18,6 +18,8 @@ export const motionDuration = {
   pressOut: 260,
   /** Ajuste de la barra de ánimo al soltarla. */
   snap: 400,
+  /** Fundido del contenido al cambiar de paso en el tutorial. */
+  tutorialStep: 300,
   /** Un ciclo del indicador de carga (la gota); lento a propósito. */
   loaderCycle: 2400,
   /** Tiempo que el saludo de bienvenida queda en el centro antes de moverse. */

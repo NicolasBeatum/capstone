@@ -5,6 +5,7 @@ import { platformSecureKeyValueStorage } from '@/shared/backend/infrastructure/p
 
 import { deleteEventData } from '@/shared/events/infrastructure/eventStorage';
 import { blockEventAccount } from '@/shared/events/infrastructure/eventSessionGateway';
+import { deleteTutorialProgress } from '@/shared/tutorial/infrastructure/tutorialProgressStorage';
 
 const PROFILE_VERIFIED_KEY_PREFIX = 'duocmind.student-profile-verified.v1.';
 
@@ -96,7 +97,11 @@ export const supabaseAuthGateway: AuthGateway = {
 
     const releaseEvents = blockEventAccount(userId);
     try { await completeAccountDeletion({
-      clearLocalData: async () => { await deleteEventData(userId); await deleteLocalCheckinData(userId); },
+      clearLocalData: async () => {
+        await deleteEventData(userId);
+        await deleteLocalCheckinData(userId);
+        await deleteTutorialProgress(userId);
+      },
       deleteRemoteAccount: async () => {
         const { error } = await client.functions.invoke('delete-account', { body: {} });
         throwIfError(error);

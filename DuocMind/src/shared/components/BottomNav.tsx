@@ -13,9 +13,15 @@ import {
   SproutIcon,
 } from './Icons';
 
+/** Elementos de la barra que el tutorial puede medir y resaltar. */
+export type BottomNavTutorialTargets = Partial<
+  Record<'agenda' | 'wellness' | 'checkin', React.Ref<View>>
+>;
+
 interface BottomNavProps {
   /** 'checkin' resalta el botón central */
   currentTab: 'home' | 'agenda' | 'checkin' | 'pending' | 'wellness';
+  tutorialTargets?: BottomNavTutorialTargets;
 }
 
 type TabId = Exclude<BottomNavProps['currentTab'], 'checkin'>;
@@ -43,7 +49,7 @@ const webBlur: ViewStyle =
   Platform.OS === 'web' ? ({ backdropFilter: 'blur(20px) saturate(160%)' } as ViewStyle) : {};
 
 /** Barra flotante tipo glass con botón central para registrar cómo te sientes. */
-export function BottomNav({ currentTab }: BottomNavProps) {
+export function BottomNav({ currentTab, tutorialTargets }: BottomNavProps) {
   const router = useRouter();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -54,6 +60,7 @@ export function BottomNav({ currentTab }: BottomNavProps) {
     return (
       <ScalePress
         key={tab.id}
+        ref={tutorialTargets?.[tab.id as 'agenda' | 'wellness']}
         style={[styles.tab, isActive && styles.activePill]}
         onPress={() => router.push(tab.route)}
         accessibilityRole="button"
@@ -101,6 +108,7 @@ export function BottomNav({ currentTab }: BottomNavProps) {
 
       <View style={[styles.fabAnchor, { bottom: Math.max(insets.bottom, 12) + 30 }]} pointerEvents="box-none">
         <ScalePress
+          ref={tutorialTargets?.checkin}
           style={[styles.fab, currentTab === 'checkin' && styles.fabActive]}
           onPress={() => router.push('/checkin')}
           accessibilityRole="button"
