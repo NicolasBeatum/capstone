@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useIsFocused, useLocalSearchParams, useRouter } from 'expo-router';
 import {
   daysSinceApplication,
   formatDaysAgo,
@@ -20,6 +20,8 @@ import { GotaLoader } from '@/shared/components/GotaLoader';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { WeekChart, type WeekDayData } from '@/shared/components/WeekChart';
 import { Reveal } from '@/shared/motion/Reveal';
+import { TutorialOverlay } from '@/shared/tutorial/components/TutorialOverlay';
+import { useTutorial } from '@/shared/tutorial/infrastructure/useTutorial';
 import { BellIcon, CalendarIcon, ClipboardIcon, SparkleIcon, WindIcon } from '@/shared/components/Icons';
 import {
   SAMPLE_CURRENT_CLASS,
@@ -89,6 +91,26 @@ export default function DashboardScreen() {
   const [introVisible, setIntroVisible] = useState(welcome === '1');
   const rootRef = useRef<View>(null);
   const greetingRef = useRef<Text>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  // Elementos que el tutorial mide y resalta.
+  const weekCardRef = useRef<View>(null);
+  const eventsRef = useRef<View>(null);
+  const agendaRef = useRef<View>(null);
+  const wellnessRef = useRef<View>(null);
+  const checkinRef = useRef<View>(null);
+  const tutorialTargets = useMemo(
+    () => ({
+      weekCard: weekCardRef,
+      events: eventsRef,
+      agenda: agendaRef,
+      wellness: wellnessRef,
+      checkin: checkinRef,
+    }),
+    [],
+  );
+  const tutorial = useTutorial();
+  // Con el inicio apilado bajo el check-in solo el enfocado muestra el recorrido.
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     void getDismissedNotificationIds().then(setDismissedIds);
@@ -137,7 +159,35 @@ export default function DashboardScreen() {
     setIntroVisible(false);
     // Recargar la página web no debe repetir la bienvenida.
     router.setParams({ welcome: undefined });
-  }, [router]);
+    // El tutorial se evalúa solo tras el inicio de sesión, con la bienvenida ya terminada.
+    void tutorial.offerAfterLogin();
+  }, [router, tutorial.offerAfterLogin]);
+
+  // Los elementos resaltados están arriba y abajo: el recorrido parte desde el inicio.
+  const handleStartTutorial = useCallback(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+    requestAnimationFrame(() => tutorial.startManually());
+  }, [tutorial.startManually]);
+
+  useEffect(() => {
+    if (tutorial.visible && isFocused) scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [tutorial.visible, isFocused]);
+
+  // Al volver del check-in sin guardar reaparece el paso del check-in.
+  useFocusEffect(
+    useCallback(() => {
+      tutorial.returnWithoutSaving();
+    }, [tutorial.returnWithoutSaving]),
+  );
+
+  const handleTutorialPrimary = useCallback(() => {
+    const kind = tutorial.view?.primary.kind;
+    if (kind === 'next') tutorial.next();
+    else if (kind === 'register') {
+      // El recorrido espera mientras la persona usa el check-in real.
+      if (tutorial.registerNow()) router.push('/checkin');
+    } else if (kind === 'finish') tutorial.finish();
+  }, [router, tutorial.view, tutorial.next, tutorial.registerNow, tutorial.finish]);
 
   const handleDismiss = (id: string) => {
     setDismissedIds((ids) => [...(ids ?? []), id]);
@@ -185,7 +235,11 @@ export default function DashboardScreen() {
   return (
     <View ref={rootRef} style={styles.safeArea}>
       <LiquidBackground />
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* ── Header: fecha y saludo ── */}
         <Reveal>
           <View style={[styles.headerRow, compactHeader && styles.headerCompact]}>
@@ -203,14 +257,16 @@ export default function DashboardScreen() {
               </Text>
             </View>
             <View style={[styles.headerControls, compactHeader && styles.headerControlsCompact]}>
-            <ScalePress
-              style={styles.bellButton}
-              onPress={() => router.push('/events')}
-              accessibilityRole="button"
-              accessibilityLabel="Ver calendario de eventos"
-            >
-              <CalendarIcon size={20} />
-            </ScalePress>
+            <View ref={eventsRef} collapsable={false}>
+              <ScalePress
+                style={styles.bellButton}
+                onPress={() => router.push('/events')}
+                accessibilityRole="button"
+                accessibilityLabel="Ver calendario de eventos"
+              >
+                <CalendarIcon size={20} />
+              </ScalePress>
+            </View>
             <ScalePress
               style={styles.bellButton}
               onPress={() => setNotificationsOpen(true)}
@@ -233,6 +289,7 @@ export default function DashboardScreen() {
 
         {/* ── Vistazo de tu semana ── */}
         <Reveal index={1}>
+          <View ref={weekCardRef} collapsable={false}>
           <LiquidCard style={styles.weekCard}>
             <View style={styles.weekCardHeader}>
               <Text style={styles.weekCardTitle}>Vistazo de tu semana</Text>
@@ -253,6 +310,7 @@ export default function DashboardScreen() {
               </View>
             </View>
           </LiquidCard>
+          </View>
         </Reveal>
 
         {/* ── Clase en curso ── */}
@@ -349,14 +407,37 @@ export default function DashboardScreen() {
             <Text style={styles.supportLinkText}>¿Necesitas hablar con alguien? Ver recursos de apoyo →</Text>
           </TouchableOpacity>
         </Reveal>
+
+        <Reveal index={6}>
+          <ScalePress
+            onPress={handleStartTutorial}
+            accessibilityRole="button"
+            accessibilityLabel="Ver tutorial de la app"
+            style={styles.tutorialLink}
+          >
+            <Text style={styles.supportLinkText}>Ver tutorial de la app</Text>
+          </ScalePress>
+        </Reveal>
       </ScrollView>
 
-      <BottomNav currentTab="home" />
+      <BottomNav
+        currentTab="home"
+        tutorialTargets={{ agenda: agendaRef, wellness: wellnessRef, checkin: checkinRef }}
+      />
       <NotificationsModal
         visible={notificationsOpen}
         notifications={notifications}
         onClose={() => setNotificationsOpen(false)}
         onDismiss={handleDismiss}
+      />
+      <TutorialOverlay
+        visible={tutorial.visible && isFocused}
+        view={tutorial.view}
+        targets={tutorialTargets}
+        onPrimary={handleTutorialPrimary}
+        onBack={tutorial.back}
+        onSkip={tutorial.skip}
+        onSystemBack={tutorial.systemBack}
       />
       {introVisible ? (
         <WelcomeIntro

@@ -15,6 +15,7 @@ import { LiquidBackground } from '@/shared/components/Glass';
 import { Brote } from '@/shared/components/Brote';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { Reveal } from '@/shared/motion/Reveal';
+import { notifyTutorialCheckinSaved } from '@/shared/tutorial/infrastructure/tutorialRuntime';
 import { MoodLabel } from '../components/MoodLabel';
 import { SaveOverlay } from '../components/SaveOverlay';
 import { MoodSlider } from '../components/MoodSlider';
@@ -106,6 +107,8 @@ export default function CheckinScreen() {
         createRequestId: Crypto.randomUUID,
         now: () => new Date(),
       });
+      // El tutorial se entera de que el registro quedó guardado; no recibe la emoción.
+      notifyTutorialCheckinSaved(userId);
       await keepLoaderVisible();
       setSaveState(result.syncStatus === 'synced' ? 'saved' : 'saved-offline');
       // Tras el agradecimiento se va al inicio para que no se registre de nuevo por error.

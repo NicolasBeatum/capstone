@@ -340,6 +340,13 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  /* El margen inferior deja el enlace por encima de la barra flotante al llegar al final. */
+  tutorialLink: {
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 96,
+  },
   supportLinkText: {
     fontSize: 12,
     color: textSecondary,

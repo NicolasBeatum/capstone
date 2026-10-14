@@ -4,6 +4,7 @@ import {
   Pressable,
   type PressableProps,
   type StyleProp,
+  type View,
   type ViewStyle,
 } from 'react-native';
 import {
@@ -17,6 +18,8 @@ import { useReducedMotion } from '@/shared/motion/useReducedMotion';
 interface ScalePressProps extends Omit<PressableProps, 'children' | 'style'> {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  /** React 19 entrega `ref` como prop; permite medir el botón (p. ej. en el tutorial). */
+  ref?: React.Ref<View>;
 }
 
 /* Botón con micro-feedback: la superficie se comprime a 0.96 al presionar y
