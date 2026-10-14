@@ -18,8 +18,3 @@ export function isLastStep(index: number, total: number): boolean {
 export function positionLabel(index: number, total: number): string {
   return `Paso ${index + 1} de ${total}`;
 }
-
-/** El botón Atrás del sistema retrocede un paso y, en el primero, omite el recorrido. */
-export function backAction(index: number): 'previous' | 'skip' {
-  return index > FIRST_STEP ? 'previous' : 'skip';
-}

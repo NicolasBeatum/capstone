@@ -19,30 +19,31 @@ import {
 } from '@/shared/motion/motionTokens';
 import { useReducedMotion } from '@/shared/motion/useReducedMotion';
 import { fontFamily as font } from '@/shared/theme/typography';
-import { backAction, isLastStep, positionLabel } from '../domain/tutorialFlow';
+import type { TutorialView } from '../application/tutorialSession';
 import {
   cardPlacement,
   isMeasurable,
   spotlightRect,
   type Rect,
 } from '../domain/tutorialLayout';
-import type { TutorialStep, TutorialTargetId } from '../domain/tutorialSteps';
+import type { TutorialTargetId } from '../domain/tutorialSteps';
 
 export type TutorialTargets = Partial<Record<TutorialTargetId, React.RefObject<View | null>>>;
 
 interface TutorialOverlayProps {
   visible: boolean;
-  steps: readonly TutorialStep[];
-  index: number;
+  /** Qué paso mostrar y qué botones ofrecer; null si el recorrido no está a la vista. */
+  view: TutorialView | null;
   targets: TutorialTargets;
-  onNext: () => void;
+  onPrimary: () => void;
   onBack: () => void;
   onSkip: () => void;
-  onFinish: () => void;
+  /** Botón Atrás del sistema: retrocede un paso o, si no puede, omite. */
+  onSystemBack: () => void;
 }
 
 interface MeasuredLayout {
-  index: number;
+  stepId: string;
   rect: Rect | null;
 }
 
@@ -61,23 +62,23 @@ const BODY_MAX_HEIGHT_RATIO = 0.4;
  */
 export function TutorialOverlay({
   visible,
-  steps,
-  index,
+  view,
   targets,
-  onNext,
+  onPrimary,
   onBack,
   onSkip,
-  onFinish,
+  onSystemBack,
 }: TutorialOverlayProps) {
   const { width, height, fontScale } = useWindowDimensions();
   const reduceMotion = useReducedMotion();
-  const step = steps[index];
+  const step = view?.step;
+  const stepId = step?.id;
   const [layout, setLayout] = useState<MeasuredLayout | null>(null);
   const overlayFade = useRef(new Animated.Value(reduceMotion ? 1 : 0)).current;
   const cardFade = useRef(new Animated.Value(reduceMotion ? 1 : 0)).current;
   const titleRef = useRef<Text>(null);
 
-  // Al cerrarse, el siguiente recorrido vuelve a medir desde cero.
+  // Al ocultarse (p. ej. mientras se usa el check-in), el siguiente paso vuelve a medir.
   useEffect(() => {
     if (!visible) setLayout(null);
   }, [visible]);
@@ -85,34 +86,32 @@ export function TutorialOverlay({
   // Mide el elemento del paso; se repite al cambiar de paso, de tamaño o de texto.
   useEffect(() => {
     if (!visible || !step) return;
+    const id = step.id;
     const targetRef = step.target ? targets[step.target]?.current : null;
     if (!targetRef) {
-      setLayout({ index, rect: null });
+      setLayout({ stepId: id, rect: null });
       return;
     }
     let active = true;
-    let timeout: ReturnType<typeof setTimeout> | undefined;
-    // Gana la primera respuesta: una medición a tiempo no se pisa con el respaldo.
-    const settle = (rect: Rect | null) => {
-      if (!active) return;
-      active = false;
-      clearTimeout(timeout);
-      setLayout({ index, rect });
-    };
+    let measuredOnce = false;
     const frame = requestAnimationFrame(() => {
       targetRef.measureInWindow((x, y, w, h) => {
+        if (!active) return;
+        measuredOnce = true;
         const measured = { x, y, width: w, height: h };
-        settle(isMeasurable(measured, { width, height }) ? measured : null);
+        setLayout({ stepId: id, rect: isMeasurable(measured, { width, height }) ? measured : null });
       });
     });
-    // Si la medición nunca responde, el paso se muestra centrado.
-    timeout = setTimeout(() => settle(null), MEASURE_TIMEOUT_MS);
+    // Si la medición tarda, el paso se muestra centrado; una medición tardía lo corrige.
+    const timeout = setTimeout(() => {
+      if (active && !measuredOnce) setLayout({ stepId: id, rect: null });
+    }, MEASURE_TIMEOUT_MS);
     return () => {
       active = false;
       cancelAnimationFrame(frame);
       clearTimeout(timeout);
     };
-  }, [visible, step, index, targets, width, height, fontScale]);
+  }, [visible, step, targets, width, height, fontScale]);
 
   useEffect(() => {
     if (!visible) return;
@@ -131,7 +130,7 @@ export function TutorialOverlay({
     return () => animation.stop();
   }, [visible, reduceMotion, overlayFade]);
 
-  const ready = layout?.index === index;
+  const ready = stepId !== undefined && layout?.stepId === stepId;
 
   // Cada paso entra con un fundido; con movimiento reducido aparece de inmediato.
   useEffect(() => {
@@ -154,18 +153,14 @@ export function TutorialOverlay({
     });
     animation.start();
     return () => animation.stop();
-  }, [visible, ready, index, reduceMotion, cardFade]);
+  }, [visible, ready, stepId, reduceMotion, cardFade]);
 
-  if (!step) return null;
+  if (!view || !step) return null;
 
   const windowSize = { width, height };
   const rect = ready ? layout.rect : null;
   const spotlight = rect ? spotlightRect(rect, windowSize) : null;
   const placement = cardPlacement(rect, windowSize);
-  const last = isLastStep(index, steps.length);
-  const position = positionLabel(index, steps.length);
-
-  const handleSystemBack = () => (backAction(index) === 'previous' ? onBack() : onSkip());
 
   const cardPosition =
     spotlight && placement === 'below'
@@ -180,7 +175,7 @@ export function TutorialOverlay({
       transparent
       statusBarTranslucent
       animationType="none"
-      onRequestClose={handleSystemBack}
+      onRequestClose={onSystemBack}
     >
       <View style={styles.root}>
         <Animated.View
@@ -218,7 +213,7 @@ export function TutorialOverlay({
             style={[styles.card, { opacity: ready ? cardFade : 0 }]}
             accessibilityLiveRegion="polite"
           >
-            <Text style={styles.position}>{position}</Text>
+            <Text style={styles.position}>{view.position}</Text>
             <Text ref={titleRef} style={styles.title} accessibilityRole="header">
               {step.title}
             </Text>
@@ -229,32 +224,34 @@ export function TutorialOverlay({
               <Text style={styles.body}>{step.body}</Text>
             </ScrollView>
             <View style={styles.actions}>
-              <ScalePress
-                style={styles.skipButton}
-                onPress={onSkip}
-                accessibilityRole="button"
-                accessibilityLabel="Omitir el tutorial"
-              >
-                <Text style={styles.skipText}>Omitir</Text>
-              </ScalePress>
+              {view.canSkip ? (
+                <ScalePress
+                  style={styles.skipButton}
+                  onPress={onSkip}
+                  accessibilityRole="button"
+                  accessibilityLabel="Omitir el tutorial"
+                >
+                  <Text style={styles.skipText}>Omitir</Text>
+                </ScalePress>
+              ) : null}
               <View style={styles.navActions}>
-                {index > 0 ? (
+                {view.canGoBack ? (
                   <ScalePress
                     style={styles.secondaryButton}
                     onPress={onBack}
                     accessibilityRole="button"
-                    accessibilityLabel={`Volver al paso ${index}`}
+                    accessibilityLabel="Volver al paso anterior"
                   >
                     <Text style={styles.secondaryText}>Atrás</Text>
                   </ScalePress>
                 ) : null}
                 <ScalePress
                   style={styles.primaryButton}
-                  onPress={last ? onFinish : onNext}
+                  onPress={onPrimary}
                   accessibilityRole="button"
-                  accessibilityLabel={last ? 'Entendido, terminar el tutorial' : `Ir al paso ${index + 2}`}
+                  accessibilityLabel={view.primary.accessibilityLabel}
                 >
-                  <Text style={styles.primaryText}>{last ? 'Entendido' : 'Siguiente'}</Text>
+                  <Text style={styles.primaryText}>{view.primary.label}</Text>
                 </ScalePress>
               </View>
             </View>
@@ -333,6 +330,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    marginLeft: 'auto',
   },
   skipButton: {
     minHeight: 44,

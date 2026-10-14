@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   FIRST_STEP,
-  backAction,
   isLastStep,
   nextStep,
   positionLabel,
@@ -30,12 +29,6 @@ test('la posición cuenta desde uno', () => {
   assert.equal(positionLabel(0, 6), 'Paso 1 de 6');
   assert.equal(positionLabel(1, 6), 'Paso 2 de 6');
   assert.equal(positionLabel(5, 6), 'Paso 6 de 6');
-});
-
-test('Atrás del sistema retrocede y en el primer paso omite el recorrido', () => {
-  assert.equal(backAction(0), 'skip');
-  assert.equal(backAction(1), 'previous');
-  assert.equal(backAction(5), 'previous');
 });
 
 test('recorrer todos los pasos con Siguiente termina en el último', () => {

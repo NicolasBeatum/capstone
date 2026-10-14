@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useIsFocused, useLocalSearchParams, useRouter } from 'expo-router';
 import {
   daysSinceApplication,
   formatDaysAgo,
@@ -109,6 +109,8 @@ export default function DashboardScreen() {
     [],
   );
   const tutorial = useTutorial();
+  // Con el inicio apilado bajo el check-in solo el enfocado muestra el recorrido.
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     void getDismissedNotificationIds().then(setDismissedIds);
@@ -168,8 +170,24 @@ export default function DashboardScreen() {
   }, [tutorial.startManually]);
 
   useEffect(() => {
-    if (tutorial.visible) scrollRef.current?.scrollTo({ y: 0, animated: false });
-  }, [tutorial.visible]);
+    if (tutorial.visible && isFocused) scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [tutorial.visible, isFocused]);
+
+  // Al volver del check-in sin guardar reaparece el paso del check-in.
+  useFocusEffect(
+    useCallback(() => {
+      tutorial.returnWithoutSaving();
+    }, [tutorial.returnWithoutSaving]),
+  );
+
+  const handleTutorialPrimary = useCallback(() => {
+    const kind = tutorial.view?.primary.kind;
+    if (kind === 'next') tutorial.next();
+    else if (kind === 'register') {
+      // El recorrido espera mientras la persona usa el check-in real.
+      if (tutorial.registerNow()) router.push('/checkin');
+    } else if (kind === 'finish') tutorial.finish();
+  }, [router, tutorial.view, tutorial.next, tutorial.registerNow, tutorial.finish]);
 
   const handleDismiss = (id: string) => {
     setDismissedIds((ids) => [...(ids ?? []), id]);
@@ -413,14 +431,13 @@ export default function DashboardScreen() {
         onDismiss={handleDismiss}
       />
       <TutorialOverlay
-        visible={tutorial.visible}
-        steps={tutorial.steps}
-        index={tutorial.index}
+        visible={tutorial.visible && isFocused}
+        view={tutorial.view}
         targets={tutorialTargets}
-        onNext={tutorial.next}
+        onPrimary={handleTutorialPrimary}
         onBack={tutorial.back}
         onSkip={tutorial.skip}
-        onFinish={tutorial.finish}
+        onSystemBack={tutorial.systemBack}
       />
       {introVisible ? (
         <WelcomeIntro

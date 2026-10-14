@@ -2,12 +2,33 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { TUTORIAL_STEPS } from '../src/shared/tutorial/domain/tutorialSteps.ts';
 
-test('los seis pasos siguen el orden de la spec', () => {
+const byId = (id) => TUTORIAL_STEPS.find((step) => step.id === id);
+
+test('los seis pasos siguen el orden de la spec 0.2.0', () => {
+  assert.equal(TUTORIAL_STEPS.length, 6);
+  assert.deepEqual(
+    TUTORIAL_STEPS.map((step) => step.id),
+    ['inicio', 'agenda', 'eventos', 'bienestar', 'registro', 'cierre'],
+  );
   assert.deepEqual(
     TUTORIAL_STEPS.map((step) => step.target),
-    ['weekCard', 'checkin', 'agenda', 'events', 'wellness', null],
+    ['weekCard', 'agenda', 'events', 'wellness', 'checkin', null],
   );
-  assert.equal(TUTORIAL_STEPS.length, 6);
+});
+
+test('el check-in es el quinto paso y «Todo listo» el último', () => {
+  assert.equal(TUTORIAL_STEPS[4].kind, 'checkin');
+  assert.equal(TUTORIAL_STEPS[4].target, 'checkin');
+  assert.equal(TUTORIAL_STEPS[5].kind, 'closing');
+  assert.equal(TUTORIAL_STEPS[5].target, null);
+  assert.equal(TUTORIAL_STEPS[5].title, 'Todo listo');
+});
+
+test('solo hay un paso de check-in, uno de cierre y el resto informa', () => {
+  const kinds = TUTORIAL_STEPS.map((step) => step.kind);
+  assert.equal(kinds.filter((kind) => kind === 'checkin').length, 1);
+  assert.equal(kinds.filter((kind) => kind === 'closing').length, 1);
+  assert.deepEqual(kinds.slice(0, 4), ['info', 'info', 'info', 'info']);
 });
 
 test('ids y elementos resaltados no se repiten', () => {
@@ -33,14 +54,23 @@ test('el texto es no clínico: sin diagnóstico, tratamiento ni terapia', () => 
   }
 });
 
-test('el paso de registro deja la emoción bajo control de la persona', () => {
-  const step = TUTORIAL_STEPS.find((item) => item.id === 'registro');
-  assert.match(step.body, /corregirla/);
+test('el paso del check-in deja la emoción bajo control de la persona', () => {
+  const { body } = byId('registro');
+  assert.match(body, /Tú eliges qué emoción registrar/);
+  assert.match(body, /corregirla/);
+  assert.match(body, /ahora o más tarde/);
+});
+
+test('el paso del check-in no sugiere una emoción ni lo presenta como obligatorio', () => {
+  const { title, body } = byId('registro');
+  const suggestion = /\b(feliz|triste|bien|mal|contento|ansios|enojad|estresad|deprimid|calma)/i;
+  const mandatory = /\b(debes|tienes que|es obligatorio|obligatori|necesitas registrar|para continuar|para poder)/i;
+  assert.doesNotMatch(`${title} ${body}`, suggestion);
+  assert.doesNotMatch(`${title} ${body}`, mandatory);
 });
 
 test('el paso de bienestar distingue la orientación de la ayuda profesional', () => {
-  const step = TUTORIAL_STEPS.find((item) => item.id === 'bienestar');
-  assert.match(step.body, /no reemplaza la atención de un profesional/);
+  assert.match(byId('bienestar').body, /no reemplaza la atención de un profesional/);
 });
 
 test('«sin conexión» solo se afirma en el paso de bienestar y de los teléfonos', () => {
@@ -49,7 +79,7 @@ test('«sin conexión» solo se afirma en el paso de bienestar y de los teléfon
   assert.match(offline[0].body, /teléfonos de apoyo que se ven incluso sin conexión/);
 });
 
-test('el cierre indica dónde volver a ver el tutorial', () => {
-  const step = TUTORIAL_STEPS.at(-1);
-  assert.match(step.body, /Ver tutorial de la app/);
+test('el cierre indica dónde volver a ver el tutorial y el paso del check-in no', () => {
+  assert.match(byId('cierre').body, /Ver tutorial de la app/);
+  assert.doesNotMatch(byId('registro').body, /Ver tutorial de la app/);
 });
