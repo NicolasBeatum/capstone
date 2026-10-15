@@ -50,6 +50,8 @@ export const motionDistance = {
   rise: 12,
   /** Escala al tocar botones y caritas. */
   pressScale: 0.96,
+  /** Escala inicial de un menú que se despliega desde su botón. */
+  menuOpenScale: 0.9,
   /** Escala máxima del fondo al inhalar; muy sutil. */
   breathScale: 1.05,
   /** Opacidad del fondo al exhalar y al inhalar. */

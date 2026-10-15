@@ -1,3 +1,6 @@
+/** Tipo del evento según tipo_evento_institucional; `code` identifica el color en la app. */
+export interface EventType { code: string; name: string }
+export const EVENT_TYPE_CODE_PATTERN = /^[a-z][a-z0-9_]{1,31}$/;
 export interface InstitutionalEvent {
   id: string;
   title: string;
@@ -12,6 +15,8 @@ export interface InstitutionalEvent {
   registrationUrl: string | null;
   registrationDeadline: string | null;
   registrationClosed: boolean;
+  /** null si el evento no tiene tipo asignado todavía. */
+  type: EventType | null;
 }
 export interface EventCatalog { events: InstitutionalEvent[]; serverTime: string }
 export interface EventInterest { event: InstitutionalEvent; savedAt: string; version: number }
@@ -45,6 +50,14 @@ export function eventObject(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) fail();
   return value as Record<string, unknown>;
 }
+/* Los datos guardados antes de existir el tipo no traen el campo: se leen como sin tipo. */
+function parseEventType(value: unknown): EventType | null {
+  if (value === undefined || value === null) return null;
+  const v = eventObject(value);
+  if (typeof v.code !== 'string' || !EVENT_TYPE_CODE_PATTERN.test(v.code) ||
+      typeof v.name !== 'string' || !v.name.trim() || v.name.length > 40) fail();
+  return { code: v.code, name: v.name };
+}
 export function parseEvent(value: unknown): InstitutionalEvent {
   const v = eventObject(value);
   if (typeof v.id !== 'string' || !UUID_PATTERN.test(v.id) ||
@@ -64,7 +77,7 @@ export function parseEvent(value: unknown): InstitutionalEvent {
     id: v.id.toLowerCase(), title: v.title, description: v.description, location: v.location,
     startsAt, endsAt, status: v.status, publishedAt: eventInstant(v.publishedAt), revision: v.revision,
     requiresRegistration: v.requiresRegistration, registrationUrl: v.registrationUrl as string | null,
-    registrationDeadline, registrationClosed: v.registrationClosed,
+    registrationDeadline, registrationClosed: v.registrationClosed, type: parseEventType(v.type),
   };
 }
 export function parseCatalog(value: unknown): EventCatalog {
@@ -105,6 +118,23 @@ export function getEventState(event: InstitutionalEvent, now: Date): EventState 
   if (event.status === 'cancelled') return 'cancelled';
   if (now.getTime() >= Date.parse(event.endsAt)) return 'ended';
   return now.getTime() >= Date.parse(event.startsAt) ? 'in-progress' : 'upcoming';
+}
+const WEEKDAYS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+/** Día de la semana, día y mes abreviados en hora de Santiago, para el bloque de fecha. */
+export function eventDateParts(instant: string): { weekday: string; day: string; month: string } {
+  const key = eventDateKey(instant);
+  const date = new Date(`${key}T12:00:00Z`);
+  return { weekday: WEEKDAYS[date.getUTCDay()], day: String(Number(key.slice(8))), month: MONTHS[Number(key.slice(5, 7)) - 1] };
+}
+/** "EN CURSO", "HOY", "MAÑANA" o "EN N DÍAS" según los días de calendario en Santiago. */
+export function eventCountdownLabel(event: InstitutionalEvent, now: Date): string {
+  const state = getEventState(event, now);
+  if (state === 'in-progress') return 'EN CURSO';
+  if (state !== 'upcoming') return state === 'cancelled' ? 'CANCELADO' : 'FINALIZADO';
+  const days = Math.round((Date.parse(`${eventDateKey(event.startsAt)}T12:00:00Z`) - Date.parse(`${eventDateKey(now)}T12:00:00Z`)) / 86400000);
+  if (days <= 0) return 'HOY';
+  return days === 1 ? 'MAÑANA' : `EN ${days} DÍAS`;
 }
 export function registrationInfo(event: InstitutionalEvent, now: Date): { state: 'free' | 'open' | 'closed'; label: string; reason: string } {
   if (!event.requiresRegistration) return { state: 'free', label: 'No requiere inscripción', reason: '' };

@@ -370,3 +370,75 @@ export function StretchIcon({ size = 22, color = '#1a2b44' }: IconProps) {
     </Svg>
   );
 }
+
+export function BookmarkIcon({ size = 20, color = '#1a2b44', filled = false }: IconProps & { filled?: boolean }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M7 4.5 h10 a1 1 0 0 1 1 1 V20 l-6 -4 l-6 4 V5.5 a1 1 0 0 1 1 -1 z"
+        stroke={color}
+        strokeWidth={STROKE}
+        fill={filled ? color : 'none'}
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function ClockIcon({ size = 16, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Circle cx={12} cy={12} r={8.5} stroke={color} strokeWidth={STROKE} fill="none" />
+      <Path d="M12 7.5 V12 l3 2" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function PinIcon({ size = 16, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M12 21 c-4 -4.5 -6 -7.7 -6 -10.5 a6 6 0 0 1 12 0 c0 2.8 -2 6 -6 10.5 z" stroke={color} strokeWidth={STROKE} fill="none" strokeLinejoin="round" />
+      <Circle cx={12} cy={10.5} r={2.2} stroke={color} strokeWidth={STROKE} fill="none" />
+    </Svg>
+  );
+}
+
+export function CheckIcon({ size = 16, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M5 12.5 l4.5 4.5 L19 7.5" stroke={color} strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function ChevronLeftIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M14.5 5.5 L8 12 l6.5 6.5" stroke={color} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+/* Entrada de evento: distingue "Eventos" de "Agenda", que usa el calendario. */
+export function TicketIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M4 7.5 a1.5 1.5 0 0 1 1.5 -1.5 h13 A1.5 1.5 0 0 1 20 7.5 v2.2 a2.3 2.3 0 0 0 0 4.6 v2.2 a1.5 1.5 0 0 1 -1.5 1.5 h-13 A1.5 1.5 0 0 1 4 16.5 v-2.2 a2.3 2.3 0 0 0 0 -4.6 z"
+        stroke={color}
+        strokeWidth={STROKE}
+        fill="none"
+        strokeLinejoin="round"
+      />
+      <Path d="M14.5 7 v1.5 M14.5 11.25 v1.5 M14.5 15.5 V17" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function CloseIcon({ size = 16, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5" stroke={color} strokeWidth={2.2} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
+}

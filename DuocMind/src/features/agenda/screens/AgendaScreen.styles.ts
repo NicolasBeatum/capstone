@@ -5,7 +5,6 @@ import { fontFamily as font } from '@/shared/theme/typography';
 
 const cream = '#f3ecda';
 const navy = '#1a2b44';
-const yellow = '#f2c14e';
 const textSecondary = '#8a8272';
 
 export const styles = StyleSheet.create({
@@ -16,235 +15,131 @@ export const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingTop: 28,
-    paddingBottom: 32,
+    paddingBottom: 120,
+    gap: 18,
   },
-  eventsLink: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start', paddingHorizontal: 8, marginBottom: 10 },
-  eventsLinkText: { fontSize: 13, fontFamily: font.bold, color: navy },
-  eventCard: { padding: 18, gap: 10, marginBottom: 12 },
-  eventBadge: { fontSize: 11, fontFamily: font.bold, color: '#36517b' },
-  eventBody: { fontSize: 13, lineHeight: 20, fontFamily: font.regular, color: navy },
-  eventNotice: { fontSize: 13, lineHeight: 20, fontFamily: font.bold, color: '#665125', marginBottom: 8 },
-  eyebrow: {
-    color: textSecondary,
-    fontSize: 11,
-    letterSpacing: 1,
-    fontFamily: font.bold,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  headerText: {
+    flex: 1,
   },
   title: {
     color: navy,
-    fontSize: 28,
-    marginTop: 4,
+    fontSize: 30,
     fontFamily: font.extraBold,
   },
   subtitle: {
     color: textSecondary,
-    fontSize: 13,
-    marginTop: 3,
-    marginBottom: 22,
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 2,
     fontFamily: font.regular,
   },
-  weekCard: {
-    padding: 15,
-    marginBottom: 18,
-  },
-  weekTitle: {
-    color: navy,
-    fontSize: 12,
-    fontFamily: font.extraBold,
-  },
-  weekHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  weekArrow: {
-    width: 44,
-    height: 44,
+  roundButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
-    backgroundColor: 'rgba(26, 43, 68, 0.07)',
+    backgroundColor: '#fffaf0',
+    borderWidth: 1,
+    borderColor: '#e6dfc9',
   },
-  weekArrowText: {
-    color: navy,
-    fontSize: 22,
-    lineHeight: 25,
-    fontFamily: font.bold,
-  },
-  weekRow: {
+  dayHeader: {
     flexDirection: 'row',
+    alignItems: 'flex-end',
     justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 4,
   },
-  dayButton: {
+  dayHeaderText: {
     flex: 1,
-    minHeight: 68,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 15,
-    marginHorizontal: 2,
   },
-  dayButtonSelected: {
-    backgroundColor: navy,
-  },
-  dayButtonPast: {
-    opacity: 0.4,
-  },
-  dayName: {
-    color: textSecondary,
-    fontSize: 9,
-    fontFamily: font.bold,
-  },
-  dayNameSelected: {
-    color: '#f9dd85',
-  },
-  dayNumber: {
+  dayTitle: {
     color: navy,
-    fontSize: 18,
-    marginTop: 3,
+    fontSize: 26,
     fontFamily: font.extraBold,
   },
-  dayNumberSelected: {
-    color: '#ffffff',
+  dayMeta: {
+    color: '#465266',
+    fontSize: 14,
+    fontFamily: font.semiBold,
   },
-  dayTextPast: {
-    color: '#a39b8b',
+  dayCount: {
+    color: textSecondary,
+    fontSize: 13,
+    marginTop: 2,
+    fontFamily: font.regular,
   },
   addButton: {
-    minHeight: 52,
+    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 18,
+    borderRadius: 24,
     backgroundColor: navy,
-    borderRadius: 17,
-    marginBottom: 25,
     ...glassTokens.shadow,
-  },
-  addButtonIcon: {
-    color: yellow,
-    fontSize: 23,
-    marginRight: 9,
-    marginTop: -2,
   },
   addButtonText: {
     color: '#ffffff',
-    fontSize: 14,
-    fontFamily: font.bold,
-  },
-  sectionHeader: {
-    flexWrap: 'wrap',
-    gap: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 11,
-  },
-  sectionTitle: {
-    color: navy,
-    fontSize: 18,
+    fontSize: 15,
     fontFamily: font.extraBold,
   },
-  count: {
-    color: textSecondary,
-    fontSize: 12,
-    fontFamily: font.semiBold,
-  },
-  activityCard: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    backgroundColor: 'rgba(255,255,255,0.86)',
-    borderColor: 'rgba(255,255,255,0.92)',
-    borderRadius: 18,
-    borderWidth: 1,
-    marginBottom: 10,
-    padding: 14,
-    ...glassTokens.shadow,
-  },
-  activityTime: {
-    width: 54,
-    color: navy,
+  notice: {
+    color: '#665125',
     fontSize: 13,
-    paddingTop: 2,
-    fontFamily: font.extraBold,
-  },
-  activityAccent: {
-    width: 3,
-    borderRadius: 2,
-    backgroundColor: yellow,
-    marginRight: 12,
-  },
-  activityAccentActive: {
-    backgroundColor: '#10a875',
-  },
-  activityDetails: {
-    flex: 1,
-  },
-  activityTitle: {
-    color: navy,
-    fontSize: 14,
-    fontFamily: font.extraBold,
-  },
-  activitySubject: {
-    color: textSecondary,
-    fontSize: 12,
-    marginTop: 3,
-    fontFamily: font.semiBold,
-  },
-  activityNoSubject: {
-    color: textSecondary,
-    fontSize: 11,
-    marginTop: 3,
-    fontStyle: 'italic',
-    fontFamily: font.regular,
-  },
-  inProgressLabel: {
-    color: '#087a55',
-    fontSize: 9,
-    letterSpacing: 0.5,
-    marginBottom: 3,
-    fontFamily: font.extraBold,
-  },
-  deleteButton: {
-    justifyContent: 'center',
-    paddingLeft: 10,
-    paddingVertical: 6,
-  },
-  deleteText: {
-    color: '#9b3d33',
-    fontSize: 11,
+    lineHeight: 19,
     fontFamily: font.bold,
+  },
+  statusMessage: {
+    color: '#9b3d33',
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+    fontFamily: font.semiBold,
   },
   emptyCard: {
     alignItems: 'center',
+    gap: 6,
     paddingHorizontal: 24,
     paddingVertical: 28,
-  },
-  emptyIcon: {
-    color: '#b8a66b',
-    fontSize: 28,
-    marginBottom: 8,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: '#cfc6aa',
   },
   emptyTitle: {
     color: navy,
-    fontSize: 15,
+    fontSize: 18,
     textAlign: 'center',
     fontFamily: font.extraBold,
   },
   emptyText: {
-    color: textSecondary,
-    fontSize: 12,
-    lineHeight: 18,
-    marginTop: 5,
+    color: '#596273',
+    fontSize: 14,
+    lineHeight: 20,
     textAlign: 'center',
     fontFamily: font.regular,
   },
-  statusMessage: {
-    color: '#9b3d33',
-    fontSize: 12,
-    lineHeight: 17,
-    textAlign: 'center',
-    marginBottom: 12,
-    fontFamily: font.semiBold,
+  emptyButton: {
+    minHeight: 48,
+    justifyContent: 'center',
+    paddingHorizontal: 22,
+    marginTop: 10,
+    borderRadius: 24,
+    backgroundColor: '#fffaf0',
+    borderWidth: 1.5,
+    borderColor: '#d9d1b8',
+  },
+  emptyButtonText: {
+    color: navy,
+    fontSize: 15,
+    fontFamily: font.extraBold,
   },
   modalBackdrop: {
     flex: 1,
@@ -442,6 +337,17 @@ export const styles = StyleSheet.create({
   },
   calendarDayTextDisabled: {
     color: textSecondary,
+  },
+  subjectStatus: {
+    color: textSecondary,
+    fontSize: 12,
+    lineHeight: 17,
+    marginBottom: 8,
+    fontFamily: font.regular,
+  },
+  subjectStatusLoader: {
+    alignSelf: 'flex-start',
+    marginBottom: 8,
   },
   subjectOptions: {
     marginBottom: 10,

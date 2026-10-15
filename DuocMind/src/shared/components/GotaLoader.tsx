@@ -13,8 +13,9 @@ interface GotaLoaderProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const COLOR = '#F2C14E';
-const HALO = 'rgba(242, 193, 78, 0.25)';
+// Azul marino de la app: el amarillo no contrastaba con los fondos crema.
+const COLOR = '#1a2b44';
+const HALO = 'rgba(26, 43, 68, 0.16)';
 const TEXT_COLOR = '#8a8272';
 const SIZES: Record<GotaLoaderSize, number> = { sm: 48, md: 96, lg: 140 };
 /** Medidas de referencia a 96 px; el resto se escala con el tamaño. */

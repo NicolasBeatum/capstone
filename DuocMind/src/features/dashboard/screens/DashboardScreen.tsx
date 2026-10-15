@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useFocusEffect, useIsFocused, useLocalSearchParams, useRouter } from 'expo-router';
 import {
   daysSinceApplication,
@@ -9,11 +9,13 @@ import {
 import { useStressTestLauncher } from '@/features/emotional-checkin/hooks/useStressTestLauncher';
 import { useWeekMood } from '@/features/emotional-checkin/hooks/useWeekMood';
 import { NotificationsModal, type AppNotification } from '../components/NotificationsModal';
+import { ProfileMenuModal, type MenuAnchor } from '../components/ProfileMenuModal';
 import { WelcomeIntro, type GreetingTarget } from '../components/WelcomeIntro';
 import {
   dismissNotification,
   getDismissedNotificationIds,
 } from '../infrastructure/dismissedNotificationsStorage';
+import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
 import { BottomNav } from '@/shared/components/BottomNav';
 import { LiquidBackground, LiquidCard } from '@/shared/components/Glass';
 import { GotaLoader } from '@/shared/components/GotaLoader';
@@ -22,7 +24,7 @@ import { WeekChart, type WeekDayData } from '@/shared/components/WeekChart';
 import { Reveal } from '@/shared/motion/Reveal';
 import { TutorialOverlay } from '@/shared/tutorial/components/TutorialOverlay';
 import { useTutorial } from '@/shared/tutorial/infrastructure/useTutorial';
-import { BellIcon, CalendarIcon, ClipboardIcon, SparkleIcon, WindIcon } from '@/shared/components/Icons';
+import { BellIcon, ClipboardIcon, SparkleIcon, TicketIcon, WindIcon } from '@/shared/components/Icons';
 import {
   SAMPLE_CURRENT_CLASS,
   SAMPLE_UPCOMING,
@@ -69,10 +71,15 @@ const SPINNER_DELAY_MS = 400;
 export default function DashboardScreen() {
   const router = useRouter();
   const { width, fontScale } = useWindowDimensions();
-  const compactHeader = width < 390 || fontScale > 1.15;
+  // Los botones bajan a su propia fila solo si el saludo ya no cabe a su lado.
+  const compactHeader = width < 340 || fontScale > 1.15;
   const now = new Date();
   const currentClass = SAMPLE_CURRENT_CLASS;
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState<MenuAnchor | null>(null);
+  const avatarRef = useRef<View>(null);
+  const [signingOut, setSigningOut] = useState(false);
   const [dismissedIds, setDismissedIds] = useState<string[] | null>(null);
   const [student, setStudent] = useState<StudentDisplayName | null>(null);
   // La vista espera al nombre para que el saludo no cambie después de aparecer.
@@ -189,6 +196,28 @@ export default function DashboardScreen() {
     } else if (kind === 'finish') tutorial.finish();
   }, [router, tutorial.view, tutorial.next, tutorial.registerNow, tutorial.finish]);
 
+  // El menú se ancla bajo el avatar: se mide su posición real en la ventana.
+  const handleOpenProfileMenu = () => {
+    avatarRef.current?.measureInWindow((x, y, avatarWidth, avatarHeight) => {
+      setMenuAnchor({ top: y + avatarHeight + 8, right: Math.max(width - (x + avatarWidth), 8) });
+      setProfileMenuOpen(true);
+    });
+  };
+
+  const handleSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await supabaseAuthGateway.signOut();
+      setProfileMenuOpen(false);
+      router.replace('/login');
+    } catch {
+      Alert.alert('No se pudo cerrar sesión', 'Revisa tu conexión e inténtalo nuevamente.');
+    } finally {
+      setSigningOut(false);
+    }
+  };
+
   const handleDismiss = (id: string) => {
     setDismissedIds((ids) => [...(ids ?? []), id]);
     void dismissNotification(id);
@@ -264,7 +293,7 @@ export default function DashboardScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Ver calendario de eventos"
               >
-                <CalendarIcon size={20} />
+                <TicketIcon size={20} />
               </ScalePress>
             </View>
             <ScalePress
@@ -280,9 +309,16 @@ export default function DashboardScreen() {
               <BellIcon size={20} />
               {notifications.length > 0 ? <View style={styles.bellDot} /> : null}
             </ScalePress>
-            <View style={styles.avatarCircle} accessibilityLabel={firstName ? `Perfil de ${firstName}` : 'Perfil'}>
+            <ScalePress
+              ref={avatarRef}
+              style={styles.avatarCircle}
+              onPress={handleOpenProfileMenu}
+              accessibilityRole="button"
+              accessibilityLabel={firstName ? `Perfil de ${firstName}` : 'Perfil'}
+              accessibilityHint="Abre el menú con la opción de cerrar sesión"
+            >
               <Text style={styles.avatarInitials}>{initials}</Text>
-            </View>
+            </ScalePress>
             </View>
           </View>
         </Reveal>
@@ -429,6 +465,14 @@ export default function DashboardScreen() {
         notifications={notifications}
         onClose={() => setNotificationsOpen(false)}
         onDismiss={handleDismiss}
+      />
+      <ProfileMenuModal
+        visible={profileMenuOpen}
+        anchor={menuAnchor}
+        name={student ? `${student.firstName} ${student.lastName}` : null}
+        signingOut={signingOut}
+        onClose={() => setProfileMenuOpen(false)}
+        onSignOut={handleSignOut}
       />
       <TutorialOverlay
         visible={tutorial.visible && isFocused}

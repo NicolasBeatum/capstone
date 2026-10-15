@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseEvent, parseCatalog, getEventState, registrationInfo, eventOccupiesDate, eventDateKey, monthCells, projectInterest, isRegistrationUrl } from '../src/shared/events/domain/institutionalEvent.ts';
+import { parseEvent, parseCatalog, getEventState, registrationInfo, eventOccupiesDate, eventDateKey, monthCells, projectInterest, isRegistrationUrl, eventCountdownLabel, eventDateParts } from '../src/shared/events/domain/institutionalEvent.ts';
 const event = (overrides = {}) => parseEvent({
   id: '00000000-0000-0000-0000-000000000009', title: 'Taller', description: '', location: 'Patio',
   startsAt: '2026-10-12T15:00:00Z', endsAt: '2026-10-12T16:30:00Z', status: 'published', publishedAt: '2026-10-01T00:00:00Z', revision: 1,
@@ -44,4 +44,21 @@ test('conserva el intervalo aceptado si el evento cambia y distingue ausencia de
 test('calendario mensual comienza el lunes y permite febrero de año bisiesto', () => {
   assert.equal(monthCells('2024-02').filter(Boolean).length, 29);
   assert.equal(monthCells('2026-10')[3], '2026-10-01');
+});
+test('el tipo es opcional: los datos guardados antes de existir se leen como sin tipo', () => {
+  assert.equal(event().type, null);
+  assert.deepEqual(event({ type: { code: 'charla', name: 'Charla' } }).type, { code: 'charla', name: 'Charla' });
+  assert.throws(() => event({ type: { code: 'Charla!', name: 'Charla' } }));
+  assert.throws(() => event({ type: { code: 'charla', name: '' } }));
+  assert.throws(() => event({ type: 'charla' }));
+});
+test('muestra la fecha en hora de Santiago y la cuenta regresiva por días de calendario', () => {
+  const e = event({ startsAt: '2026-10-19T02:00:00Z', endsAt: '2026-10-19T03:00:00Z', registrationDeadline: '2026-10-18T00:00:00Z' });
+  // 02:00 UTC del 19 es 23:00 del 18 en Santiago (UTC-3 en octubre).
+  assert.deepEqual(eventDateParts(e.startsAt), { weekday: 'DOM', day: '18', month: 'OCT' });
+  assert.equal(eventCountdownLabel(e, new Date('2026-10-15T15:00:00Z')), 'EN 3 DÍAS');
+  assert.equal(eventCountdownLabel(e, new Date('2026-10-17T15:00:00Z')), 'MAÑANA');
+  assert.equal(eventCountdownLabel(e, new Date('2026-10-18T15:00:00Z')), 'HOY');
+  assert.equal(eventCountdownLabel(e, new Date('2026-10-19T02:30:00Z')), 'EN CURSO');
+  assert.equal(eventCountdownLabel(e, new Date('2026-10-20T00:00:00Z')), 'FINALIZADO');
 });

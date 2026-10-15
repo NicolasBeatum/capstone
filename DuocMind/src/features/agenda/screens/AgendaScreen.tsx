@@ -12,13 +12,19 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { Reveal } from '@/shared/motion/Reveal';
 import { useEvents } from '@/shared/events/application/useEvents';
-import { EventInterestActions } from '@/shared/events/components/EventInterestActions';
-import { EVENT_STATE_LABELS, isDateKey, registrationInfo } from '@/shared/events/domain/institutionalEvent';
+import { eventTypeStyle } from '@/shared/events/components/eventTypeStyle';
+import { eventDateKey, eventTime, isDateKey } from '@/shared/events/domain/institutionalEvent';
 import { composeAgendaItems } from '../application/agendaItems';
 import { useAgendaActivities } from '../application/useAgendaActivities';
+import { useSubjectCatalog } from '../application/useSubjectCatalog';
+import { AgendaActivityCard } from '../components/AgendaActivityCard';
+import { AgendaEventCard } from '../components/AgendaEventCard';
+import { AgendaTimelineRow } from '../components/AgendaTimelineRow';
+import { AgendaWeekStrip, type WeekStripDay } from '../components/AgendaWeekStrip';
 import { BottomNav } from '@/shared/components/BottomNav';
-import { GlassCard, LiquidBackground } from '@/shared/components/Glass';
+import { LiquidBackground } from '@/shared/components/Glass';
 import { GotaLoader } from '@/shared/components/GotaLoader';
+import { PlusIcon, TicketIcon } from '@/shared/components/Icons';
 import {
   getAgendaActivityEndTime,
   getAgendaActivityStatus,
@@ -27,15 +33,10 @@ import {
 import { styles } from './AgendaScreen.styles';
 
 const WEEKDAY_LABELS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+const WEEKDAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const MONTHS = [
   'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
   'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
-];
-const SUBJECTS = [
-  'Base de datos',
-  'Programacion web',
-  'Etica Profesional',
-  'Ingles Avanzado',
 ];
 const TIME_BLOCKS = Array.from({ length: 16 }, (_, index) => {
   const hour = index + 8;
@@ -72,6 +73,7 @@ export default function AgendaScreen() {
   const router = useRouter();
   const personal = useAgendaActivities();
   const events = useEvents();
+  const subjects = useSubjectCatalog();
   const { activities, loading: isLoading } = personal;
   const [now, setNow] = useState(() => new Date());
   const todayKey = toDateKey(now);
@@ -204,142 +206,125 @@ export default function AgendaScreen() {
     }
   };
 
+  const interests = events.snapshot?.document.interests ?? [];
+  const catalog = events.snapshot?.document.catalog ?? null;
+  const stripDays: WeekStripDay[] = weekDays.map((day) => {
+    const key = toDateKey(day);
+    return {
+      key,
+      weekday: WEEKDAY_LABELS[day.getDay()],
+      number: day.getDate(),
+      busy: composeAgendaItems(activities, interests, catalog, key, now).length > 0,
+    };
+  });
+  const weekFirst = weekDays[0];
+  const weekLast = weekDays[6];
+  const weekTitle = weekFirst.getMonth() === weekLast.getMonth()
+    ? `${weekFirst.getDate()} – ${weekLast.getDate()} de ${MONTHS[weekLast.getMonth()]}`
+    : `${weekFirst.getDate()} ${MONTHS[weekFirst.getMonth()].slice(0, 3)} – ${weekLast.getDate()} ${MONTHS[weekLast.getMonth()].slice(0, 3)}`;
+  const isToday = selectedDate === todayKey;
+  const shiftWeek = (days: number) => {
+    const target = new Date(selectedDay);
+    target.setDate(target.getDate() + days);
+    setSelectedDate(toDateKey(target));
+  };
+  const openNewActivity = () => {
+    resetForm();
+    setIsModalVisible(true);
+  };
+  const stillLoading = isLoading || events.loading;
+
   return (
     <View style={styles.safeArea}>
       <LiquidBackground />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.eyebrow}>ORGANIZA TU SEMANA</Text>
-        <Text style={styles.title}>Mi agenda</Text>
-        <Text style={styles.subtitle}>Tus actividades, pendientes y eventos guardados.</Text>
-        <ScalePress style={styles.eventsLink} onPress={() => router.push('/events')} accessibilityRole="button"><Text style={styles.eventsLinkText}>Explorar eventos →</Text></ScalePress>
-
-        <GlassCard style={styles.weekCard}>
-          <View style={styles.weekHeader}>
-            <ScalePress
-              style={styles.weekArrow}
-              onPress={() => {
-                const previousWeek = new Date(selectedDay);
-                previousWeek.setDate(previousWeek.getDate() - 7);
-                setSelectedDate(toDateKey(previousWeek));
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Semana anterior"
-            >
-              <Text style={styles.weekArrowText}>‹</Text>
-            </ScalePress>
-            <Text style={styles.weekTitle}>Semana de {formatSelectedDate(weekDays[0])}</Text>
-            <ScalePress
-              style={styles.weekArrow}
-              onPress={() => {
-                const nextWeek = new Date(selectedDay);
-                nextWeek.setDate(nextWeek.getDate() + 7);
-                setSelectedDate(toDateKey(nextWeek));
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Semana siguiente"
-            >
-              <Text style={styles.weekArrowText}>›</Text>
+        <Reveal>
+          <View style={styles.header}>
+            <View style={styles.headerText}>
+              <Text style={styles.title} accessibilityRole="header">Mi agenda</Text>
+              <Text style={styles.subtitle}>Tus actividades y los eventos que guardaste.</Text>
+            </View>
+            <ScalePress style={styles.roundButton} onPress={() => router.push('/events')} accessibilityRole="button" accessibilityLabel="Explorar eventos">
+              <TicketIcon size={21} />
             </ScalePress>
           </View>
-          <View style={styles.weekRow}>
-            {weekDays.map((day) => {
-              const dateKey = toDateKey(day);
-              const isSelected = selectedDate === dateKey;
-              const isPast = dateKey < todayKey;
-              return (
-                <ScalePress
-                  key={dateKey}
-                  style={[
-                    styles.dayButton,
-                    isSelected && styles.dayButtonSelected,
-                    isPast && styles.dayButtonPast,
-                  ]}
-                  onPress={() => setSelectedDate(dateKey)}
+        </Reveal>
 
-                  accessibilityRole="button"
-                  accessibilityLabel={`${WEEKDAY_LABELS[day.getDay()]} ${day.getDate()}`}
-                  accessibilityState={{ selected: isSelected }}
-                >
-                  <Text style={[styles.dayName, isSelected && styles.dayNameSelected, isPast && styles.dayTextPast]}>
-                    {WEEKDAY_LABELS[day.getDay()]}
-                  </Text>
-                  <Text style={[styles.dayNumber, isSelected && styles.dayNumberSelected, isPast && styles.dayTextPast]}>
-                    {day.getDate()}
-                  </Text>
-                </ScalePress>
-              );
-            })}
+        <Reveal index={1}>
+          <AgendaWeekStrip
+            title={weekTitle}
+            days={stripDays}
+            selectedKey={selectedDate}
+            todayKey={todayKey}
+            onSelect={setSelectedDate}
+            onPrevious={() => shiftWeek(-7)}
+            onNext={() => shiftWeek(7)}
+          />
+        </Reveal>
+
+        <View style={styles.dayHeader}>
+          <View style={styles.dayHeaderText}>
+            <Text style={styles.dayTitle}>{isToday ? 'Hoy' : WEEKDAY_NAMES[selectedDay.getDay()]}</Text>
+            <Text style={styles.dayMeta}>
+              {isToday ? `${WEEKDAY_NAMES[selectedDay.getDay()]} ` : ''}{formatSelectedDate(selectedDay)}
+            </Text>
+            {!stillLoading && (
+              <Text style={styles.dayCount}>
+                {dayItems.length === 0 ? 'Sin actividades' : `${dayItems.length} ${dayItems.length === 1 ? 'actividad' : 'actividades'}`}
+              </Text>
+            )}
           </View>
-        </GlassCard>
-
-        <ScalePress
-          style={styles.addButton}
-          onPress={() => {
-            resetForm();
-            setIsModalVisible(true);
-          }}
-
-          accessibilityRole="button"
-          accessibilityLabel="Agregar actividad"
-        >
-          <Text style={styles.addButtonIcon}>+</Text>
-          <Text style={styles.addButtonText}>Agregar actividad</Text>
-        </ScalePress>
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{formatSelectedDate(selectedDay)}</Text>
-          <Text style={styles.count}>
-            {dayItems.length} {dayItems.length === 1 ? 'actividad' : 'actividades'}
-          </Text>
+          <ScalePress style={styles.addButton} onPress={openNewActivity} accessibilityRole="button" accessibilityLabel="Agregar actividad">
+            <PlusIcon size={18} color="#f2c14e" />
+            <Text style={styles.addButtonText}>Actividad</Text>
+          </ScalePress>
         </View>
 
         {errorMessage && !isModalVisible && (
           <Text style={styles.statusMessage} accessibilityRole="alert">{errorMessage}</Text>
         )}
-
         {personal.error && <Text style={styles.statusMessage} accessibilityRole="alert">Actividades personales: {personal.error}</Text>}
-        {events.snapshot?.warning && <Text style={styles.eventNotice} accessibilityLiveRegion="polite">{events.snapshot.warning}</Text>}
+        {events.snapshot?.warning && <Text style={styles.notice} accessibilityLiveRegion="polite">{events.snapshot.warning}</Text>}
         {events.error && <Text style={styles.statusMessage} accessibilityRole="alert">Eventos: {events.error}</Text>}
-        {events.message && <Text style={styles.eventNotice} accessibilityLiveRegion="polite">{events.message}</Text>}
-        {(isLoading || events.loading) && <GotaLoader text="Respira mientras cargamos…" />}
-        {dayItems.map((item, index) => {
-          if (item.kind === 'event') {
-            const { event, interest, current, changed, unavailable } = item.projection;
-            const registration = registrationInfo(current ?? event, now);
-            return <Reveal key={`event-${item.id}`} index={index}>
-              <GlassCard style={styles.eventCard}>
-                <Text style={styles.eventBadge}>EVENTO INSTITUCIONAL · {EVENT_STATE_LABELS[item.state]}</Text>
-                <Text style={styles.activityTitle}>{event.title}</Text>
-                {item.continuation && <Text style={styles.eventNotice}>Continúa desde un día anterior</Text>}
-                <Text style={styles.eventBody}>{item.interval}</Text>
-                <Text style={styles.eventBody}>Hora de Santiago, Chile · {event.location}</Text>
-                <Text style={styles.eventNotice}>{unavailable ? 'Información no disponible' : changed ? 'Cambio pendiente' : registration.label}</Text>
-                {registration.reason ? <Text style={styles.eventBody}>{registration.reason}</Text> : null}
-                <EventInterestActions event={event} interest={interest} current={current} model={events} showAgenda={false} />
-                <ScalePress style={styles.eventsLink} onPress={() => router.push({ pathname: '/events/[id]', params: { id: event.id } })} accessibilityRole="button" accessibilityLabel={`Ver detalles de ${event.title}`}><Text style={styles.eventsLinkText}>Ver evento →</Text></ScalePress>
-              </GlassCard>
+        {events.message && <Text style={styles.notice} accessibilityLiveRegion="polite">{events.message}</Text>}
+        {stillLoading && <GotaLoader text="Respira mientras cargamos…" />}
+
+        <View>
+          {dayItems.map((item, index) => {
+            const isLast = index === dayItems.length - 1;
+            if (item.kind === 'event') {
+              const event = item.projection.event;
+              const singleDay = eventDateKey(event.startsAt) === eventDateKey(event.endsAt);
+              return <Reveal key={`event-${item.id}`} index={index}>
+                <AgendaTimelineRow
+                  start={item.continuation ? 'Sigue' : eventTime(event.startsAt)}
+                  end={singleDay && !item.continuation ? eventTime(event.endsAt) : undefined}
+                  dotColor={eventTypeStyle(event.type).dot}
+                  isLast={isLast}
+                >
+                  <AgendaEventCard item={item} now={now} model={events} onOpen={() => router.push({ pathname: '/events/[id]', params: { id: event.id } })} />
+                </AgendaTimelineRow>
+              </Reveal>;
+            }
+            const activity = item.activity;
+            const inProgress = getAgendaActivityStatus(activity, now) === 'in-progress';
+            return <Reveal key={`activity-${activity.id}`} index={index}>
+              <AgendaTimelineRow start={activity.time} end={getAgendaActivityEndTime(activity.time)} dotColor={inProgress ? '#10a875' : '#f2c14e'} isLast={isLast}>
+                <AgendaActivityCard activity={activity} inProgress={inProgress} onRemove={() => void removeActivity(activity)} />
+              </AgendaTimelineRow>
             </Reveal>;
-          }
-          const activity = item.activity;
-          const isInProgress = getAgendaActivityStatus(activity, now) === 'in-progress';
-          const endTime = getAgendaActivityEndTime(activity.time);
-          return <Reveal key={`activity-${activity.id}`} index={index}>
-            <View style={styles.activityCard}>
-              <Text style={styles.activityTime}>{activity.time}{'\n'}{endTime}</Text>
-              <View style={[styles.activityAccent, isInProgress && styles.activityAccentActive]} />
-              <View style={styles.activityDetails}>
-                {isInProgress && <Text style={styles.inProgressLabel}>OCURRIENDO AHORA</Text>}
-                <Text style={styles.activityTitle}>{activity.title}</Text>
-                <Text style={activity.subject ? styles.activitySubject : styles.activityNoSubject}>{activity.subject ?? 'Sin asignatura'}</Text>
-              </View>
-              <ScalePress style={styles.deleteButton} onPress={() => void removeActivity(activity)} accessibilityRole="button" accessibilityLabel={`Eliminar ${activity.title}`}><Text style={styles.deleteText}>Quitar</Text></ScalePress>
-            </View>
-          </Reveal>;
-        })}
-        {!isLoading && !events.loading && dayItems.length === 0 && !personal.error && !events.error && <GlassCard style={styles.emptyCard}>
-          <Text style={styles.emptyIcon}>✦</Text><Text style={styles.emptyTitle}>Tu agenda está libre para esta fecha</Text>
-          <Text style={styles.emptyText}>Aquí aparecerán tus actividades pendientes y los eventos que guardes.</Text>
-        </GlassCard>}
+          })}
+        </View>
+
+        {!stillLoading && dayItems.length === 0 && !personal.error && !events.error && (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyTitle}>{isToday ? 'Hoy tienes el día libre' : 'Este día está libre'}</Text>
+            <Text style={styles.emptyText}>Agrega una actividad o guarda un evento para verlo aquí.</Text>
+            <ScalePress style={styles.emptyButton} onPress={openNewActivity} accessibilityRole="button" accessibilityLabel="Agregar actividad">
+              <Text style={styles.emptyButtonText}>Agregar actividad</Text>
+            </ScalePress>
+          </View>
+        )}
       </ScrollView>
       <BottomNav currentTab="agenda" />
 
@@ -502,26 +487,36 @@ export default function AgendaScreen() {
               )}
 
               <Text style={styles.fieldLabel}>Asignatura (opcional)</Text>
+              {subjects.loading && <GotaLoader size="sm" text="Cargando tus asignaturas…" style={styles.subjectStatusLoader} />}
+              {subjects.failed && (
+                <Text style={styles.subjectStatus}>No pudimos cargar tus asignaturas. Puedes guardar sin asignatura.</Text>
+              )}
+              {subjects.stale && (
+                <Text style={styles.subjectStatus}>Sin conexión: lista guardada, puede no estar al día.</Text>
+              )}
+              {!subjects.loading && !subjects.failed && subjects.options.length === 0 && (
+                <Text style={styles.subjectStatus}>Aún no tienes asignaturas inscritas.</Text>
+              )}
               <View style={styles.subjectOptions} accessibilityRole="radiogroup">
-                {[null, ...SUBJECTS].map((option) => {
-                  const isSelected = subject === option;
+                {[{ key: 'none', label: 'Sin asignatura', value: null as string | null }, ...subjects.options].map((option) => {
+                  const isSelected = subject === option.value;
                   return (
                     <ScalePress
-                      key={option ?? 'none'}
+                      key={option.key}
                       style={styles.subjectRow}
                       onPress={() => {
-                        setSubject(option);
+                        setSubject(option.value);
                         setErrorMessage(null);
                       }}
 
                       accessibilityRole="radio"
-                      accessibilityLabel={option ?? 'Sin asignatura'}
+                      accessibilityLabel={option.label}
                       accessibilityState={{ selected: isSelected }}
                     >
                       <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
                         {isSelected && <View style={styles.radioInner} />}
                       </View>
-                      <Text style={styles.subjectRowText}>{option ?? 'Sin asignatura'}</Text>
+                      <Text style={styles.subjectRowText}>{option.label}</Text>
                     </ScalePress>
                   );
                 })}

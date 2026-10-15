@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import {
   Animated,
   StyleSheet,
@@ -27,6 +27,14 @@ export const glassTokens = {
   },
 };
 
+/* En web los id de SVG son globales al documento. Con varias pantallas montadas a la vez
+ * (la anterior queda oculta), un id repetido apunta al gradiente de la oculta y el fondo
+ * no se pinta. Un sufijo único por instancia evita el choque. */
+function useGradientIds<Name extends string>(...names: Name[]): Record<Name, string> {
+  const suffix = useId().replace(/[^a-zA-Z0-9]/g, '');
+  return Object.fromEntries(names.map((name) => [name, `${name}-${suffix}`])) as Record<Name, string>;
+}
+
 interface GlassCardProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
@@ -52,16 +60,17 @@ interface LiquidPanelProps {
 
 /* Panel con gradiente líquido (SVG) usado como fondo de banners y destacados */
 export function LiquidPanel({ children, from, to, radius = 24, style }: LiquidPanelProps) {
+  const ids = useGradientIds('liquidPanelGradient');
   return (
     <View style={[styles.panel, style]}>
       <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
         <Defs>
-          <LinearGradient id="liquidPanelGradient" x1="0" y1="0" x2="1" y2="1">
+          <LinearGradient id={ids.liquidPanelGradient} x1="0" y1="0" x2="1" y2="1">
             <Stop offset="0" stopColor={from} />
             <Stop offset="1" stopColor={to} />
           </LinearGradient>
         </Defs>
-        <Rect width="100%" height="100%" fill="url(#liquidPanelGradient)" rx={radius} />
+        <Rect width="100%" height="100%" fill={`url(#${ids.liquidPanelGradient})`} rx={radius} />
       </Svg>
       {children}
     </View>
@@ -70,16 +79,17 @@ export function LiquidPanel({ children, from, to, radius = 24, style }: LiquidPa
 
 /* Card líquida: gradiente cálido en lugar de vidrio translúcido, con brillo superior */
 export function LiquidCard({ children, style }: GlassCardProps) {
+  const ids = useGradientIds('liquidCardGradient');
   return (
     <View style={[styles.card, style]}>
       <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
         <Defs>
-          <LinearGradient id="liquidCardGradient" x1="0" y1="0" x2="0.5" y2="1">
+          <LinearGradient id={ids.liquidCardGradient} x1="0" y1="0" x2="0.5" y2="1">
             <Stop offset="0" stopColor="#fffef9" />
             <Stop offset="1" stopColor="#f6ebd0" />
           </LinearGradient>
         </Defs>
-        <Rect width="100%" height="100%" fill="url(#liquidCardGradient)" rx={28} />
+        <Rect width="100%" height="100%" fill={`url(#${ids.liquidCardGradient})`} rx={28} />
       </Svg>
       <View style={styles.sheen} pointerEvents="none" />
       {children}
@@ -92,6 +102,7 @@ export function LiquidCard({ children, style }: GlassCardProps) {
 export function LiquidBackground() {
   const { width, height } = useWindowDimensions();
   const breath = useBreath();
+  const ids = useGradientIds('orbYellow', 'orbSage', 'orbAmber');
 
   const breathStyle = breath
     ? {
@@ -114,22 +125,22 @@ export function LiquidBackground() {
     <Animated.View style={[StyleSheet.absoluteFill, breathStyle]} pointerEvents="none">
       <Svg width={width} height={height}>
         <Defs>
-          <RadialGradient id="orbYellow" cx="50%" cy="50%" r="50%">
+          <RadialGradient id={ids.orbYellow} cx="50%" cy="50%" r="50%">
             <Stop offset="0" stopColor="rgba(248, 214, 112, 0.85)" />
             <Stop offset="1" stopColor="rgba(248, 214, 112, 0)" />
           </RadialGradient>
-          <RadialGradient id="orbSage" cx="50%" cy="50%" r="50%">
+          <RadialGradient id={ids.orbSage} cx="50%" cy="50%" r="50%">
             <Stop offset="0" stopColor="rgba(158, 168, 112, 0.30)" />
             <Stop offset="1" stopColor="rgba(158, 168, 112, 0)" />
           </RadialGradient>
-          <RadialGradient id="orbAmber" cx="50%" cy="50%" r="50%">
+          <RadialGradient id={ids.orbAmber} cx="50%" cy="50%" r="50%">
             <Stop offset="0" stopColor="rgba(238, 178, 66, 0.60)" />
             <Stop offset="1" stopColor="rgba(238, 178, 66, 0)" />
           </RadialGradient>
         </Defs>
-        <Circle cx={width * 0.92} cy={height * 0.16} r={300} fill="url(#orbYellow)" />
-        <Circle cx={width * 0.02} cy={height * 0.46} r={300} fill="url(#orbSage)" />
-        <Circle cx={width * 0.85} cy={height * 0.82} r={320} fill="url(#orbAmber)" />
+        <Circle cx={width * 0.92} cy={height * 0.16} r={300} fill={`url(#${ids.orbYellow})`} />
+        <Circle cx={width * 0.02} cy={height * 0.46} r={300} fill={`url(#${ids.orbSage})`} />
+        <Circle cx={width * 0.85} cy={height * 0.82} r={320} fill={`url(#${ids.orbAmber})`} />
       </Svg>
     </Animated.View>
   );

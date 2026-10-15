@@ -8,7 +8,7 @@ import {
 } from '@/features/emotional-checkin/domain/stressTestRecency';
 import { useStressTestLauncher, type LastStressTest } from '@/features/emotional-checkin/hooks/useStressTestLauncher';
 import { BottomNav } from '@/shared/components/BottomNav';
-import { JournalIcon, CalendarIcon, PhoneIcon, StretchIcon, TimerIcon, WindIcon } from '@/shared/components/Icons';
+import { JournalIcon, PhoneIcon, StretchIcon, TicketIcon, TimerIcon, WindIcon } from '@/shared/components/Icons';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { Reveal } from '@/shared/motion/Reveal';
 import { styles } from './WellnessScreen.styles';
@@ -84,7 +84,7 @@ export default function WellnessScreen() {
             accessibilityRole="button"
             accessibilityLabel="Eventos, ver calendario de actividades"
           >
-            <View style={styles.helpIcon}><CalendarIcon size={22} color="#1a2b44" /></View>
+            <View style={styles.helpIcon}><TicketIcon size={22} color="#1a2b44" /></View>
             <View style={styles.helpText}>
               <Text style={styles.eventsTitle}>Eventos</Text>
               <Text style={styles.eventsDesc}>Actividades, encuentros y talleres para tu agenda</Text>
