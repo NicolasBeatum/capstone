@@ -348,18 +348,6 @@ export const styles = StyleSheet.create({
     marginTop: 12,
     fontFamily: font.regular,
   },
-  confirmationLoginButton: {
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  confirmationLoginText: {
-    color: navy,
-    fontSize: 12,
-    textDecorationLine: 'underline',
-    fontFamily: font.bold,
-  },
   /* ── Pie ── */
   footerContainer: {
     alignItems: 'center',

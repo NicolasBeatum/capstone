@@ -9,13 +9,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LiquidBackground, LiquidCard } from '@/shared/components/Glass';
 import { AuthActionButton } from '@/shared/components/AuthActionButton';
 import { GotaLoader } from '@/shared/components/GotaLoader';
 import { Reveal } from '@/shared/motion/Reveal';
 import { getAuthenticationErrorMessage, loginAccount } from '@/features/auth/application/authentication';
 import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
+import { EmailConfirmationModal } from '@/features/auth/components/EmailConfirmationModal';
 import {
   EyeIcon,
   EyeOffIcon,
@@ -29,11 +30,13 @@ import { styles } from './authForm.styles';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { registered } = useLocalSearchParams<{ registered?: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; tone: 'error' | 'success' } | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(registered === '1');
 
   const handleLogin = async () => {
     // Al tocar el botón el teclado no se cierra solo (keyboardShouldPersistTaps) y en
@@ -191,6 +194,8 @@ export default function LoginScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <EmailConfirmationModal visible={showConfirmation} onClose={() => setShowConfirmation(false)} />
 
       {isSubmitting ? (
         <Reveal style={styles.loadingOverlay}>

@@ -70,17 +70,43 @@ export async function completeAccountDeletion(steps: AccountDeletionSteps): Prom
   await steps.clearLocalSession();
 }
 
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  invalid_credentials: 'Correo o contraseña no válidos.',
+  email_not_confirmed: 'Confirma tu correo antes de iniciar sesión.',
+  weak_password: 'La contraseña no cumple los requisitos de seguridad.',
+  over_email_send_rate_limit: 'Se enviaron demasiados correos. Espera unos minutos e inténtalo de nuevo.',
+  over_request_rate_limit: 'Hiciste demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
+  email_address_invalid: 'Ese correo no es válido. Revisa que esté bien escrito.',
+  email_address_not_authorized: 'Este correo no puede recibir mensajes de la aplicación todavía.',
+  signup_disabled: 'El registro de cuentas no está disponible por ahora.',
+  user_already_exists: 'Ya existe una cuenta con ese correo. Inicia sesión.',
+  // Postgres: violación de unicidad. En el perfil solo puede ser el RUT o la cuenta.
+  '23505': 'Ya existe un perfil con ese RUT o para esta cuenta.',
+};
+
+function isNetworkError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false;
+  const { name, message, status } = error as { name?: unknown; message?: unknown; status?: unknown };
+  return (
+    name === 'AuthRetryableFetchError' ||
+    status === 0 ||
+    (typeof message === 'string' && /network request failed|failed to fetch/i.test(message))
+  );
+}
+
 export function getAuthenticationErrorMessage(error: unknown): string {
   if (typeof error === 'object' && error !== null && 'code' in error) {
-    const code = error.code;
-    if (code === 'invalid_credentials') return 'Correo o contraseña no válidos.';
-    if (code === 'email_not_confirmed') return 'Confirma tu correo antes de iniciar sesión.';
-    if (code === 'weak_password') return 'La contraseña no cumple los requisitos de seguridad.';
+    const message = AUTH_ERROR_MESSAGES[String(error.code)];
+    if (message) return message;
   }
 
   if (error instanceof Error && error.message === 'Completa el RUT, nombre y apellido.') {
     return error.message;
   }
 
-  return 'No se pudo completar la operación. Revisa tu conexión e inténtalo nuevamente.';
+  if (isNetworkError(error)) {
+    return 'No hay conexión con el servidor. Revisa tu internet e inténtalo nuevamente.';
+  }
+
+  return 'No se pudo completar la operación. Inténtalo nuevamente en unos minutos.';
 }

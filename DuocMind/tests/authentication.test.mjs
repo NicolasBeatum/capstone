@@ -5,6 +5,7 @@ import {
   completeAccountDeletion,
   completeStudentProfile,
   deleteStudentAccount,
+  getAuthenticationErrorMessage,
   loginAccount,
   registerAccount,
 } from '../src/features/auth/application/authentication.ts';
@@ -70,4 +71,12 @@ test('el borrado confirmado limpia primero el dispositivo y conserva sesión si 
     clearLocalSession: async () => { steps.push('session'); },
   }), /offline/);
   assert.deepEqual(steps, ['local', 'remote']);
+});
+test('los errores conocidos tienen un mensaje propio y la falta de red se distingue', () => {
+  assert.match(getAuthenticationErrorMessage({ code: 'over_email_send_rate_limit' }), /demasiados correos/);
+  assert.match(getAuthenticationErrorMessage({ code: '23505' }), /RUT/);
+  assert.match(getAuthenticationErrorMessage({ code: 'invalid_credentials' }), /Correo o contraseña/);
+  assert.match(getAuthenticationErrorMessage({ name: 'AuthRetryableFetchError', status: 0 }), /conexión/);
+  assert.match(getAuthenticationErrorMessage(new TypeError('Network request failed')), /conexión/);
+  assert.doesNotMatch(getAuthenticationErrorMessage({ code: 'otro_error' }), /conexión/);
 });

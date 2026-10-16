@@ -36,7 +36,6 @@ export default function RegisterScreen() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; tone: 'error' | 'success' } | null>(null);
-  const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
 
   const hasMinLength = password.length >= 8;
   const hasNumber = /\d/.test(password);
@@ -54,7 +53,6 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     Keyboard.dismiss();
     setFeedback(null);
-    setNeedsEmailConfirmation(false);
     if (!email || !password || !confirmPassword) {
       setFeedback({ tone: 'error', message: 'Completa todos los campos para continuar.' });
       return;
@@ -78,11 +76,9 @@ export default function RegisterScreen() {
       if (destination === 'profile') {
         router.replace('/profile');
       } else {
-        setNeedsEmailConfirmation(true);
-        setFeedback({
-          tone: 'success',
-          message: 'Solicitud recibida. Si el correo puede registrarse, recibirás un enlace para confirmarlo. Después inicia sesión para completar tu perfil.',
-        });
+        // El aviso se muestra en el login: esta pantalla se reemplaza al terminar.
+        router.replace({ pathname: '/login', params: { registered: '1' } });
+        return;
       }
     } catch (error) {
       setFeedback({ tone: 'error', message: getAuthenticationErrorMessage(error) });
@@ -264,16 +260,6 @@ export default function RegisterScreen() {
               </Text>
             ) : null}
 
-            {needsEmailConfirmation ? (
-              <TouchableOpacity
-                style={styles.confirmationLoginButton}
-                onPress={() => router.replace('/login')}
-                accessibilityRole="button"
-                activeOpacity={0.8}
-              >
-                <Text style={styles.confirmationLoginText}>Ir a iniciar sesión</Text>
-              </TouchableOpacity>
-            ) : null}
           </LiquidCard>
 
           {/* ── Pie ── */}

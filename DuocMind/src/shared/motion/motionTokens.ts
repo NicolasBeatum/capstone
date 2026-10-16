@@ -28,6 +28,10 @@ export const motionDuration = {
   welcomeFlight: 800,
   /** Medio paso del baile del Brote de bienvenida. */
   danceStep: 450,
+  /** Medio ciclo del halo que respira detrás del sobre del aviso de confirmación. */
+  haloPulse: 1400,
+  /** Medio paso del baile pausado del Brote que acompaña formularios. */
+  danceStepSlow: 1200,
   /** Crecimiento de una barra del gráfico semanal. */
   chartBar: 700,
   /** Inhalar: el fondo se expande. */
@@ -57,6 +61,8 @@ export const motionDistance = {
   /** Opacidad del fondo al exhalar y al inhalar. */
   breathOpacityMin: 0.82,
   breathOpacityMax: 1,
+  /** Escala máxima del halo del aviso de confirmación. */
+  haloScale: 1.25,
   /** Inclinación del Brote al bailar, en grados hacia cada lado. */
   danceTilt: 7,
   /** Altura que sube el Brote en cada paso de baile, en px. */
