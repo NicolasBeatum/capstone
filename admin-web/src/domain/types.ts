@@ -77,7 +77,17 @@ export interface Tip extends TipContent {
   active: boolean;
   revision: number;
 }
+export interface EventTypeContent {
+  code: string;
+  name: string;
+  order: number;
+}
+export interface EventType extends EventTypeContent {
+  id: string;
+  revision: number;
+}
 export interface EventContent {
+  typeId: string | null;
   title: string;
   description: string;
   location: string;

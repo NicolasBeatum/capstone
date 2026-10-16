@@ -1,6 +1,6 @@
 import { auth } from "./auth";
 import * as contract from "./contracts";
-import type { EventContent, TestContent, TipContent } from "../domain/types";
+import type { EventContent, EventTypeContent, TestContent, TipContent } from "../domain/types";
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -128,6 +128,11 @@ export const adminGateway = {
       requestId,
       ...(active !== undefined ? { active } : {}),
     }),
+  eventTypes: () => request("GET", "/event-types", contract.eventTypes),
+  createEventType: (content: EventTypeContent, requestId: string) =>
+    change("POST", "/event-types", { ...content, requestId }),
+  saveEventType: (id: string, content: Pick<EventTypeContent, "name" | "order">, revision: number, requestId: string) =>
+    change("PUT", "/event-types/" + id, { ...content, expectedRevision: revision, requestId }),
   events: () => request("GET", "/events", contract.events),
   saveEvent: (
     id: string | null,

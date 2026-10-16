@@ -216,7 +216,8 @@ sustituye una descarga completa. Respuesta única JSON:
     "requiresRegistration": true,
     "registrationUrl": "https://example.com/form",
     "registrationDeadline": "2030-10-11T12:00:00Z",
-    "registrationClosed": false
+    "registrationClosed": false,
+    "type": { "code": "taller", "name": "Taller" }
   }]
 }
 ```
@@ -237,3 +238,23 @@ El estado temporal se deriva del intervalo y las inscripciones se verifican con
 No existe endpoint de asistentes ni de intereses. El guardado es local, por
 cuenta, y no equivale a completar la inscripción externa. Agenda conserva el
 intervalo aceptado ante una reprogramación hasta que el usuario la confirme.
+
+
+### Administración de tipos institucionales — incremento 012
+
+La API administrativa autenticada incorpora `GET /event-types`,
+`POST /event-types` y `PUT /event-types/:id`. Devuelve
+`{id,code,name,order,revision}` con ID decimal como string. Crear recibe código,
+nombre y orden; editar recibe nombre, orden y revisión esperada. Ambas escrituras
+usan `requestId`; el código es único e inmutable. Ver los
+[contratos administrativos](../specs/005-admin-dashboard/contracts.md).
+
+`GET /events` añade `typeId: string | null`; crear/editar acepta la referencia
+opcional. Omitirla conserva la asignación anterior, null la elimina. La consulta
+estudiantil de Hans devuelve `type: {code,name} | null` y refleja renombrados.
+El catálogo es públicamente legible; las escrituras se realizan solo desde el
+backend autorizado. No se añade endpoint de eliminación.
+
+Orden de actualización: migración de tipos de Hans, migración
+`20261016015100_admin_event_types.sql`, `admin-api` y panel web. Solo se verificó
+esta entrega en Supabase local; no acredita una aplicación remota del cambio.

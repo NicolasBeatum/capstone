@@ -226,3 +226,33 @@ han verificado localmente en esta entrega. Consultar
 [verificación 009](../DuocMind/specs/009-student-events/verification.md).
 Las pruebas de recuperación usan el buzón local de `runtime.json`, sin asumir
 un puerto fijo que pudiera pertenecer a otro proyecto.
+
+
+## Tipos de evento institucional (incremento 012)
+
+Desde Eventos, «Tipos de evento» abre `/events/types` para crear categorías y
+editar su nombre y orden. El código se define al crear (minúsculas, números y
+guion bajo) y queda fijo; renombrar una categoría actualiza su etiqueta en los
+eventos que la utilizan. No hay eliminación de tipos en el panel.
+
+El editor de eventos permite asignar un tipo o «Sin tipo»; el listado muestra
+la categoría. Los eventos anteriores siguen siendo válidos sin asignación.
+Los cancelados conservan el tipo y son de solo lectura. Si falla el catálogo,
+el guardado se bloquea hasta recargarlo, conservando el formulario.
+
+Preparación de un entorno: aplicar primero la migración de Hans
+`20261015120000_event_types.sql` y después
+`20261016015100_admin_event_types.sql`; actualizar `admin-api` y finalmente la
+web. La migración nueva añade revisión/validación del catálogo y extiende las
+operaciones existentes. Los clientes anteriores que omiten `typeId` conservan
+la asignación al editar; un null explícito la elimina.
+
+Esta entrega se verificó exclusivamente en Supabase local. La aplicación de
+migraciones y actualización de la API remota requieren una operación separada.
+Ver [contratos](../DuocMind/specs/005-admin-dashboard/contracts.md) y
+[evidencia 012](../DuocMind/specs/012-admin-event-types/verification.md).
+
+Si los contenedores locales ya usan puertos distintos de `config.toml`, comprobar
+sus puertos antes de regenerar `.env.local`/`tools/.local/runtime.json`. La CLI
+puede producir URLs desde la configuración en disco; las suites deben apuntar al
+contenedor de DuocMind con fixtures sintéticas, nunca a otro proyecto local.

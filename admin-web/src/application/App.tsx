@@ -15,6 +15,7 @@ import { Students } from "../pages/Students";
 import { Recover } from "../pages/Recover";
 import { Tests } from "../pages/Tests";
 import { TestEditor } from "../pages/TestEditor";
+import { EventTypes } from "../pages/EventTypes";
 import { Events } from "../pages/Events";
 import { Tips } from "../pages/Tips";
 import { Brand } from "../components/Brand";
@@ -22,7 +23,7 @@ import { NavigationIcon } from "../components/NavigationIcon";
 function Protected() {
   const session = useAuth();
   const location = useLocation();
-  const section = location.pathname.startsWith("/tests") ? "Tests" : ({
+  const section = location.pathname.startsWith("/tests") ? "Tests" : location.pathname.startsWith("/events") ? "Eventos" : ({
     "/overview": "Dashboard",
     "/students": "Alumnos",
     "/events": "Eventos",
@@ -88,6 +89,7 @@ export function App() {
             <Route path="/tests/new" element={<TestEditor />} />
             <Route path="/tests/versions/:versionId" element={<TestEditor />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/events/types" element={<EventTypes />} />
             <Route path="/tips" element={<Tips />} />
           </Route>
           <Route path="*" element={<Navigate to="/students" replace />} />
