@@ -33,7 +33,7 @@ export function validateMutation(
   }
   const base = ["requestId"];
   if (
-    path !== "/tests" && path !== "/events" && path !== "/tips" &&
+    path !== "/tests" && path !== "/events" && path !== "/tips" && path !== "/event-types" &&
     !path.endsWith("/password-reset")
   ) {
     if (
@@ -42,7 +42,18 @@ export function validateMutation(
     ) throw new HttpError(422, "Revisión requerida.");
     base.push("expectedRevision");
   }
-  if (
+  if (path === "/event-types" && method === "POST" || /^\/event-types\/[1-9][0-9]{0,4}$/.test(path) && method === "PUT") {
+    const creating = path === "/event-types";
+    if (!creating) eventTypeId(path.split("/")[2]);
+    fields(p, [...base, ...(creating ? ["code"] : []), "name", "order"]);
+    if (creating && (typeof p.code !== "string" || !/^[a-z][a-z0-9_]{1,31}$/.test(p.code))) {
+      throw new HttpError(422, "Código inválido.");
+    }
+    if (typeof p.name !== "string") throw new HttpError(422, "Nombre inválido.");
+    p.name = p.name.trim();
+    text(p.name, 40);
+    integer(p.order, 0, 32767);
+  } else if (
     path === "/tests" && method === "POST" ||
     /\/tests\/versions\/[1-9][0-9]*\/draft$/.test(path) && method === "PUT"
   ) {
@@ -98,10 +109,12 @@ export function validateMutation(
       "registrationUrl",
       "registrationDeadline",
       "registrationClosed",
+      "typeId",
     ], [...base, "title", "description", "location", "startsAt", "endsAt"]);
     text(p.title, 160);
     text(p.description, 5000, true);
     text(p.location, 160);
+    if ("typeId" in p && p.typeId !== null) eventTypeId(p.typeId);
     for (const key of ["requiresRegistration", "registrationClosed"]) {
       if (key in p && typeof p[key] !== "boolean") {
         throw new HttpError(422, "Condición inválida.");
@@ -178,6 +191,11 @@ export function validateMutation(
   ) fields(p, base);
   else throw new HttpError(404, "Operación no disponible.");
   return p;
+}
+function eventTypeId(value: unknown) {
+  if (typeof value !== "string" || !/^[1-9][0-9]{0,4}$/.test(value) || Number(value) > 32767) {
+    throw new HttpError(422, "Tipo de evento inválido.");
+  }
 }
 export function decimal(s: string) {
   return /^[1-9][0-9]{0,18}$/.test(s) && BigInt(s) <= 9223372036854775807n;

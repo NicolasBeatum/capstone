@@ -25,8 +25,8 @@ test("crear, publicar y cancelar evento conserva contenido", async ({ page }) =>
     exact: true,
   }).fill("Actividad institucional");
   await page.getByLabel("Lugar", { exact: true }).fill("Sede sintética");
-  await page.getByLabel("Inicio en Santiago").fill("2026-10-04T10:00");
-  await page.getByLabel("Término en Santiago").fill("2026-10-04T12:00");
+  await page.getByLabel("Inicio").fill("2026-10-04T10:00");
+  await page.getByLabel("Término").fill("2026-10-04T12:00");
   await page.getByRole("button", { name: "Guardar evento" }).click();
   await expect(page.getByRole("status")).toContainText("Evento guardado");
   await page.getByRole("button", { name: "Publicar evento", exact: true })
@@ -51,11 +51,11 @@ test("hora inexistente se rechaza; conflicto conserva formulario", async ({ page
     "Fixture hora " + crypto.randomUUID(),
   );
   await page.getByLabel("Lugar", { exact: true }).fill("Sede");
-  await page.getByLabel("Inicio en Santiago").fill("2026-09-06T00:30");
-  await page.getByLabel("Término en Santiago").fill("2026-09-06T02:00");
+  await page.getByLabel("Inicio").fill("2026-09-06T00:30");
+  await page.getByLabel("Término").fill("2026-09-06T02:00");
   await page.getByRole("button", { name: "Guardar evento" }).click();
   await expect(page.getByRole("alert")).toContainText("no existe");
-  await page.getByLabel("Inicio en Santiago").fill("2026-09-06T01:30");
+  await page.getByLabel("Inicio").fill("2026-09-06T01:30");
   await page.getByRole("button", { name: "Guardar evento" }).click();
   await expect(page.getByRole("status")).toContainText("Evento guardado");
   await page.getByLabel("Lugar", { exact: true }).fill("Edición local");
@@ -80,8 +80,8 @@ test("condiciones de inscripción: borrador incompleto, publicar y cerrar/reabri
   await page.getByRole('button', { name: /Nuevo evento/ }).click();
   await page.getByLabel('Título del evento', { exact: true }).fill('Taller inscripción ' + crypto.randomUUID());
   await page.getByLabel('Lugar', { exact: true }).fill('Patio sintético');
-  await page.getByLabel('Inicio en Santiago').fill('2030-10-04T10:00');
-  await page.getByLabel('Término en Santiago').fill('2030-10-04T11:30');
+  await page.getByLabel('Inicio').fill('2030-10-04T10:00');
+  await page.getByLabel('Término').fill('2030-10-04T11:30');
   await page.getByLabel('Tipo de participación').selectOption('required');
   await page.getByRole('button', { name: 'Guardar evento', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Evento guardado');
@@ -89,7 +89,7 @@ test("condiciones de inscripción: borrador incompleto, publicar y cerrar/reabri
   await page.getByRole('button', { name: 'Confirmar publicación del evento' }).click();
   await expect(page.getByRole('alert')).toBeVisible();
   await page.getByLabel('Enlace de inscripción').fill('https://example.com/form');
-  await page.getByLabel('Plazo de inscripción en Santiago').fill('2030-10-03T18:00');
+  await page.getByLabel('Plazo de inscripción').fill('2030-10-03T18:00');
   await page.getByRole('button', { name: 'Guardar evento', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Evento guardado');
   await page.getByRole('button', { name: 'Confirmar publicación del evento' }).click();

@@ -38,7 +38,7 @@ export function localToInstant(local: string, choice = ""): string {
   const candidates = possibleInstants(local);
   if (!candidates.length) {
     throw Error(
-      "La fecha u hora no existe en America/Santiago. Elige otra hora.",
+      "La fecha u hora no existe por el cambio de horario. Elige otra hora.",
     );
   }
   if (candidates.length > 1 && !candidates.includes(choice)) {

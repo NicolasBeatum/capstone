@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import type { EventContent, InstitutionalEvent } from "../domain/types";
+import type {
+  EventContent,
+  EventType,
+  InstitutionalEvent,
+} from "../domain/types";
 import { adminGateway } from "../infrastructure/adminGateway";
 import { useWrite } from "./useWrite";
 import { errorMessage } from "../components/Feedback";
@@ -9,12 +13,21 @@ export function useEvents() {
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
     [message, setMessage] = useState("");
+  const [types, setTypes] = useState<EventType[]>([]);
+  const [typesReady, setTypesReady] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const write = useWrite();
   useEffect(() => {
     let live = true;
-    void adminGateway.events().then((d) => {
-      if (live) setData(d);
-    }).catch((e) => {
+    void Promise.all([adminGateway.events(), adminGateway.eventTypes()]).then(
+      ([d, catalog]) => {
+        if (live) {
+          setData(d);
+          setTypes(catalog);
+          setTypesReady(true);
+        }
+      },
+    ).catch((e) => {
       if (live) setError(errorMessage(e));
     }).finally(() => {
       if (live) setLoading(false);
@@ -24,12 +37,22 @@ export function useEvents() {
     };
   }, []);
   async function load(id = source?.id) {
-    const d = await adminGateway.events();
-    setData(d);
-    const current = d.find((e) => e.id === id) ?? null;
-    setSource(current);
-    write.reset();
-    return current;
+    setRefreshing(true);
+    try {
+      const [d, catalog] = await Promise.all([
+        adminGateway.events(),
+        adminGateway.eventTypes(),
+      ]);
+      setData(d);
+      setTypes(catalog);
+      setTypesReady(true);
+      const current = d.find((e) => e.id === id) ?? null;
+      setSource(current);
+      write.reset();
+      return current;
+    } finally {
+      setRefreshing(false);
+    }
   }
   function select(event: InstitutionalEvent | null) {
     setSource(event);
@@ -41,6 +64,17 @@ export function useEvents() {
     setError("");
     setMessage("");
     try {
+      if (!typesReady) {
+        throw Error("Recarga el catálogo de tipos antes de guardar.");
+      }
+      if (
+        content.typeId !== null &&
+        !types.some((type) => type.id === content.typeId)
+      ) {
+        throw Error(
+          "El tipo seleccionado no está disponible. Recarga el catálogo.",
+        );
+      }
       const result = await write.run(
         JSON.stringify({ source, content }),
         (rid) =>
@@ -59,9 +93,14 @@ export function useEvents() {
         publishedAt: source?.publishedAt ?? null,
       });
       await load(result.id);
-      const registrationMessage = content.registrationClosed !== source?.registrationClosed
-        ? content.registrationClosed ? " Inscripción cerrada por la organización." : source?.registrationClosed ? " Inscripción reabierta." : ""
-        : "";
+      const registrationMessage =
+        content.registrationClosed !== source?.registrationClosed
+          ? content.registrationClosed
+            ? " Inscripción cerrada por la organización."
+            : source?.registrationClosed
+            ? " Inscripción reabierta."
+            : ""
+          : "";
       setMessage("Evento guardado en el backend." + registrationMessage);
       return true;
     } catch (e) {
@@ -103,11 +142,13 @@ export function useEvents() {
   return {
     data,
     source,
+    types,
+    typesReady,
     select,
     loading,
     error,
     message,
-    busy: write.busy,
+    busy: write.busy || refreshing,
     unconfirmed: write.unconfirmed,
     save,
     action,

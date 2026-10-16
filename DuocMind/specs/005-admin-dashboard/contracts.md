@@ -16,6 +16,9 @@ Actor y sesión se obtienen exclusivamente del token verificado. Cada wrapper SQ
 | `PUT /tests/versions/:versionId/draft` | Contenido completo más `requestId` y `expectedRevision`. Solo propio/en borrador. |
 | `POST /tests/versions/:versionId/{clone,publish,activation}` | `requestId`, `expectedRevision`; activación añade `active:boolean`. Clonación solo para propios. Publicar no activa. |
 | `GET /events`, `POST /events`, `PUT /events/:id` | Eventos UUID: `title`, `description`, `location`, `startsAt`, `endsAt`. Escrituras con `requestId`; edición añade revisión. Fechas con zona explícita. |
+| `GET /event-types` | Lista `{id,code,name,order,revision}`, ordenada por orden/nombre/ID. ID smallint positivo como string. Sin parámetros. |
+| `POST /event-types` | `{requestId,code,name,order}`; respuesta `{id,revision}`. |
+| `PUT /event-types/:id` | `{requestId,expectedRevision,name,order}`; respuesta `{id,revision}`. Código inmutable. |
 | `POST /events/:id/{publish,cancel}` | `requestId`, `expectedRevision`. Cancelación solo tras publicación; conserva contenido. |
 | `GET /tips`, `POST /tips`, `PUT /tips/:id` | Tips bigint como cadenas: `title`, `content`, `rules`. Escrituras con `requestId`; edición añade revisión. |
 | `POST /tips/:id/{publish,activation}` | `requestId`, `expectedRevision`; activación añade `active:boolean`. Publicar hace activo el tip. |
@@ -40,3 +43,23 @@ Reglas de tips:
 Toda escritura usa `requestId` UUID y la edición utiliza `expectedRevision` entero positivo. Repetir UUID/payload dentro de 24 horas devuelve el resultado previo; cambiar payload produce 409. Después de 24 horas no hay deduplicación garantizada. El cliente conserva un UUID ante respuesta incierta y exige recargar estado si vence o se intenta cambiar el contenido pendiente. No reenvía automáticamente una recuperación incierta.
 
 Errores: 401 sesión inválida; 403 autorización; 404 recurso/operación no disponible; 409 conflicto; 422 validación; 429 límite; 503 servicio/envío no confirmado. Nunca mensajes SQL/Auth crudos. JSON máximo 256 KiB; campos desconocidos rechazados. Títulos/lugares/opciones máximo 160 caracteres y cuerpos máximo 5000.
+
+
+## Ampliación 012 — Tipos institucionales
+
+`GET /events` añade `typeId: string | null`; POST/PUT aceptan ese campo opcional.
+Los IDs de tipo son cadenas decimales canónicas entre `"1"` y `"32767"`.
+Omitir el campo conserva el tipo al editar y crea sin tipo; null explícito quita
+la asignación. Una referencia inválida/inexistente devuelve 422 sin escritura
+parcial. Publicar no exige tipo; cancelados no admiten edición.
+
+Nombre de tipo: se recorta antes de guardar, entre 1 y 40 caracteres. Código:
+`^[a-z][a-z0-9_]{1,31}$`, único y fijo después de crear. Orden: entero 0–32767.
+El PUT del catálogo no acepta el campo código. Crear/editar usa la autorización,
+revisión e idempotencia existentes; un conflicto conserva el formulario.
+Renombrar cambia el nombre devuelto por el contrato estudiantil existente
+`type: {code,name} | null`, sin modificar sus demás campos.
+
+Se requiere `20261016015100_admin_event_types.sql` después de la migración de
+Hans, antes de actualizar API y web. Las escrituras siguen limitadas al backend;
+la lectura pública del catálogo y RLS de eventos no se amplían.

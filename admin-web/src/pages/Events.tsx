@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from "react";
+import { Link } from "react-router-dom";
 import { useEvents } from "../application/useEvents";
 import { errorMessage, Feedback } from "../components/Feedback";
 import type { InstitutionalEvent } from "../domain/types";
@@ -12,6 +13,7 @@ import {
 import { EditorDialog } from "../components/EditorDialog";
 import { PageHeader } from "../components/PageHeader";
 const empty = {
+  typeId: null as string | null,
   title: "",
   description: "",
   location: "",
@@ -39,6 +41,7 @@ export function Events() {
     setForm(
       event
         ? {
+          typeId: event.typeId,
           title: event.title,
           description: event.description,
           location: event.location,
@@ -86,6 +89,7 @@ export function Events() {
     ? (form.title !== model.source.title ||
       form.description !== model.source.description ||
       form.location !== model.source.location ||
+      form.typeId !== model.source.typeId ||
       form.startsAt !== santiagoInput(model.source.startsAt) ||
       form.endsAt !== santiagoInput(model.source.endsAt) ||
       form.requiresRegistration !== model.source.requiresRegistration ||
@@ -107,17 +111,24 @@ export function Events() {
     <>
       <PageHeader
         title="Eventos"
-        description="Organiza ferias, talleres y actividades institucionales. Horarios de Santiago."
+        description="Organiza ferias, talleres y actividades institucionales."
         action={
-          <button
-            disabled={model.loading || model.busy}
-            onClick={() => edit(null)}
-          >
-            + Nuevo evento
-          </button>
+          <div className="actions">
+            <Link to="/events/types">Tipos de evento</Link>
+            <button
+              disabled={model.loading || model.busy}
+              onClick={() => edit(null)}
+            >
+              + Nuevo evento
+            </button>
+          </div>
         }
       />
-      {!opened && <Feedback error={model.error} message={model.message} />}
+      {!opened && <>
+        <Feedback error={model.error} message={model.message} />
+        {model.error && <button className="secondary" disabled={model.busy || model.loading}
+          onClick={() => void model.reload()}>Recargar eventos y tipos</button>}
+      </>}
       <section className="content-list" aria-label="Eventos guardados">
         <form className="list-filters" onSubmit={(e) => e.preventDefault()}>
           <label>
@@ -146,10 +157,11 @@ export function Events() {
         {!model.loading && (
           <div className="table-scroll">
             <table>
-              <caption>Actividades institucionales · America/Santiago</caption>
+              <caption>Actividades institucionales</caption>
               <thead>
                 <tr>
                   <th scope="col">Evento</th>
+                  <th scope="col">Tipo</th>
                   <th scope="col">Horario</th>
                   <th scope="col">Estado</th>
                   <th scope="col">Acciones</th>
@@ -162,6 +174,7 @@ export function Events() {
                       <strong>{e.title}</strong>
                       <span className="cell-detail">{e.location}</span>
                     </td>
+                    <td>{e.typeId === null ? "Sin tipo" : model.types.find(type => type.id === e.typeId)?.name ?? "Tipo no disponible"}</td>
                     <td>
                       <span className="cell-detail">
                         Inicio: {santiagoDisplay(e.startsAt)}
@@ -250,6 +263,14 @@ export function Events() {
                   />
                 </label>
                 <label>
+                  Tipo de evento<select disabled={!model.typesReady} value={form.typeId ?? ""}
+                    onChange={e => setForm({...form,typeId:e.target.value || null})}>
+                    <option value="">Sin tipo</option>
+                    {model.types.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
+                  </select>
+                </label>
+                {!model.typesReady && <p>No se pudo cargar el catálogo de tipos. Recarga el estado antes de guardar.</p>}
+                <label>
                   Descripción del evento<textarea
                     maxLength={5000}
                     value={form.description}
@@ -268,7 +289,7 @@ export function Events() {
                 </label>
                 <div className="grid">
                   <label>
-                    Inicio en Santiago<input
+                    Inicio<input
                       type="datetime-local"
                       required
                       value={form.startsAt}
@@ -279,7 +300,7 @@ export function Events() {
                     />
                   </label>
                   <label>
-                    Término en Santiago<input
+                    Término<input
                       type="datetime-local"
                       required
                       value={form.endsAt}
@@ -327,7 +348,7 @@ export function Events() {
                   {form.requiresRegistration && <>
                     <label>Enlace de inscripción<input type="url" maxLength={2048} placeholder="https://…"
                       value={form.registrationUrl} onChange={(e) => setForm({ ...form, registrationUrl: e.target.value })} /></label>
-                    <label>Plazo de inscripción en Santiago<input type="datetime-local" value={form.registrationDeadline}
+                    <label>Plazo de inscripción<input type="datetime-local" value={form.registrationDeadline}
                       onChange={(e) => { setForm({ ...form, registrationDeadline: e.target.value }); setDeadlineChoice(""); }} /></label>
                     {deadlineCandidates.length > 1 && <label>Desfase horario del plazo<select value={deadlineChoice} onChange={(e) => setDeadlineChoice(e.target.value)}>
                       <option value="">Selecciona el desfase</option>{deadlineCandidates.map((instant) => <option key={instant} value={instant}>{offsetLabel(instant)}</option>)}
@@ -338,7 +359,7 @@ export function Events() {
                   <p>Agregar a la agenda guarda el interés del estudiante; la inscripción se realiza en el sitio externo.</p>
                   {model.source?.status === "published" && <p>Cambiar fecha, horario o ubicación pedirá al estudiante actualizar su agenda.</p>}
                 </section>
-                <button disabled={disabled}>Guardar evento</button>
+                <button disabled={disabled || !model.typesReady}>Guardar evento</button>
               </fieldset>
             </form>
             <div className="actions">

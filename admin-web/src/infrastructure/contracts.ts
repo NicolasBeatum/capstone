@@ -1,5 +1,6 @@
 import type {
   FormOptions,
+  EventType,
   InstitutionalEvent,
   MutationResult,
   StudentPage,
@@ -167,6 +168,21 @@ export function tips(v: unknown): Tip[] {
     };
   });
 }
+function eventTypeId(v: unknown): string {
+  const value = str(v);
+  return /^[1-9][0-9]{0,4}$/.test(value) && Number(value) <= 32767 ? value : bad();
+}
+export function eventTypes(v: unknown): EventType[] {
+  const parsed = list(v, (value) => {
+    const o = obj(value);
+    if (Object.keys(o).sort().join() !== ["code", "id", "name", "order", "revision"].join()) bad();
+    const code = str(o.code), name = str(o.name), order = num(o.order);
+    if (!/^[a-z][a-z0-9_]{1,31}$/.test(code) || !name.trim() || name !== name.trim() || name.length > 40 || order > 32767) bad();
+    return { id: eventTypeId(o.id), code, name, order, revision: positive(o.revision) };
+  });
+  if (new Set(parsed.map(t => t.id)).size !== parsed.length || new Set(parsed.map(t => t.code)).size !== parsed.length) bad();
+  return parsed;
+}
 export function events(v: unknown): InstitutionalEvent[] {
   return list(v, (v) => {
     const o = obj(v);
@@ -176,6 +192,7 @@ export function events(v: unknown): InstitutionalEvent[] {
     ) bad();
     return {
       id: uuid(o.id),
+      typeId: o.typeId === null ? null : eventTypeId(o.typeId),
       title: str(o.title),
       description: str(o.description),
       location: str(o.location),
