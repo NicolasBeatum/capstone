@@ -43,3 +43,8 @@ o cuentas remotas. No modificar Android ni desplegar.
 Spec y plan aprobados por el usuario el 2026-10-15. El usuario aprobó esta lista explícitamente mediante «adelante» el 2026-10-15. La rama y el PR
 posterior ya están autorizados; no se presume autorización para migraciones
 remotas, despliegues ni integración del PR.
+
+
+## Operación remota autorizada — 2026-10-16
+
+- [x] T011 Aplicar la migración aditiva del PR #23 y actualizar admin-api en el proyecto DuocMind autorizado. Conservar definiciones previas, comprobar ausencia de diferencias SQL inesperadas y datos heredados incompatibles; verificar contratos, permisos, API y conservación de eventos/tipos con conteos y huellas. Registrar resultados y límites sin datos personales ni credenciales. **Autorización:** respuesta explícita «sí» del usuario después de identificar proyecto y operaciones. **CA-001, CA-004, CA-005, CA-007.**

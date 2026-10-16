@@ -82,3 +82,44 @@ README, contratos y endpoints describen uso, compatibilidad y orden de actualiza
 Cambios disponibles en el [PR #23](https://github.com/NicolasBeatum/capstone/pull/23)
 hacia `dev`, desde `feat/admin-event-types`.
 No se modificó Android ni se aplicaron migraciones o despliegues remotos.
+
+
+## T011 — Operación remota autorizada, 2026-10-16
+
+El usuario autorizó aplicar la migración del PR #23 y actualizar admin-api en
+`ashgvanzjeaeekpygqgy`. Antes del cambio se guardaron fuera del repositorio las
+definiciones SQL, políticas, código/configuración de la API y conteos/huellas
+institucionales. Los cuerpos remotos de admin_read/admin_mutate coincidían
+exactamente con la versión base local de inscripción. Los tres tipos cumplían
+las restricciones nuevas.
+
+- Migración `admin_event_types` aplicada con éxito. El servicio generó inicialmente
+  `20261016104509`; se alineó su registro a `20261016015100` para coincidir con
+  `20261016015100_admin_event_types.sql` y evitar reaplicar el mismo cambio.
+- admin-api desplegada como versión 2 ACTIVE. Código de index, validation,
+  recovery y deno.json idéntico al repositorio. Se conservó la autenticación propia
+  y la configuración verify_jwt previa, sin ampliar acceso.
+- El primer despliegue fue rechazado porque heredó un import_map_path absoluto
+  del paquete anterior. Se corrigió enviando `deno.json` explícitamente; el
+  siguiente despliegue fue satisfactorio.
+- Conteos antes/después: dos eventos y tres tipos. Sus huellas de contenido/IDs
+  coinciden; las políticas de ambas tablas permanecen idénticas. No se editaron
+  eventos, tipos, perfiles ni información emocional.
+- RLS del catálogo activo; anon/authenticated sin INSERT, UPDATE o DELETE y sin
+  ejecución de admin_read. Referencias typeId y rutas /event-types presentes en
+  ambas funciones administrativas.
+- Consultas administrativas comprobadas con la cuenta remota sintética ya
+  provisionada: catálogo de tres tipos y listado de dos eventos con contratos
+  nuevos válidos. Solo se devolvieron conteos/booleanos, sin datos de sesión.
+- HTTP: catálogo público con revisión devuelve 200. remote-check.mjs pasa:
+  API exige sesión, CORS/preflight correcto, token inválido y RPC anónima
+  rechazados; consulta PSS-10 conserva 10 preguntas y 50 opciones.
+- Asesores: sin incidencias del catálogo. Tres avisos INFO por tablas privadas
+  con RLS sin políticas (acceso exclusivo del backend) y un WARN de Auth por
+  [protección de contraseñas filtradas desactivada](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+  No se modificaron ajustes de Auth; ese aviso está fuera del cambio de eventos.
+
+No se ejecutaron suites locales de mutación contra la nube. El recorrido visual
+remoto no se verificó porque el control de esa pestaña fue bloqueado por la
+política del navegador. El usuario puede recargar el panel para consumir los
+contratos remotos actualizados.

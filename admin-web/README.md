@@ -247,8 +247,9 @@ web. La migración nueva añade revisión/validación del catálogo y extiende l
 operaciones existentes. Los clientes anteriores que omiten `typeId` conservan
 la asignación al editar; un null explícito la elimina.
 
-Esta entrega se verificó exclusivamente en Supabase local. La aplicación de
-migraciones y actualización de la API remota requieren una operación separada.
+Las suites automatizadas se ejecutan exclusivamente en Supabase local. El
+2026-10-16 se aplicó la migración y se actualizó la API remota por autorización
+explícita del usuario, con comprobaciones de lectura y conservación de datos.
 Ver [contratos](../DuocMind/specs/005-admin-dashboard/contracts.md) y
 [evidencia 012](../DuocMind/specs/012-admin-event-types/verification.md).
 

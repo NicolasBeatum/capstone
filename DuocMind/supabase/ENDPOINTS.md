@@ -256,5 +256,6 @@ El catálogo es públicamente legible; las escrituras se realizan solo desde el
 backend autorizado. No se añade endpoint de eliminación.
 
 Orden de actualización: migración de tipos de Hans, migración
-`20261016015100_admin_event_types.sql`, `admin-api` y panel web. Solo se verificó
-esta entrega en Supabase local; no acredita una aplicación remota del cambio.
+`20261016015100_admin_event_types.sql`, `admin-api` y panel web. Las suites automatizadas se verifican en Supabase local. El 2026-10-16 se aplicó
+la migración y se actualizó admin-api en el proyecto remoto autorizado, con
+verificación de lectura documentada en la evidencia del incremento 012.

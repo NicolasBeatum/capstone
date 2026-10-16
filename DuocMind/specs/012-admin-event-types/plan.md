@@ -156,3 +156,29 @@ Referencia de seguridad para implementar: [RLS de Supabase](https://supabase.com
 
 Aprobado explícitamente por el usuario el 2026-10-15 mediante «el plan está bien».
 La aprobación de las tareas se registra por separado antes de implementar.
+
+
+## 8. Operación remota autorizada — 2026-10-16
+
+El usuario autorizó explícitamente aplicar la migración del PR #23 y actualizar
+`admin-api` en el proyecto DuocMind `ashgvanzjeaeekpygqgy`, después de comprobar
+que el panel nuevo no era compatible con los contratos remotos anteriores.
+Esta autorización amplía el límite de ejecución local únicamente para esta
+operación; no autoriza integrar el PR ni modificar Android.
+
+Antes de cambiar: conservar definiciones de admin_read/admin_mutate y consulta
+estudiantil, código/configuración desplegados, políticas y conteos/huellas de
+los eventos y tipos institucionales. No copiar perfiles, respuestas emocionales
+ni credenciales. Comparar los cuerpos SQL con la versión anterior del repositorio;
+abortar ante diferencias no comprendidas o tipos incompatibles.
+
+Aplicar la migración aditiva y desplegar los archivos actuales de admin-api,
+conservando su autenticación propia, autorización SQL y configuración existente.
+Verificar columnas, funciones, grants/RLS, hashes de contenido, historial de
+migraciones, API/CORS y asesores. Usar únicamente la cuenta remota sintética ya
+provisionada si se necesita comprobar acceso autenticado; no ejecutar las suites
+locales de mutación contra la nube.
+
+Recuperación: restaurar las definiciones SQL y el paquete de la API conservados
+si hay regresión. Mantener las columnas/tablas aditivas y sus referencias, sin
+borrar datos ni reabrir publicaciones. Registrar la operación y sus resultados.
