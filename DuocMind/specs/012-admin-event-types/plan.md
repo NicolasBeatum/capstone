@@ -144,8 +144,7 @@ remotas para sustituir las pruebas locales.
   orden sin ejecutarlo en remoto en esta entrega.
 
 Tras verificaciones satisfactorias, revisar el diff, registrar la evidencia y
-crear commit con la identidad humana de Git configurada, sin créditos a agentes.
-Hacer push de `feat/admin-event-types`, abrir PR hacia `dev` y adjuntarlo al chat.
+publicar `feat/admin-event-types` con un PR hacia `dev`.
 El PR describe comportamiento, migración, compatibilidad, pruebas y límites.
 No integrar el PR ni modificar `dev` directamente.
 
