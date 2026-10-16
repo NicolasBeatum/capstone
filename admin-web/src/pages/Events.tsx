@@ -111,7 +111,7 @@ export function Events() {
     <>
       <PageHeader
         title="Eventos"
-        description="Organiza ferias, talleres y actividades institucionales. Horarios de Santiago."
+        description="Organiza ferias, talleres y actividades institucionales."
         action={
           <div className="actions">
             <Link to="/events/types">Tipos de evento</Link>
@@ -157,7 +157,7 @@ export function Events() {
         {!model.loading && (
           <div className="table-scroll">
             <table>
-              <caption>Actividades institucionales · America/Santiago</caption>
+              <caption>Actividades institucionales</caption>
               <thead>
                 <tr>
                   <th scope="col">Evento</th>
@@ -289,7 +289,7 @@ export function Events() {
                 </label>
                 <div className="grid">
                   <label>
-                    Inicio en Santiago<input
+                    Inicio<input
                       type="datetime-local"
                       required
                       value={form.startsAt}
@@ -300,7 +300,7 @@ export function Events() {
                     />
                   </label>
                   <label>
-                    Término en Santiago<input
+                    Término<input
                       type="datetime-local"
                       required
                       value={form.endsAt}
@@ -348,7 +348,7 @@ export function Events() {
                   {form.requiresRegistration && <>
                     <label>Enlace de inscripción<input type="url" maxLength={2048} placeholder="https://…"
                       value={form.registrationUrl} onChange={(e) => setForm({ ...form, registrationUrl: e.target.value })} /></label>
-                    <label>Plazo de inscripción en Santiago<input type="datetime-local" value={form.registrationDeadline}
+                    <label>Plazo de inscripción<input type="datetime-local" value={form.registrationDeadline}
                       onChange={(e) => { setForm({ ...form, registrationDeadline: e.target.value }); setDeadlineChoice(""); }} /></label>
                     {deadlineCandidates.length > 1 && <label>Desfase horario del plazo<select value={deadlineChoice} onChange={(e) => setDeadlineChoice(e.target.value)}>
                       <option value="">Selecciona el desfase</option>{deadlineCandidates.map((instant) => <option key={instant} value={instant}>{offsetLabel(instant)}</option>)}

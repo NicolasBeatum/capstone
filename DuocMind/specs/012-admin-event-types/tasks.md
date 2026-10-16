@@ -48,3 +48,8 @@ remotas, despliegues ni integración del PR.
 ## Operación remota autorizada — 2026-10-16
 
 - [x] T011 Aplicar la migración aditiva del PR #23 y actualizar admin-api en el proyecto DuocMind autorizado. Conservar definiciones previas, comprobar ausencia de diferencias SQL inesperadas y datos heredados incompatibles; verificar contratos, permisos, API y conservación de eventos/tipos con conteos y huellas. Registrar resultados y límites sin datos personales ni credenciales. **Autorización:** respuesta explícita «sí» del usuario después de identificar proyecto y operaciones. **CA-001, CA-004, CA-005, CA-007.**
+
+
+## Ajuste de textos solicitado — 2026-10-16
+
+- [x] T012 Simplificar las etiquetas visibles de eventos a «Inicio», «Término» y «Plazo de inscripción»; quitar las referencias visibles a Santiago de encabezado, tabla y error de hora inexistente, conservando el cálculo horario actual. Actualizar los selectores de pruebas y verificar typecheck, pruebas, build y E2E locales. **Autorización:** solicitud directa del usuario sobre los textos del panel. **CA-007.**

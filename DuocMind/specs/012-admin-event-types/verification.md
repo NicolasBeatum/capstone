@@ -123,3 +123,19 @@ No se ejecutaron suites locales de mutación contra la nube. El recorrido visual
 remoto no se verificó porque el control de esa pestaña fue bloqueado por la
 política del navegador. El usuario puede recargar el panel para consumir los
 contratos remotos actualizados.
+
+
+## T012 — Etiquetas de horario, 2026-10-16
+
+Por solicitud del usuario, los campos visibles pasan a «Inicio», «Término» y
+«Plazo de inscripción». Se elimina la referencia a Santiago del encabezado y
+la tabla; el error de hora inexistente explica el cambio de horario sin mostrar
+un identificador técnico. La conversión con `America/Santiago` se conserva.
+Se actualizaron los selectores E2E afectados.
+
+Typecheck, tres archivos de pruebas y build pasan. Las primeras ejecuciones E2E
+se interrumpieron por la dependencia de recuperación en el puerto habitual y
+por un fallo de conexión del runtime local tras reiniciarlo. Se restableció una
+única instancia en la red Docker local antes de repetir la suite completa.
+Resultado final: 33/33 E2E pasan en 1,2 minutos. Se restauró el panel en modo
+nube en el puerto 5173 con las etiquetas simplificadas.

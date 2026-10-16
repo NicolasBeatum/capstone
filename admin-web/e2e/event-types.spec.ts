@@ -153,8 +153,8 @@ async function fillEvent(page: Page, title: string) {
   await page.getByRole("button", { name: /Nuevo evento/ }).click();
   await page.getByLabel("Título del evento", { exact: true }).fill(title);
   await page.getByLabel("Lugar", { exact: true }).fill("Sede sintética");
-  await page.getByLabel("Inicio en Santiago").fill("2030-10-12T10:00");
-  await page.getByLabel("Término en Santiago").fill("2030-10-12T11:00");
+  await page.getByLabel("Inicio").fill("2030-10-12T10:00");
+  await page.getByLabel("Término").fill("2030-10-12T11:00");
 }
 test("evento conserva tipo al recargar, permite cambiar/quitar y cancelado queda protegido", async ({ page }) => {
   await login(page);

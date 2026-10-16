@@ -21,8 +21,8 @@ test("respuesta perdida reintenta con UUID igual y crea un solo evento", async (
   const title = "Respuesta perdida " + crypto.randomUUID();
   await page.getByLabel("Título del evento").fill(title);
   await page.getByLabel("Lugar", { exact: true }).fill("Local");
-  await page.getByLabel("Inicio en Santiago").fill("2026-10-04T10:00");
-  await page.getByLabel("Término en Santiago").fill("2026-10-04T11:00");
+  await page.getByLabel("Inicio").fill("2026-10-04T10:00");
+  await page.getByLabel("Término").fill("2026-10-04T11:00");
   let id = "";
   let seen = 0;
   await page.route("**/admin-api/events", async (route) => {
