@@ -36,7 +36,7 @@ o cuentas remotas. No modificar Android ni desplegar.
 ## Verificación y entrega
 
 - [x] T009 Ejecutar la regresión backend pertinente y las validaciones completas del panel (`typecheck`, `test`, `build`, `test:e2e`). Corregir fallos sin relajar tipos ni deshabilitar pruebas; documentar resultados reales y comprobaciones pendientes por criterio. **Verificación:** comandos previstos en el plan con resultados reproducibles, sin servicios ni datos remotos. **CA-001 a CA-007.**
-- [ ] T010 Actualizar README y contratos/operación del catálogo, compatibilidad y orden de aplicación de migración/API/web. Consolidar evidencia y revisar el diff y ausencia de secretos. Crear commit con identidad humana configurada, hacer push de `feat/admin-event-types` y abrir/adjuntar PR hacia `dev`, sin integrarlo. **Verificación:** documentación coincide con lo probado; PR describe comportamiento, migración, pruebas y límites; autoría sin créditos a agentes. **CA-004, CA-005, CA-007.**
+- [x] T010 Actualizar README y contratos/operación del catálogo, compatibilidad y orden de aplicación de migración/API/web. Consolidar evidencia y revisar el diff y ausencia de secretos. Crear commit con identidad humana configurada, hacer push de `feat/admin-event-types` y abrir/adjuntar PR hacia `dev`, sin integrarlo. **Verificación:** documentación coincide con lo probado; PR describe comportamiento, migración, pruebas y límites; autoría sin créditos a agentes. **CA-004, CA-005, CA-007.**
 
 ## Aprobación
 

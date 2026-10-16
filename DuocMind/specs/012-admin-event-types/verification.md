@@ -79,5 +79,9 @@ No se relajó ninguna comprobación de comportamiento.
 ## T010 — Entrega
 
 README, contratos y endpoints describen uso, compatibilidad y orden de actualización.
-Pendiente crear commit, publicar la rama y abrir/adjuntar el PR hacia `dev`.
+Implementación publicada en `feat/admin-event-types`, commit `7b48e10` con la
+identidad humana de Git configurada y sin créditos a agentes. PR
+[#23](https://github.com/NicolasBeatum/capstone/pull/23) abierto hacia `dev` y
+adjuntado a este chat. Se actualizan esta evidencia y T010 en un commit documental
+posterior, sin cambios adicionales de implementación. PR sin integrar.
 No se modificó Android ni se aplicaron migraciones o despliegues remotos.
