@@ -6,6 +6,7 @@ Esta carpeta reúne las evidencias de DuocMind. Las carpetas `DuocMind` y `admin
 | --- | --- |
 | Aplicación Android DuocMind | [Acceso desde evidencias](DuocMind/README.md) · [Código](../../DuocMind/) |
 | Panel administrativo admin-web | [Acceso desde evidencias](admin-web/README.md) · [Código](../../admin-web/) |
+| Presentación del proyecto | [Descargar PowerPoint](Presentaci%C3%B3n%20Proyecto.pptx) |
 | Resumen de entrevista con psicólogo | [Leer resumen](Entrevistas/resumen_entrevista_psicologo.md) |
 | Transcripción identificada de la entrevista | [Leer transcripción](Entrevistas/transcripcion_entrevista_psicologo_identificada.md) |
 | Base de datos Supabase | [Exportación SQL, catálogo y alcance](Base%20de%20datos/README.md) |
