@@ -1,0 +1,28 @@
+import { StyleSheet } from 'react-native';
+import { fontFamily as font } from '@/shared/theme/typography';
+export const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#f3ecda' }, content: { padding: 20, paddingBottom: 120, gap: 16 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' },
+  eyebrow: { fontFamily: font.bold, color: '#655d50', fontSize: 11, letterSpacing: 1 },
+  title: { fontFamily: font.extraBold, color: '#1a2b44', fontSize: 28 },
+  subtitle: { fontFamily: font.regular, color: '#596273', fontSize: 13, lineHeight: 20 },
+  controls: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  button: { minHeight: 44, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, backgroundColor: '#1a2b44', alignItems: 'center', justifyContent: 'center' },
+  buttonText: { color: '#fff', fontFamily: font.bold, fontSize: 13 },
+  secondary: { backgroundColor: 'rgba(255,255,255,0.8)', borderWidth: 1, borderColor: '#c8c5ba' },
+  secondaryText: { color: '#1a2b44', fontFamily: font.bold, fontSize: 13 },
+  muted: { opacity: 0.5 }, filter: { flexGrow: 1 }, activeFilter: { backgroundColor: '#1a2b44' },
+  card: { padding: 18, gap: 10 }, cardTitle: { fontFamily: font.extraBold, color: '#1a2b44', fontSize: 18 },
+  body: { fontFamily: font.regular, color: '#465266', fontSize: 14, lineHeight: 22 },
+  label: { fontFamily: font.bold, color: '#1a2b44', fontSize: 13 },
+  status: { alignSelf: 'flex-start', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: '#ede5cb' },
+  statusText: { fontFamily: font.bold, color: '#4b463c', fontSize: 12 },
+  error: { color: '#91382f', fontFamily: font.semiBold, fontSize: 13, lineHeight: 20 },
+  success: { color: '#276346', fontFamily: font.semiBold, fontSize: 13, lineHeight: 20 },
+  empty: { padding: 24, gap: 8 },
+  month: { padding: 12, gap: 8 }, monthHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap' }, cell: { width: '14.2857%', minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  day: { minHeight: 44, width: '100%', borderRadius: 12, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  selectedDay: { backgroundColor: '#1a2b44' }, dayText: { fontFamily: font.semiBold, color: '#1a2b44', fontSize: 13 }, selectedDayText: { color: '#fff' },
+  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#b08a27' },
+});

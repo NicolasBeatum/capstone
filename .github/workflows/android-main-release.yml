@@ -1,0 +1,205 @@
+name: Release Android en main
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  apk:
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true &&
+       github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.ref == 'dev' &&
+       github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    permissions:
+      contents: write
+    concurrency:
+      group: android-main-release
+      cancel-in-progress: false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: DuocMind
+        shell: bash
+    env:
+      CI: 'true'
+      EXPO_NO_DOTENV: '1'
+      EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - name: Obtener el commit del merge o de la ejecución manual
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+          persist-credentials: false
+
+      - name: Identificar la revisión compilada
+        id: revision
+        run: |
+          sha="$(git rev-parse HEAD)"
+          short_sha="$(git rev-parse --short=12 HEAD)"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Leer versión y evitar sobrescribir una release
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$(node -p "require('./app.json').expo.version")" = "$version"
+          tag="v$version"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "ANDROID_VERSION_CODE=$((1000000000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+          # Un error de red o permisos también debe detener la publicación.
+          gh api "repos/$GH_REPO/releases?per_page=100" > "$RUNNER_TEMP/releases.json"
+          if jq -e --arg tag "$tag" 'any(.[]; .tag_name == $tag)' "$RUNNER_TEMP/releases.json" > /dev/null; then
+            echo 'La versión ya tiene una release. Incrementa package.json y app.json antes del próximo PR.' >&2
+            exit 1
+          fi
+          gh api "repos/$GH_REPO/git/matching-refs/tags/$tag" > "$RUNNER_TEMP/tags.json"
+          if jq -e --arg ref "refs/tags/$tag" 'any(.[]; .ref == $ref)' "$RUNNER_TEMP/tags.json" > /dev/null; then
+            echo 'El tag ya existe; no se sobrescribe una versión publicada.' >&2
+            exit 1
+          fi
+
+      - name: Preparar Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: DuocMind/package-lock.json
+
+      - name: Instalar npm y dependencias fijadas
+        run: |
+          npm install --global npm@11.13.0
+          npm ci
+
+      - name: Comprobar tipos y pruebas
+        run: |
+          npm run typecheck
+          npm test
+
+      - name: Validar configuración cloud y preparar versión
+        run: node scripts/prepareAndroidRelease.mjs
+
+      - name: Generar Android con SQLCipher y firma de pruebas
+        run: |
+          npx --no-install expo prebuild --platform android --no-install
+          grep -qx 'expo.sqlite.useSQLCipher=true' android/gradle.properties
+          test -s android/app/debug.keystore
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const gradle = readFileSync('android/app/build.gradle', 'utf8');
+          assert.match(gradle, /release\s*\{\s*(?:\/\/[^\n]*\n\s*)*signingConfig signingConfigs\.debug/,
+            'La variante release debe conservar la firma de pruebas de Expo.');
+          NODE
+
+      - name: Preparar Java 21 y cache Gradle
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            DuocMind/package-lock.json
+            DuocMind/android/gradle/wrapper/gradle-wrapper.properties
+            DuocMind/android/gradle.properties
+
+      - name: Preparar componentes del SDK Android
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            'platforms;android-36' 'build-tools;36.0.0' \
+            'ndk;27.1.12297006' 'cmake;3.22.1'
+
+      - name: Compilar APK release universal
+        working-directory: DuocMind/android
+        run: ./gradlew :app:assembleRelease --no-daemon --max-workers=2 '-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g'
+
+      - name: Comprobar firma, manifiesto y contenido nativo
+        run: |
+          apk='android/app/build/outputs/apk/release/app-release.apk'
+          test -s "$apk"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify "$apk"
+          analyzer="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          test "$("$analyzer" manifest application-id "$apk")" = 'com.duocmind.app'
+          test "$("$analyzer" manifest version-code "$apk")" = "$ANDROID_VERSION_CODE"
+          test "$("$analyzer" manifest debuggable "$apk")" = 'false'
+          unzip -Z1 "$apk" > "$RUNNER_TEMP/duocmind-apk-entries.txt"
+          grep -qx 'assets/index.android.bundle' "$RUNNER_TEMP/duocmind-apk-entries.txt"
+          grep -Eq '^lib/[^/]+/libexpo-sqlite\.so$' "$RUNNER_TEMP/duocmind-apk-entries.txt"
+
+      - name: Preparar APK y checksum
+        id: artifact
+        env:
+          BUILD_SHORT_SHA: ${{ steps.revision.outputs.short_sha }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          artifact_name="duocmind-${RELEASE_TAG}"
+          apk_name="${artifact_name}.apk"
+          mkdir -p dist/android
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/android/$apk_name"
+          (cd dist/android && sha256sum "$apk_name" > "$apk_name.sha256")
+          echo "name=$artifact_name" >> "$GITHUB_OUTPUT"
+          echo "apk=$apk_name" >> "$GITHUB_OUTPUT"
+
+      - name: Subir APK de pruebas
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: |
+            DuocMind/dist/android/${{ steps.artifact.outputs.apk }}
+            DuocMind/dist/android/${{ steps.artifact.outputs.apk }}.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Resumir build y descarga
+        env:
+          BUILD_SHA: ${{ steps.revision.outputs.sha }}
+          ARTIFACT_NAME: ${{ steps.artifact.outputs.name }}
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+        run: |
+          {
+            echo '## APK release de pruebas'
+            printf '\nCommit: `%s`\n\n' "$BUILD_SHA"
+            printf 'VersionCode: `%s` · intento: `%s`\n\n' "$ANDROID_VERSION_CODE" "$GITHUB_RUN_ATTEMPT"
+            printf '[Descargar %s](%s)\n\n' "$ARTIFACT_NAME" "$ARTIFACT_URL"
+            echo 'El ZIP contiene el APK y su checksum SHA-256. Firma de pruebas de Expo; comprobar Android con datos sintéticos.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publicar release con APK y SHA-256
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD_SHA: ${{ steps.revision.outputs.sha }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          APK_NAME: ${{ steps.artifact.outputs.apk }}
+        run: |
+          cat > "$RUNNER_TEMP/release-notes.md" <<EOF
+          APK de DuocMind para la entrega de Capstone.
+
+          Revisión compilada: $BUILD_SHA
+          Versión Android: $ANDROID_VERSION_CODE
+
+          Descargar el APK y su archivo SHA-256 adjuntos. El APK incluye el bundle
+          JavaScript y no necesita Metro. Conserva la firma de pruebas de Expo;
+          no es una publicación en Google Play. La compilación no acredita una
+          prueba funcional en dispositivo Android.
+          EOF
+          gh release create "$RELEASE_TAG" \
+            "dist/android/$APK_NAME" "dist/android/$APK_NAME.sha256" \
+            --target "$BUILD_SHA" --title "DuocMind $RELEASE_TAG" \
+            --notes-file "$RUNNER_TEMP/release-notes.md" --latest
+          printf '\n[Descargar release %s](https://github.com/%s/releases/tag/%s)\n' \
+            "$RELEASE_TAG" "$GH_REPO" "$RELEASE_TAG" >> "$GITHUB_STEP_SUMMARY"

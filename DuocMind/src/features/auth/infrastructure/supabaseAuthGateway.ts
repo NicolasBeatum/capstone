@@ -1,7 +1,14 @@
 import { completeAccountDeletion, type AuthGateway, type StudentProfileInput } from '../application/authentication';
-import { getSupabaseClient } from '@/features/backend/infrastructure/supabaseClient';
+import { getSupabaseClient } from '@/shared/backend/infrastructure/supabaseClient';
 import { deleteLocalCheckinData } from '@/features/emotional-checkin/infrastructure/encryptedCheckinDatabase';
-import { platformSecureKeyValueStorage } from '@/features/backend/infrastructure/platformSecureStorage';
+import { platformSecureKeyValueStorage } from '@/shared/backend/infrastructure/platformSecureStorage';
+
+import { deleteEventData } from '@/shared/events/infrastructure/eventStorage';
+import { blockEventAccount } from '@/shared/events/infrastructure/eventSessionGateway';
+import { deleteSubjectCache } from '@/shared/subjects/infrastructure/subjectCacheStorage';
+import { deleteTutorialProgress } from '@/shared/tutorial/infrastructure/tutorialProgressStorage';
+import { closePlannerData, deletePlannerData } from '@/shared/planner/infrastructure/plannerStorage';
+import { blockPlannerAccount } from '@/shared/planner/infrastructure/plannerSessionGateway';
 
 const PROFILE_VERIFIED_KEY_PREFIX = 'duocmind.student-profile-verified.v1.';
 
@@ -19,6 +26,12 @@ export const supabaseAuthGateway: AuthGateway = {
   async signIn(email, password) {
     const { error } = await getSupabaseClient().auth.signInWithPassword({ email, password });
     throwIfError(error);
+  },
+
+  async getCurrentUserId() {
+    const { data, error } = await getSupabaseClient().auth.getSession();
+    throwIfError(error);
+    return data.session?.user.id ?? null;
   },
 
   async hasStudentProfile() {
@@ -74,6 +87,7 @@ export const supabaseAuthGateway: AuthGateway = {
     const { error } = await getSupabaseClient().auth.signOut();
     throwIfError(error);
     if (userId) {
+      await closePlannerData(userId);
       await platformSecureKeyValueStorage.deleteItem(`${PROFILE_VERIFIED_KEY_PREFIX}${userId}`);
     }
   },
@@ -85,16 +99,26 @@ export const supabaseAuthGateway: AuthGateway = {
     const userId = sessionData.session?.user.id;
     if (!userId) throw new Error('Inicia sesión para eliminar tu cuenta.');
 
-    await completeAccountDeletion({
-      clearLocalData: () => deleteLocalCheckinData(userId),
-      deleteRemoteAccount: async () => {
-        const { error } = await client.functions.invoke('delete-account', { body: {} });
-        throwIfError(error);
-      },
-      clearLocalSession: async () => {
-        const { error } = await client.auth.signOut({ scope: 'local' });
-        throwIfError(error);
-      },
-    });
+    const releaseEvents = blockEventAccount(userId);
+    try {
+      await blockPlannerAccount(userId);
+      await completeAccountDeletion({
+        clearLocalData: async () => {
+          await deletePlannerData(userId);
+          await deleteEventData(userId);
+          await deleteLocalCheckinData(userId);
+          await deleteTutorialProgress(userId);
+          await deleteSubjectCache(userId);
+        },
+        deleteRemoteAccount: async () => {
+          const { error } = await client.functions.invoke('delete-account', { body: {} });
+          throwIfError(error);
+        },
+        clearLocalSession: async () => {
+          const { error } = await client.auth.signOut({ scope: 'local' });
+          throwIfError(error);
+        },
+      });
+    } finally { releaseEvents(); }
   },
 };

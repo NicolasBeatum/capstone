@@ -1,12 +1,12 @@
 import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SparkleIcon } from '@/shared/components/icons';
-import { styles } from '@/shared/styles/daily-test.styles';
-import type { TestResult } from '../data/types';
+import { ScalePress } from '@/shared/components/ScalePress';
+import { SparkleIcon } from '@/shared/components/Icons';
+import { styles } from '../screens/DailyTestScreen.styles';
 
 interface TestOfferProps {
-  /** Título de la tarjeta, ej. 'Recomendamos una evaluación más completa' */
+  /** Título de la tarjeta, ej. 'Gracias por responder' */
   title: string;
   /** Subtítulo del header */
   subtitle: string;
@@ -15,13 +15,10 @@ interface TestOfferProps {
   onPrimary: () => void;
   secondaryLabel?: string;
   onSecondary?: () => void;
-  /** Resultado previo a mostrar, ej. WHO-5 bajo antes de ofrecer el sondeo */
-  result?: TestResult | null;
 }
 
 /**
- * Pantalla intermedia entre instrumentos: ofrece el test completo sugerido
- * por las reglas de ruteo, o cierra el flujo cuando no hay más pasos.
+ * Tarjeta de cierre del flujo del test, con acción principal y secundaria opcional.
  */
 export function TestOffer({
   title,
@@ -31,7 +28,6 @@ export function TestOffer({
   onPrimary,
   secondaryLabel,
   onSecondary,
-  result,
 }: TestOfferProps) {
   const router = useRouter();
 
@@ -62,37 +58,22 @@ export function TestOffer({
             </View>
           </View>
 
-          {result ? (
-            <View style={styles.resultPercentBox}>
-              <Text style={styles.resultPercent}>
-                {result.percentage !== undefined ? `${result.percentage}%` : result.score}
-              </Text>
-              <Text style={styles.resultPercentLabel}>
-                Tus resultados son: {result.percentage !== undefined ? `${result.percentage}% de bienestar` : `${result.score} puntos`}
-              </Text>
-              <Text style={styles.resultPercentLabel}>
-                puntaje {result.score} de {result.maxScore}
-              </Text>
-            </View>
-          ) : null}
-
           <Text style={styles.resultTitle}>{title}</Text>
           <Text style={styles.resultMessage}>{description}</Text>
 
           <View style={styles.resultButtonsRow}>
-            <TouchableOpacity style={styles.acceptButton} onPress={onPrimary} activeOpacity={0.85}>
+            <ScalePress style={styles.acceptButton} onPress={onPrimary}>
               <Text style={styles.acceptButtonText}>{primaryLabel} →</Text>
-            </TouchableOpacity>
+            </ScalePress>
 
             {secondaryLabel ? (
-              <TouchableOpacity
+              <ScalePress
                 style={styles.rejectButton}
                 onPress={onSecondary}
-                activeOpacity={0.85}
                 disabled={!onSecondary}
               >
                 <Text style={styles.rejectButtonText}>{secondaryLabel}</Text>
-              </TouchableOpacity>
+              </ScalePress>
             ) : null}
           </View>
         </View>

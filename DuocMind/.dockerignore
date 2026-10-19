@@ -1,10 +1,13 @@
 .git
 .expo
-node_modules
+**/node_modules
 dist
 coverage
 *.log
-.env
-.env.*
+**/.env
+**/.env.*
+**/.local
+.supabase
+supabase/.temp
 android
 ios

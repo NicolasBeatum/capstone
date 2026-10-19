@@ -19,7 +19,9 @@ Después de editar `.env`, detén y vuelve a iniciar Expo para que recargue las 
 
 El check-in requiere una cuenta real de Supabase Auth y un perfil estudiante. Para pruebas usa cuentas y datos sintéticos; no uses información emocional real hasta verificar cifrado, políticas y retención.
 
-Antes de probar el envío, aplica en el proyecto de desarrollo, en orden, `supabase/migrations/20260927230000_emotional_checkin_history.sql` y `supabase/migrations/20260928010000_grant_checkin_timestamp.sql` después de las dos migraciones existentes. La primera agrega el valor técnico `Sin especificar`, la clave idempotente y las políticas de borrado; la segunda permite que el usuario autenticado envíe la fecha original del check-in. No se aplican automáticamente ni modifican el proyecto remoto desde el cliente.
+Antes de probar el envío, aplica en el proyecto de desarrollo, en orden, `supabase/migrations/20260927230000_emotional_checkin_history.sql` `supabase/migrations/20260928010000_grant_checkin_timestamp.sql` y `supabase/migrations/20261007120000_registro_emocion_general.sql` después de las dos migraciones existentes. La primera agrega la clave idempotente y las políticas de borrado; la segunda permite que el usuario autenticado envíe la fecha original del check-in; la tercera hace que `registro_emocional` guarde el ánimo general directo y elimina la tabla `emocion_especifica`. Respalda `registro_emocional` antes de aplicar la tercera. No se aplican automáticamente ni modifican el proyecto remoto desde el cliente.
+
+Para que el gráfico semanal del dashboard se actualice en tiempo real, aplica también `supabase/migrations/20261009120000_registro_emocional_realtime.sql`. Solo agrega `registro_emocional` a la publicación `supabase_realtime` y es idempotente. Sin ella el gráfico igual muestra los datos reales, pero se actualiza solo al volver al dashboard o a primer plano. Verifica con `select * from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'registro_emocional';`, que debe devolver una fila.
 
 La eliminación de cuenta necesita desplegar `supabase/functions/delete-account` con Supabase CLI. La app borra primero la base emocional local y su clave tras la confirmación explícita; si no hay red, mantiene la sesión para reintentar pero no restaura los datos locales. La función usa los secretos de servidor `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` disponibles en Supabase Edge Functions; nunca copies la clave `service_role` al `.env` ni a la app. La función autentica el JWT, anonimiza el perfil, elimina sus registros emocionales y resultados asociados y después elimina el usuario Auth.
 
@@ -28,6 +30,34 @@ supabase functions deploy delete-account
 ```
 
 Verifica en Supabase que el usuario de prueba solo pueda leer, insertar y borrar su propio historial. El smoke test PostgreSQL sintético está en `tests/sql/checkin-migration-smoke.sql`; ejecutarlo no despliega cambios remotos.
+
+## Horario personal por semestre
+
+El incremento 013 requiere la migración nueva
+`supabase/migrations/20261018175733_personal_semester_schedule.sql`, después del
+historial existente. Está aplicada en Supabase local y, desde el 2026-10-19, en
+**Duocmind cloud** (`ashgvanzjeaeekpygqgy`), con autorización explícita.
+El historial remoto conserva la versión `20261018175733` del repositorio.
+No ejecutar migraciones ni despliegues remotos adicionales sin autorización específica. Antes de aplicarla, revisar permisos y respaldo; después
+comprobar las RPC `load_personal_schedule` y `save_personal_schedule` con una
+cuenta sintética y perfil estudiante, y verificar RLS con dos cuentas.
+
+El cliente envía solo semestres, ramos manuales, bloques y semestre activo.
+Pruebas, tareas, actividades, copias/traslados y recuperaciones heredadas no se
+envían a Supabase. Contratos y concurrencia:
+[ENDPOINTS.md](../supabase/ENDPOINTS.md#horario-personal-por-semestre).
+
+Ante una migración ausente, la app muestra el error y conserva el borrador local.
+No informa «Sincronizado» hasta confirmación. Cerrar sesión conserva los datos
+del planner; eliminar cuenta bloquea su uso y limpia la base/clave del dispositivo,
+y la cascada de Auth elimina el horario remoto. El almacén heredado, sin
+propietario verificable, solo se lee tras aceptar la advertencia y nunca se borra
+ni se importa automáticamente.
+
+Para probar sin acceder a cloud, preparar `tools/.local` con la guía de
+[administración](../../admin-web/README.md), iniciar `local:serve`, verificar
+`local:ready` y usar `student:preview`. El servidor carga solo la configuración
+loopback privada e ignora `.env`. No imprimir ni versionar sus credenciales.
 
 ## Android cifrado
 

@@ -1,0 +1,259 @@
+# Administración de DuocMind
+
+Panel React + TypeScript de la Spec 005, en la rama
+`feature/admin-dashboard-implementation`. Administra alumnos, recuperación de
+contraseña, cuestionarios propios, disponibilidad de instrumentos protegidos,
+eventos y tips. Publicar/activar confirma el estado del backend; el consumo de
+contenido nuevo en Android corresponde a otra spec.
+
+## Ejecutar con Docker y Supabase cloud
+
+Desde la raíz del repositorio, con Docker en ejecución y `DuocMind/.env`
+configurado con la URL y clave publicable del proyecto cloud:
+
+```bash
+docker --context default compose up --build -d
+```
+
+El panel abre en `http://127.0.0.1:5173/login` y Expo en
+`http://localhost:8081`. Ambos usan el Supabase de `DuocMind/.env`; cada servicio
+tiene su imagen Node y volumen de dependencias. El generador remoto produce
+`.env.remote.local`, ignorado por Git, sin necesitar las dependencias de
+`DuocMind/tools`. Solo se monta el generador y su configuración de origen;
+las claves de servidor y las fixtures del backend no se incorporan a la imagen.
+
+Para arrancar o detener únicamente administración:
+
+```bash
+docker --context default compose up --build -d admin
+docker --context default compose restart admin
+docker --context default compose stop admin
+docker --context default compose down
+```
+
+`npm ci --prefer-offline` sincroniza las dependencias al arrancar; el código
+montado recarga automáticamente. Usa `up --build` para reconstruir la imagen
+después de cambiar dependencias o Dockerfile. Reinicia después de cambiar el
+`.env`; el hook remoto vuelve a generar la configuración publicable.
+`down` conserva los volúmenes.
+
+Aquí se usa el contexto Docker `default`. Utiliza el contexto operativo de tu
+equipo u omite esa opción si ya está seleccionado. Si Expo tiene 8081 ocupado,
+arranca ambos con `MOBILE_WEB_PORT=18081 docker --context default compose up
+--build -d`; vuelve a especificar esa variable en posteriores comandos `up`.
+Los puertos están publicados solo localmente. El panel conserva 5173 para
+mantener el origen de autenticación configurado.
+
+La ausencia del `.env`, un proyecto cloud distinto al autorizado o una clave
+privilegiada impide el arranque remoto. El archivo se monta como solo lectura;
+las imágenes excluyen archivos de entorno. El usuario `node` de la imagen usa
+UID 1000 y necesita lectura de los archivos montados y escritura en `admin-web/`
+para generar su configuración. No hace falta Node instalado en el host para
+este arranque. Ver [operación Docker](../DuocMind/README.md#ejecución-con-docker).
+
+## Ejecutar en local
+
+Desde la raíz del repositorio, con Node 24, npm 11.13.0 y Docker en ejecución:
+
+```bash
+npm ci --prefix DuocMind/tools
+npm ci --prefix admin-web
+node DuocMind/tools/scripts/local-start.mjs
+node DuocMind/tools/scripts/fixtures.mjs
+node DuocMind/tools/scripts/staff.mjs staff enable
+```
+
+En una terminal para el backend:
+
+```bash
+node DuocMind/tools/scripts/local-serve.mjs
+```
+
+En otra terminal:
+
+```bash
+npm --prefix admin-web run dev
+```
+
+Abrir `http://127.0.0.1:5173`. Las credenciales aleatorias de prueba están
+únicamente en `DuocMind/tools/.local/fixtures.json`, ignorado por Git y con
+permisos privados: usar los campos `staff.email` y `staff.password`. No
+compartir ese archivo. Volver a ejecutar fixtures cambia las contraseñas
+sintéticas.
+
+El buzón local está en `http://127.0.0.1:54324`. La cuenta `student` tiene un
+correo de perfil deliberadamente diferente del correo Auth; `unlinked` no tiene
+cuenta recuperable; `unassigned` no tiene permiso; `dual` permite comprobar
+aislamiento de una cuenta con perfil. `staff` no tiene perfil de alumno.
+
+`local-start` aplica las migraciones al crear la base local. Para reconstruir
+**solo esa base sintética**, primero detener escrituras y ejecutar:
+
+```bash
+DuocMind/tools/node_modules/.bin/supabase db reset --local --workdir DuocMind
+node DuocMind/tools/scripts/fixtures.mjs
+node DuocMind/tools/scripts/staff.mjs staff enable
+```
+
+Para detener los servicios locales:
+
+```bash
+DuocMind/tools/node_modules/.bin/supabase stop --workdir DuocMind
+```
+
+## Estilo visual
+
+El panel conserva el azul marino y los acentos amarillos de DuocMind, adaptados
+a una interfaz administrativa: barra lateral oscura, fondos neutros, superficies
+opacas, tablas alineadas y encabezados con acciones principales. Los estados
+usan texto y color; navegación, formularios y tablas se adaptan a escritorio y
+móvil con foco visible. No se añaden fuentes externas ni dependencias de UI. Ver
+[criterios y referencias](../DuocMind/specs/005-admin-dashboard/ui-design.md).
+
+## Crear un cuestionario propio
+
+El editor organiza la creación en cuatro pasos: datos del test, preguntas,
+resultados y revisión. Explica qué texto verá el alumno, qué significan los
+puntos y cómo definir los mensajes según intervalos. Calcula el mínimo/máximo
+posible, prepara el primer intervalo y mantiene las referencias de resultados
+automáticamente. En revisión se pueden probar las respuestas sin guardarlas. Si
+falta un campo al guardar, muestra el paso y enfoca ese campo. Se conservan la
+separación entre guardar/publicar/activar y la protección de versiones.
+
+## Tips y dashboard
+
+Tips y eventos abren inicialmente un listado con búsqueda y filtros. «Nuevo» y
+«Ver o editar» abren una ventana modal, sin desplazar al usuario a un formulario
+fuera de pantalla. El teclado permanece dentro de la ventana y el foco regresa
+al botón de origen al cerrar. Cerrar con cambios solicita conservarlos o
+descartarlos; una escritura sin confirmar bloquea el cierre hasta reintentar o
+recargar el estado. Los conflictos conservan el formulario.
+
+El editor de tips presenta tres pasos: contenido, cuándo se aplica y revisión.
+«General · sin condiciones» está disponible también en Nivel de resultado y
+elimina las condiciones anteriores. Las reglas por ánimo y resultado de test
+tienen ejemplos; basta una coincidencia y se conserva catálogo/versión/nivel. El
+resumen muestra las condiciones seleccionadas y una vista previa del mensaje. Un
+consejo personalizado necesita al menos una condición antes de guardarse.
+
+El menú Dashboard abre `/overview`, con total del registro, catálogos de
+sedes/carreras, accesos y hasta cinco alumnos con sus campos aprobados. La
+información emocional compartida voluntariamente está pendiente de definir y
+habilitar; no se consulta ni se deduce de los consentimientos para derivación.
+Ver
+[definición pendiente](../DuocMind/specs/005-admin-dashboard/sharing-discovery.md).
+
+## Configuración de Supabase
+
+`local-start` genera `admin-web/.env.local` con URL y clave publicable de la
+instancia local. La API usa las credenciales de servidor proporcionadas por el
+runtime y `ADMIN_WEB_ORIGIN`, en `DuocMind/tools/.local/functions.env`. La
+sesión administrativa se guarda en `sessionStorage`; los listados y formularios
+permanecen en memoria.
+
+El `.env` existente de `DuocMind/` se conserva. Nunca copiar claves
+privilegiadas a variables `VITE_*` o `EXPO_PUBLIC_*`. Las suites automatizadas
+rechazan URLs remotas y no imprimen claves, contraseñas ni tokens.
+
+## Probar contra el Supabase real autorizado
+
+Desde la raíz, en terminales independientes:
+
+```bash
+npm --prefix admin-web run dev:remote -- --port 5173 --strictPort
+npm --prefix DuocMind run web -- --port 8081 --localhost
+```
+
+El primer comando genera `.env.remote.local` a partir de la URL y clave
+publicable del `.env` de DuocMind y arranca Vite en modo `remote`. Abrir el
+panel en `http://127.0.0.1:5173/login` y la previsualización en
+`http://localhost:8081`. El backend administrativo está aplicado al proyecto
+real por autorización posterior; la cuenta de prueba está habilitada. El consumo
+de nuevos tests y tips en Android sigue pendiente de otra spec; Eventos se implementa en el incremento 009, con validación nativa todavía pendiente. La
+recuperación por correo remota todavía requiere una plantilla compatible y SMTP
+o plan que la admita: ver
+[operación remota](../DuocMind/specs/005-admin-dashboard/remote.md). No ejecutar
+las suites locales de mutación contra el proyecto real.
+
+## Validación
+
+Las suites usan Supabase local y cuentas sintéticas; no se ejecutan contra el
+backend cloud. Detén el panel Docker con `docker --context default compose stop
+admin` desde la raíz para liberar 5173; después de validar, puedes restaurarlo
+con `docker --context default compose up -d admin`.
+
+Con el backend local en ejecución:
+
+```bash
+node DuocMind/tools/scripts/local-ready.mjs
+node DuocMind/tools/scripts/backend-tests.mjs
+DuocMind/tools/node_modules/.bin/deno check --frozen --config DuocMind/supabase/functions/admin-api/deno.json DuocMind/supabase/functions/admin-api/index.ts
+DuocMind/tools/node_modules/.bin/deno test --frozen --config DuocMind/supabase/functions/admin-api/deno.json DuocMind/supabase/functions/admin-api/recovery_test.ts
+npm --prefix admin-web run typecheck
+npm --prefix admin-web test
+npm --prefix admin-web run build
+npm --prefix admin-web run test:e2e
+npm --prefix DuocMind run typecheck
+npm --prefix DuocMind test
+```
+
+La primera ejecución de Playwright requiere
+`admin-web/node_modules/.bin/playwright install chromium`. CI usa
+`install --with-deps chromium` en Ubuntu. Los recorridos usan fixtures locales,
+no guardan trazas ni vídeos y restauran las contraseñas sintéticas que
+modifican. La imagen del listado contiene únicamente registros de prueba y
+permanece ignorada.
+
+Ver [operación](../DuocMind/specs/005-admin-dashboard/operations.md),
+[contratos](../DuocMind/specs/005-admin-dashboard/contracts.md) y
+[evidencia](../DuocMind/specs/005-admin-dashboard/verification.md). La regresión
+nativa T023 fue omitida por decisión del usuario; no se acredita validación
+Android ni entrega remota de correos.
+
+
+## Condiciones de inscripción de eventos (incremento 009)
+
+El editor permite participación libre o inscripción externa, enlace HTTPS, plazo
+en Santiago y cierre manual. Reutiliza la selección de desfase para horas ambiguas;
+rechaza horas inexistentes. Los borradores pueden quedar incompletos; publicar
+exige condiciones válidas. Guardar un cierre o reapertura aumenta la revisión;
+no se permite reabrir después del plazo. Cambiar fecha, hora o lugar muestra el
+aviso de actualización pendiente para estudiantes que guardaron el evento.
+
+El panel no guarda asistentes ni consulta intereses privados. Las migraciones
+aditivas del incremento deben aplicarse antes de usar estos contratos; solo se
+han verificado localmente en esta entrega. Consultar
+[verificación 009](../DuocMind/specs/009-student-events/verification.md).
+Las pruebas de recuperación usan el buzón local de `runtime.json`, sin asumir
+un puerto fijo que pudiera pertenecer a otro proyecto.
+
+
+## Tipos de evento institucional (incremento 012)
+
+Desde Eventos, «Tipos de evento» abre `/events/types` para crear categorías y
+editar su nombre y orden. El código se define al crear (minúsculas, números y
+guion bajo) y queda fijo; renombrar una categoría actualiza su etiqueta en los
+eventos que la utilizan. No hay eliminación de tipos en el panel.
+
+El editor de eventos permite asignar un tipo o «Sin tipo»; el listado muestra
+la categoría. Los eventos anteriores siguen siendo válidos sin asignación.
+Los cancelados conservan el tipo y son de solo lectura. Si falla el catálogo,
+el guardado se bloquea hasta recargarlo, conservando el formulario.
+
+Preparación de un entorno: aplicar primero la migración de Hans
+`20261015120000_event_types.sql` y después
+`20261016015100_admin_event_types.sql`; actualizar `admin-api` y finalmente la
+web. La migración nueva añade revisión/validación del catálogo y extiende las
+operaciones existentes. Los clientes anteriores que omiten `typeId` conservan
+la asignación al editar; un null explícito la elimina.
+
+Las suites automatizadas se ejecutan exclusivamente en Supabase local. El
+2026-10-16 se aplicó la migración y se actualizó la API remota por autorización
+explícita del usuario, con comprobaciones de lectura y conservación de datos.
+Ver [contratos](../DuocMind/specs/005-admin-dashboard/contracts.md) y
+[evidencia 012](../DuocMind/specs/012-admin-event-types/verification.md).
+
+Si los contenedores locales ya usan puertos distintos de `config.toml`, comprobar
+sus puertos antes de regenerar `.env.local`/`tools/.local/runtime.json`. La CLI
+puede producir URLs desde la configuración en disco; las suites deben apuntar al
+contenedor de DuocMind con fixtures sintéticas, nunca a otro proyecto local.

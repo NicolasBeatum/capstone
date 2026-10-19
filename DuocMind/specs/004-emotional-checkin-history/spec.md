@@ -35,6 +35,10 @@ No se deben usar datos personales o emocionales reales hasta verificar el cifrad
 8. El estudiante puede eliminar un registro propio y la política de retención aprobada se aplica de forma verificable.
 9. Las pruebas cubren autenticación, mapeo del catálogo, persistencia, estados de error/offline, eliminación y aislamiento entre usuarios.
 
+## Enmienda 2026-10-07: ánimo general directo
+
+Aprobada por la persona responsable el 2026-10-07. Reemplaza la emoción específica `Sin especificar` por una referencia directa a `emocion_general` en `registro_emocional`, y elimina la tabla `emocion_especifica`, que el producto no usa. Los criterios 3 y 4 y el modelo de datos se leen con este cambio: el registro guarda el ánimo general sin intermediario técnico. Los registros existentes conservan su ánimo general.
+
 ## Decisiones pendientes de aprobación
 
 - Confirmar los campos obligatorios del perfil durante el registro: RUT, nombre y apellido, ya que el esquema los exige.

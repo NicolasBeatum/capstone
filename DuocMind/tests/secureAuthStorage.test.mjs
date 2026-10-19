@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createSecureAuthStorage } from '../src/features/backend/infrastructure/secureAuthStorage.ts';
-import { createSupabaseAuthOptions } from '../src/features/backend/infrastructure/supabaseAuthOptions.ts';
+import { createSecureAuthStorage } from '../src/shared/backend/infrastructure/secureAuthStorage.ts';
+import { createSupabaseAuthOptions } from '../src/shared/backend/infrastructure/supabaseAuthOptions.ts';
 
 test('el adaptador persiste, recupera y elimina la sesión con SecureStore', async () => {
   const entries = new Map();

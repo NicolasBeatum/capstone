@@ -97,21 +97,41 @@ create table public.alerta_bienestar (
 select 1 / case when count(*) = 5 then 1 else 0 end
 from public.emocion_especifica where nombre_emocionesp = 'Sin especificar';
 
+-- Fila heredada con emoción específica: la migración debe conservarla por su ánimo general.
+insert into public.registro_emocional
+  (emocion_especifica_id_emocionesp, estudiante_id_estudiante)
+select es.id_emocionesp, 101
+from public.emocion_especifica es
+join public.emocion_general eg on eg.id_emocion = es.emocion_general_id_emocion
+where eg.nombre_emocion = 'Muy bien' and es.nombre_emocionesp = 'Sin especificar';
+
+\i /tmp/registro_emocion_general.sql
+
+select 1 / case when count(*) = 1 then 1 else 0 end
+from public.registro_emocional r
+join public.emocion_general eg on eg.id_emocion = r.emocion_general_id_emocion
+where r.estudiante_id_estudiante = 101 and eg.nombre_emocion = 'Muy bien';
+select 1 / case when to_regclass('public.emocion_especifica') is null
+  and not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'registro_emocional'
+      and column_name = 'emocion_especifica_id_emocionesp'
+  ) then 1 else 0 end;
+delete from public.registro_emocional where estudiante_id_estudiante = 101;
+
 set role authenticated;
 set request.jwt.claim.sub = '10000000-0000-0000-0000-000000000001';
 insert into public.registro_emocional
-  (emocion_especifica_id_emocionesp, estudiante_id_estudiante, client_request_id, fecha_hora)
-select es.id_emocionesp, 101, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '2026-09-28T03:00:00Z'
-from public.emocion_especifica es
-join public.emocion_general eg on eg.id_emocion = es.emocion_general_id_emocion
-where eg.nombre_emocion = 'Bien' and es.nombre_emocionesp = 'Sin especificar'
+  (emocion_general_id_emocion, estudiante_id_estudiante, client_request_id, fecha_hora)
+select eg.id_emocion, 101, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '2026-09-28T03:00:00Z'
+from public.emocion_general eg
+where eg.nombre_emocion = 'Bien'
 on conflict (client_request_id) do nothing;
 insert into public.registro_emocional
-  (emocion_especifica_id_emocionesp, estudiante_id_estudiante, client_request_id, fecha_hora)
-select es.id_emocionesp, 101, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '2026-09-28T03:00:00Z'
-from public.emocion_especifica es
-join public.emocion_general eg on eg.id_emocion = es.emocion_general_id_emocion
-where eg.nombre_emocion = 'Bien' and es.nombre_emocionesp = 'Sin especificar'
+  (emocion_general_id_emocion, estudiante_id_estudiante, client_request_id, fecha_hora)
+select eg.id_emocion, 101, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '2026-09-28T03:00:00Z'
+from public.emocion_general eg
+where eg.nombre_emocion = 'Bien'
 on conflict (client_request_id) do nothing;
 select 1 / case when count(*) = 1 then 1 else 0 end
 from public.registro_emocional where estudiante_id_estudiante = 101;
@@ -120,24 +140,22 @@ reset role;
 set role authenticated;
 set request.jwt.claim.sub = '20000000-0000-0000-0000-000000000002';
 insert into public.registro_emocional
-  (emocion_especifica_id_emocionesp, estudiante_id_estudiante, client_request_id, fecha_hora)
-select es.id_emocionesp, 202, 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '2026-09-28T03:00:00Z'
-from public.emocion_especifica es
-join public.emocion_general eg on eg.id_emocion = es.emocion_general_id_emocion
-where eg.nombre_emocion = 'Mal' and es.nombre_emocionesp = 'Sin especificar';
+  (emocion_general_id_emocion, estudiante_id_estudiante, client_request_id, fecha_hora)
+select eg.id_emocion, 202, 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '2026-09-28T03:00:00Z'
+from public.emocion_general eg
+where eg.nombre_emocion = 'Mal';
 do $$
 declare
-  v_specific_emotion_id bigint;
+  v_general_emotion_id bigint;
 begin
-  select es.id_emocionesp into v_specific_emotion_id
-  from public.emocion_especifica es
-  join public.emocion_general eg on eg.id_emocion = es.emocion_general_id_emocion
-  where eg.nombre_emocion = 'Bien' and es.nombre_emocionesp = 'Sin especificar';
+  select eg.id_emocion into v_general_emotion_id
+  from public.emocion_general eg
+  where eg.nombre_emocion = 'Bien';
 
   begin
     insert into public.registro_emocional
-      (emocion_especifica_id_emocionesp, estudiante_id_estudiante, client_request_id)
-    values (v_specific_emotion_id, 101, 'cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+      (emocion_general_id_emocion, estudiante_id_estudiante, client_request_id)
+    values (v_general_emotion_id, 101, 'cccccccc-cccc-4ccc-8ccc-cccccccccccc');
     raise exception 'RLS permitió insertar para otra persona';
   exception when insufficient_privilege then
     null;
@@ -152,11 +170,10 @@ select 1 / case when count(*) = 0 then 1 else 0 end from public.registro_emocion
 reset role;
 
 insert into public.registro_emocional
-  (emocion_especifica_id_emocionesp, estudiante_id_estudiante)
-select es.id_emocionesp, 101
-from public.emocion_especifica es
-join public.emocion_general eg on eg.id_emocion = es.emocion_general_id_emocion
-where eg.nombre_emocion = 'Bien' and es.nombre_emocionesp = 'Sin especificar';
+  (emocion_general_id_emocion, estudiante_id_estudiante)
+select eg.id_emocion, 101
+from public.emocion_general eg
+where eg.nombre_emocion = 'Bien';
 insert into public.aplicacion_test (estudiante_id_estudiante) values (101)
 returning id_aplicacion \gset
 insert into public.alerta_bienestar (estudiante_id_estudiante, aplicacion_test_id_aplicacion)

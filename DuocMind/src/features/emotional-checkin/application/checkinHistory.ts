@@ -16,6 +16,12 @@ export interface CheckinHistoryResult {
   remoteAvailable: boolean;
 }
 
+/** Intervalo [from, to) en ISO 8601. */
+export interface CheckinRange {
+  from: string;
+  to: string;
+}
+
 export interface CheckinLocalRepository {
   savePending(checkin: Omit<LocalCheckin, 'syncStatus'>): Promise<void>;
   listAll(): Promise<LocalCheckin[]>;
@@ -26,8 +32,13 @@ export interface CheckinLocalRepository {
 
 export interface CheckinRemoteGateway {
   save(checkin: Omit<LocalCheckin, 'syncStatus'>): Promise<void>;
-  list(): Promise<CheckinHistoryEntry[]>;
+  list(range?: CheckinRange): Promise<CheckinHistoryEntry[]>;
   remove(clientRequestId: string): Promise<void>;
+}
+
+/** Avisa cuando llega un check-in propio nuevo; devuelve cómo dejar de escuchar. */
+export interface CheckinChangeFeed {
+  subscribe(onChange: () => void): Promise<() => void>;
 }
 
 export type SaveCheckinResult = {
@@ -76,15 +87,22 @@ export async function saveConfirmedCheckin(
   return { clientRequestId: saved.clientRequestId, syncStatus: saved.syncStatus };
 }
 
+function isInRange(createdAt: string, range: CheckinRange): boolean {
+  const time = Date.parse(createdAt);
+  return time >= Date.parse(range.from) && time < Date.parse(range.to);
+}
+
 export async function loadCheckinHistory(
   local: CheckinLocalRepository,
   remote: CheckinRemoteGateway,
+  range?: CheckinRange,
 ): Promise<CheckinHistoryResult> {
-  const localEntries = await local.listAll();
+  const allLocal = await local.listAll();
+  const localEntries = range ? allLocal.filter((entry) => isInRange(entry.createdAt, range)) : allLocal;
   let remoteEntries: CheckinHistoryEntry[] = [];
   let remoteAvailable = true;
   try {
-    remoteEntries = await remote.list();
+    remoteEntries = await remote.list(range);
   } catch {
     remoteAvailable = false;
   }

@@ -112,3 +112,24 @@ test('borrar pendiente solo lo quita localmente y borrar sincronizado exige éxi
   );
   assert.equal(deps.entries.has('synced'), true);
 });
+test('con rango se consulta el remoto acotado y se filtran los pendientes locales', async () => {
+  const deps = repositories([
+    { clientRequestId: 'local-in', mood: 'Mal', createdAt: '2026-10-06T15:00:00.000Z', syncStatus: 'pending' },
+    { clientRequestId: 'local-before', mood: 'Bien', createdAt: '2026-10-04T23:59:59.000Z', syncStatus: 'pending' },
+    { clientRequestId: 'local-end', mood: 'Bien', createdAt: '2026-10-12T00:00:00.000Z', syncStatus: 'pending' },
+  ]);
+  const range = { from: '2026-10-05T00:00:00.000Z', to: '2026-10-12T00:00:00.000Z' };
+  let requestedRange;
+  const remote = {
+    ...deps.remote,
+    list: async (received) => {
+      requestedRange = received;
+      return [{ clientRequestId: 'remote-in', mood: 'Neutro', createdAt: '2026-10-07T10:00:00.000Z', syncStatus: 'synced' }];
+    },
+  };
+
+  const history = await loadCheckinHistory(deps.local, remote, range);
+
+  assert.deepEqual(requestedRange, range);
+  assert.deepEqual(history.entries.map((entry) => entry.clientRequestId), ['remote-in', 'local-in']);
+});

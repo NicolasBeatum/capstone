@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { probeBackend } from '../src/features/backend/infrastructure/probeBackend.ts';
+import { probeBackend } from '../src/shared/backend/infrastructure/probeBackend.ts';
 
 const validConfig = {
   url: 'https://ashgvanzjeaeekpygqgy.supabase.co',

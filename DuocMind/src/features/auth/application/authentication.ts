@@ -7,6 +7,7 @@ export interface StudentProfileInput {
 export interface AuthGateway {
   register(email: string, password: string): Promise<boolean>;
   signIn(email: string, password: string): Promise<void>;
+  getCurrentUserId(): Promise<string | null>;
   hasStudentProfile(): Promise<boolean>;
   hasCachedStudentProfile(): Promise<boolean>;
   createStudentProfile(profile: StudentProfileInput): Promise<void>;

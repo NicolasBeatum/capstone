@@ -37,22 +37,22 @@ scoring, manteniendo la identidad visual actual (colores, tipografía, estilos d
 - Sondeo: subescala de ansiedad (GAD-2) ≥ 2 → ofrecer GAD-7 completo.
 - PHQ-9 ítem 9 > 0 → navegación inmediata a CrisisResourcesScreen, sin resultado normal.
 - PHQ-9/GAD-7 en rango moderado o superior → mostrar opción de derivación al área de bienestar
-  estudiantil (ruta `/views/wellness`).
+  estudiantil (ruta `/wellness`).
 - WHO-5 ≤ 50 → ofrecer el sondeo inicial como seguimiento (corte validado OMS).
 
 ## Resultados observables / criterios de aceptación
 
-1. `src/features/emotional-checkin/data/` contiene un archivo por instrumento (who5.ts, phq9.ts,
-   gad7.ts, sondeoInicial.ts) exportando preguntas, opciones de escala y función de scoring que
+1. `src/features/emotional-checkin/domain/` contiene un archivo por instrumento (who5.ts, phq9.ts,
+   gad7.ts, initialSurvey.ts) exportando preguntas, opciones de escala y función de scoring que
    devuelve puntaje + categoría.
 2. `TestRunner` es genérico: recibe preguntas, opciones y `onComplete(respuestas)`; reutiliza el
    diseño visual actual sin contenido hardcodeado.
-3. `routingRules.ts` implementa las reglas anteriores como funciones puras verificables.
-4. `DailyCheckinScreen` orquesta el flujo completo (WHO-5 → sondeo → PHQ-9 → GAD-7 → resultado
+3. `application/routingRules.ts` implementa las reglas anteriores como funciones puras verificables.
+4. `DailyTestScreen` orquesta el flujo completo (WHO-5 → sondeo → PHQ-9 → GAD-7 → resultado
    → derivación) según las reglas.
 5. El resultado se basa en las categorías reales de cada escala; no existe scoring inventado.
-6. La ruta `/views/tests/daily-test` se conserva (wrapper) y se agrega
-   `/views/tests/crisis-resources`.
+6. La ruta `/daily-test` es un wrapper delgado y se agrega
+   `/wellness/crisis-resources` (rutas actualizadas por la reorganización de carpetas; pendiente de aprobación del equipo).
 7. `npm run typecheck` pasa sin errores.
 
 ## Fuera de alcance

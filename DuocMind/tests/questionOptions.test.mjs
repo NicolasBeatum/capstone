@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { getQuestionOptions } from '../src/features/emotional-checkin/data/questionOptions.ts';
+import { getQuestionOptions } from '../src/features/emotional-checkin/domain/questionOptions.ts';
 
 test('cada pregunta usa sus puntajes propios, incluidos los invertidos', () => {
   const shared = [{ label: 'Nunca', value: 0 }, { label: 'Siempre', value: 4 }];

@@ -11,6 +11,55 @@ Proyecto de desarrollo: `Duocmind` (`ashgvanzjeaeekpygqgy`). La migración crea 
 - Usa la clave publicable del proyecto. Nunca incluyas una clave `secret` o `service_role` en la app, un archivo `EXPO_PUBLIC_*`, un commit o una petición desde el navegador.
 - Los identificadores son `bigint` autogenerados. Omite la PK en los `POST`; pide `Prefer: return=representation` si necesitas el ID generado.
 
+El horario personal del incremento 013 usa UUID generados por el cliente; sus
+escrituras se realizan exclusivamente mediante RPC, según el contrato siguiente.
+
+## Horario personal por semestre
+
+Migración: `20261018175733_personal_semester_schedule.sql`, verificada y aplicada
+solo en local. Su aplicación cloud requiere autorización separada.
+`personal_schedule`, `schedule_semester`, `schedule_subject` y `schedule_block`
+permiten únicamente lectura propia autenticada mediante RLS. No admiten
+escrituras directas del cliente. El propietario siempre deriva de `auth.uid()`;
+la escritura exige además un perfil `estudiante` propio.
+
+| RPC autenticada | Entrada | Salida |
+| --- | --- | --- |
+| `load_personal_schedule` | `{}` | `{revision, document}`; revisión 0 y horario vacío antes de guardar |
+| `save_personal_schedule` | `{p_expected_revision, p_request_id, p_document}` | `{status:"applied", revision, requestId}` o `{status:"conflict", remote:{revision, document}}` |
+
+`p_request_id` es UUID. Se persiste con el contenido antes de enviar y se reutiliza
+sin cambios tras una respuesta incierta. Repetirlo con el mismo contenido devuelve
+el recibo original; reutilizarlo con otro contenido se rechaza. La revisión global
+se compara bajo bloqueo por propietario y toda la instantánea se guarda en una
+transacción. Un conflicto conserva ambas versiones para resolución explícita.
+
+`document` tiene únicamente estas claves y cada fila exige las claves indicadas:
+
+```ts
+{
+  schema: 1,
+  activeSemesterId: string | null,
+  semesters: [{ id, name, startsOn, endsOn }],
+  subjects: [{ id, semesterId, name, code, section }],
+  blocks: [{ id, subjectId, weekday, startsAt, endsAt, room, teacher }]
+}
+```
+
+IDs UUID, día ISO 1–7, horas `HH:mm`, fechas `AAAA-MM-DD`. Los opcionales se envían
+como `null`: fechas, sigla, sección, sala y docente. Límites: 50 semestres, 1000
+ramos, 10000 bloques y 2 MiB. Nombre de semestre 80 caracteres, ramo/sala 120,
+sigla/sección 40 y docente 160. El semestre activo es obligatorio cuando hay
+semestres y todas las referencias deben pertenecer al documento/cuenta.
+Se rechazan claves desconocidas, intervalos inválidos y duplicados de
+ramo/día/intervalo. No se permite quitar semestres ya sincronizados.
+
+El esquema `schedule_private` no se expone en la Data API; sus ayudantes tienen
+permisos limitados. No existe parámetro de propietario ni se aceptan actividades
+personales en el documento remoto. Las actividades, sus recibos de copia/traslado
+y huellas de recuperación permanecen en el dispositivo. Eliminar Auth borra por
+cascada horarios y recibos remotos.
+
 ## Crear una cuenta
 
 Supabase Auth administra las cuentas en `auth.users`; no se deben crear usuarios insertando filas por SQL. El endpoint de registro email/contraseña está disponible para consumir desde la app:
@@ -69,7 +118,7 @@ Las siguientes tablas permiten `GET` público con la clave publicable. No contie
 | `/asignatura` | Catálogo de asignaturas |
 | `/carrera_asignatura` | Asignaturas disponibles por carrera |
 | `/estado`, `/tipo_evento` | Catálogos de agenda |
-| `/emocion_general`, `/emocion_especifica` | Opciones del check-in |
+| `/emocion_general` | Opciones del check-in |
 | `/test_bienestar`, `/test_resultado_nivel`, `/pregunta_test`, `/opcion_respuesta` | Instrumentos, versiones, rangos y preguntas configurados |
 | `/material_apoyo`, `/material_emocion`, `/material_test` | Recursos y reglas de recomendación |
 | `/tipo_alerta`, `/estado_alerta` | Catálogos de derivación |
@@ -130,15 +179,17 @@ Prefer: return=representation
 
 {
   "client_request_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-  "emocion_especifica_id_emocionesp": 1,
+  "emocion_general_id_emocion": 1,
   "estudiante_id_estudiante": 1,
   "fecha_hora": "2026-09-27T22:00:00Z"
 }
 ```
 
-La migración `20260927230000_emotional_checkin_history.sql` agrega `Sin especificar` para cada fila de `emocion_general` y una clave UUID única de reintento. La app resuelve el ánimo general por `valor_escala`, lo relaciona con ese valor técnico y nunca lo presenta como un sentimiento elegido. Repetir el mismo `client_request_id` no crea otro registro. RLS sigue derivando el propietario de `auth.uid()`; la app consulta su perfil y no acepta un `estudiante_id_estudiante` externo.
+La migración `20260927230000_emotional_checkin_history.sql` agrega una clave UUID única de reintento. La migración `20261007120000_registro_emocion_general.sql` reemplaza la referencia a `emocion_especifica` por `emocion_general_id_emocion` en `registro_emocional` (conserva los registros existentes por su ánimo general) y elimina la tabla `emocion_especifica`. La app resuelve el ánimo general por `valor_escala` y lo guarda directamente. Repetir el mismo `client_request_id` no crea otro registro. RLS sigue derivando el propietario de `auth.uid()`; la app consulta su perfil y no acepta un `estudiante_id_estudiante` externo.
 
 La migración posterior `20260928010000_grant_checkin_timestamp.sql` concede a `authenticated` el privilegio de insertar la columna `fecha_hora`, que el cliente envía para conservar la fecha original del check-in al sincronizar. No amplía lectura ni acceso a otras cuentas; la política RLS de inserción sigue exigiendo que el estudiante pertenezca a `auth.uid()`.
+
+La migración `20261009120000_registro_emocional_realtime.sql` agrega `registro_emocional` a la publicación `supabase_realtime`. El dashboard se suscribe por WebSocket solo a eventos `INSERT` filtrados por `estudiante_id_estudiante=eq.<id propio>` para refrescar el gráfico semanal; Realtime entrega cada evento únicamente a quien pasa la política RLS de lectura. La app no escucha `DELETE`, porque esos eventos no admiten filtro. El historial semanal se lee con `GET /rest/v1/registro_emocional` acotado por `fecha_hora` (`gte`/`lt`).
 
 Para borrar la cuenta, la app invoca la Edge Function `delete-account` con el JWT de la sesión. La función usa `service_role` solo en el servidor para llamar `erase_student_personal_data` y eliminar el usuario de Auth. No se habilita `DELETE` global ni se expone ese secreto al cliente. El despliegue se hace por separado con `supabase functions deploy delete-account` después de revisar/aplicar la migración.
 
@@ -166,7 +217,7 @@ El ejemplo con IDs `1` es ilustrativo; no se deben asumir IDs. El API devuelve e
 ## Cómo cargar datos para pruebas
 
 1. Carga catálogos académicos y recursos desde **Supabase Dashboard → Table Editor** o **SQL Editor**, en orden de dependencias: `sede`, `carrera`, `asignatura`, `carrera_asignatura`; luego recursos e instrumentos (`test_bienestar`, `test_resultado_nivel`, `pregunta_test`, `opcion_respuesta`).
-2. La migración ya insertó emociones generales (`Muy mal` a `Muy bien`), emociones específicas de ejemplo y estados/tipos básicos para agenda y derivaciones.
+2. La migración ya insertó emociones generales (`Muy mal` a `Muy bien`), y estados/tipos básicos para agenda y derivaciones.
 3. Para datos personales de prueba, usa cuentas y valores sintéticos. Registra primero un usuario en Auth y crea su perfil `estudiante`; después carga desde el Dashboard la fila de `estudiante_carrera` que corresponde a esa persona. La sesión autenticada podrá crear sus inscripciones, eventos y registros propios.
 4. No entregues una clave `service_role` al compañero ni a la app. Los cambios de catálogos se hacen con acceso al Dashboard; la app pública solo puede leerlos.
 
@@ -178,3 +229,82 @@ El ejemplo con IDs `1` es ilustrativo; no se deben asumir IDs. El API devuelve e
 - Una alerta que asocia aplicación de test y estudiante debe apuntar al mismo dueño. La política de inserción exige consentimiento con fecha y versión.
 - El equipo de bienestar todavía no tiene una política de lectura por rol. Por ahora la API de usuario no expone derivaciones a terceros; solo las ve el estudiante dueño y el equipo administrador puede revisarlas desde el Dashboard.
 - Antes de usar información real, el equipo debe fijar retención y eliminación de datos y definir cómo se asignará el rol institucional de bienestar.
+
+
+## Catálogo de eventos para estudiantes (incremento 009)
+
+Contrato versionado en las migraciones `20261011200847_student_event_registration.sql`
+y `20261011200855_student_event_catalog.sql`. Verificado en local y aplicado al proyecto cloud de desarrollo
+el 2026-10-11 con autorización explícita.
+
+```http
+POST /rest/v1/rpc/get_student_events
+apikey: <PUBLISHABLE_KEY>
+Authorization: Bearer <JWT_DE_SESION>
+Content-Type: application/json
+
+{}
+```
+
+El parámetro opcional `p_event_id` es UUID; filtra solo el evento indicado y no
+sustituye una descarga completa. Respuesta única JSON:
+
+```json
+{
+  "serverTime": "2026-10-11T12:00:00Z",
+  "events": [{
+    "id": "00000000-0000-0000-0000-000000000001",
+    "title": "Taller sintético",
+    "description": "Actividad de ejemplo",
+    "location": "Patio sintético",
+    "startsAt": "2030-10-12T12:00:00Z",
+    "endsAt": "2030-10-12T14:30:00Z",
+    "status": "published",
+    "publishedAt": "2026-10-11T12:00:00Z",
+    "revision": 1,
+    "requiresRegistration": true,
+    "registrationUrl": "https://example.com/form",
+    "registrationDeadline": "2030-10-11T12:00:00Z",
+    "registrationClosed": false,
+    "type": { "code": "taller", "name": "Taller" }
+  }]
+}
+```
+
+La función es SECURITY INVOKER, aplica RLS y concede EXECUTE solo a
+`authenticated`. Incluye publicados y cancelados con publicación previa; oculta
+borradores. Un ID ausente o nunca publicado devuelve `events: []`. La agregación
+JSON devuelve el catálogo completo sin truncarlo a 1000 filas.
+
+El panel administra las cuatro condiciones mediante los contratos existentes
+`/events`: revisión, permiso, sesión e idempotencia siguen vigentes. Un evento
+libre tiene `requiresRegistration: false`, enlace/plazo nulos y cierre falso.
+Se admiten condiciones incompletas en borradores; al publicar se exige HTTPS sin
+credenciales y un plazo no posterior al inicio. No se reabre un plazo vencido.
+El estado temporal se deriva del intervalo y las inscripciones se verifican con
+`serverTime` antes de abrir el enlace.
+
+No existe endpoint de asistentes ni de intereses. El guardado es local, por
+cuenta, y no equivale a completar la inscripción externa. Agenda conserva el
+intervalo aceptado ante una reprogramación hasta que el usuario la confirme.
+
+
+### Administración de tipos institucionales — incremento 012
+
+La API administrativa autenticada incorpora `GET /event-types`,
+`POST /event-types` y `PUT /event-types/:id`. Devuelve
+`{id,code,name,order,revision}` con ID decimal como string. Crear recibe código,
+nombre y orden; editar recibe nombre, orden y revisión esperada. Ambas escrituras
+usan `requestId`; el código es único e inmutable. Ver los
+[contratos administrativos](../specs/005-admin-dashboard/contracts.md).
+
+`GET /events` añade `typeId: string | null`; crear/editar acepta la referencia
+opcional. Omitirla conserva la asignación anterior, null la elimina. La consulta
+estudiantil de Hans devuelve `type: {code,name} | null` y refleja renombrados.
+El catálogo es públicamente legible; las escrituras se realizan solo desde el
+backend autorizado. No se añade endpoint de eliminación.
+
+Orden de actualización: migración de tipos de Hans, migración
+`20261016015100_admin_event_types.sql`, `admin-api` y panel web. Las suites automatizadas se verifican en Supabase local. El 2026-10-16 se aplicó
+la migración y se actualizó admin-api en el proyecto remoto autorizado, con
+verificación de lectura documentada en la evidencia del incremento 012.

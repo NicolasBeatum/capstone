@@ -6,7 +6,7 @@ import {
   platformSecureKeyValueStorage,
   createWebSessionStorage,
   webSessionStorage,
-} from '../src/features/backend/infrastructure/platformSecureStorage.web.ts';
+} from '../src/shared/backend/infrastructure/platformSecureStorage.web.ts';
 
 test('la previsualización web mantiene auth y marcadores en memoria sin llamar SecureStore nativo', async () => {
   await platformAuthStorage.setItem('session', 'web-session');

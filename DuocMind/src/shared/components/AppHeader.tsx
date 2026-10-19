@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { styles } from './AppHeader.styles';
 import { useRouter } from 'expo-router';
-import { useTheme } from '../theme';
+import { useTheme } from '@/shared/theme/theme';
 import { deleteStudentAccount, getAuthenticationErrorMessage } from '@/features/auth/application/authentication';
 import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
 
@@ -32,7 +32,7 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
     setMenuVisible(false);
     try {
       await supabaseAuthGateway.signOut();
-      router.replace('/views/auth/login');
+      router.replace('/login');
     } catch {
       Alert.alert('No se pudo cerrar sesión', 'Revisa tu conexión e inténtalo nuevamente.');
     }
@@ -52,7 +52,7 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
             void (async () => {
               try {
                 await deleteStudentAccount(supabaseAuthGateway);
-                router.replace('/views/auth/login');
+                router.replace('/login');
               } catch (error) {
                 Alert.alert('No se pudo eliminar la cuenta', getAuthenticationErrorMessage(error));
               }

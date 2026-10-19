@@ -6,39 +6,39 @@
 
 ```
 src/features/emotional-checkin/
-├── data/
+├── domain/
 │   ├── types.ts            # TestQuestion, ScaleOption, TestResult, Instrument
 │   ├── who5.ts             # ítems, escala 0-5, scoring suma×4 con corte ≤50
 │   ├── phq9.ts             # ítems, escala 0-3, rangos 0-27, PHQ9_ITEM9_ID
 │   ├── gad7.ts             # ítems, escala 0-3, rangos 0-21
-│   └── sondeoInicial.ts    # PHQ-2 (2 ítems) + GAD-2 (1 ítem), subscores
+│   └── initialSurvey.ts    # PHQ-2 (2 ítems) + GAD-2 (1 ítem), subscores
 ├── components/
 │   ├── TestRunner.tsx      # motor genérico de preguntas (UI reutilizada)
 │   ├── InstrumentResult.tsx# tarjeta de resultado + derivación + acción secundaria
 │   └── TestOffer.tsx       # interludio: ofrecer test completo / cerrar flujo
 ├── screens/
-│   └── DailyCheckinScreen.tsx  # orquestador (máquina de estados por pasos)
-└── routingRules.ts         # funciones puras de decisión (cortes PHQ-2/GAD-2, ítem 9, derivación)
+│   └── DailyTestScreen.tsx     # orquestador (máquina de estados por pasos)
+└── application/routingRules.ts # funciones puras de decisión (cortes PHQ-2/GAD-2, ítem 9, derivación)
 
-src/app/views/tests/
-├── daily-test.tsx          # wrapper de ruta (conserva /views/tests/daily-test)
-└── crisis-resources.tsx    # ruta /views/tests/crisis-resources
+src/app/(app)/
+├── daily-test.tsx          # wrapper de ruta /daily-test
+└── wellness/crisis-resources.tsx  # ruta /wellness/crisis-resources
 ```
 
 ## Decisiones
 
-- **Datos y scoring puros** en `data/`: funciones sin dependencias de React; cada instrumento
+- **Datos y scoring puros** en `domain/`: funciones sin dependencias de React; cada instrumento
   expone `interpretation` por categoría para que la orquestación no hardcodee textos.
 - **`TestRunner` sin estado de negocio**: solo navegación entre ítems y entrega de respuestas;
   la intercepción del ítem 9 se hace vía callback `onAnswer` para no acoplar el componente al
   PHQ-9.
-- **Orquestación por pasos** (`Step` union) en `DailyCheckinScreen`: cada instrumento se monta
+- **Orquestación por pasos** (`Step` union) en `DailyTestScreen`: cada instrumento se monta
   con `key={instrument.id}` para resetear el estado interno del runner al cambiar de instrumento.
 - **Reglas de ruteo como funciones puras** en `routingRules.ts`, con constantes de corte
   exportadas; facilita verificación y futuras pruebas unitarias.
-- **Crisis sin resultado intermedio**: `router.replace` a `/views/tests/crisis-resources` evita
+- **Crisis sin resultado intermedio**: `router.replace` a `/wellness/crisis-resources` evita
   volver al test con el botón atrás.
-- **Estilos**: se reutiliza `daily-test.styles.ts` (identidad visual); se agregan claves
+- **Estilos**: se reutiliza `DailyTestScreen.styles.ts` (identidad visual); se agregan claves
   `referral*` y `resource*`; se eliminan las clases del resultado ficticio (`resultEmotion*`,
   `loading*`).
 

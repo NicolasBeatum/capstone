@@ -1,0 +1,49 @@
+services:
+  mobile:
+    image: capstone-mobile-dev
+    build:
+      context: ./DuocMind
+    command: ["sh", "-c", "npm ci --prefer-offline && exec npx expo start --web --host lan --port 8081 --clear"]
+    ports:
+      - "127.0.0.1:${MOBILE_WEB_PORT:-8081}:8081"
+    environment:
+      BROWSER: "none"
+      EXPO_NO_TELEMETRY: "1"
+    volumes:
+      - ./DuocMind:/app
+      - mobile_node_modules:/app/node_modules
+      - type: bind
+        source: ./DuocMind/.env
+        target: /app/.env
+        read_only: true
+        bind:
+          create_host_path: false
+    stdin_open: true
+    tty: true
+
+  admin:
+    image: capstone-admin-dev
+    build:
+      context: ./admin-web
+    command: ["sh", "-c", "npm ci --prefer-offline && exec npm run dev:remote -- --host 0.0.0.0 --port 5173 --strictPort"]
+    ports:
+      - "127.0.0.1:5173:5173"
+    volumes:
+      - ./admin-web:/workspace/admin-web
+      - admin_node_modules:/workspace/admin-web/node_modules
+      - type: bind
+        source: ./DuocMind/tools/scripts/remote-env.mjs
+        target: /workspace/DuocMind/tools/scripts/remote-env.mjs
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./DuocMind/.env
+        target: /workspace/DuocMind/.env
+        read_only: true
+        bind:
+          create_host_path: false
+
+volumes:
+  mobile_node_modules:
+  admin_node_modules:

@@ -1,0 +1,6 @@
+project_id = "duocmind-admin-remote-settings"
+
+# Configuración remota mínima autorizada; revisar diff antes de aplicar.
+# No declara plantillas, SMTP, límites ni otras opciones de Auth.
+[auth]
+additional_redirect_urls = ["http://127.0.0.1:5173/recover"]
