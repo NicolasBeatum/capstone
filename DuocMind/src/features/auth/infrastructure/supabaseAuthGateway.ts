@@ -7,6 +7,8 @@ import { deleteEventData } from '@/shared/events/infrastructure/eventStorage';
 import { blockEventAccount } from '@/shared/events/infrastructure/eventSessionGateway';
 import { deleteSubjectCache } from '@/shared/subjects/infrastructure/subjectCacheStorage';
 import { deleteTutorialProgress } from '@/shared/tutorial/infrastructure/tutorialProgressStorage';
+import { closePlannerData, deletePlannerData } from '@/shared/planner/infrastructure/plannerStorage';
+import { blockPlannerAccount } from '@/shared/planner/infrastructure/plannerSessionGateway';
 
 const PROFILE_VERIFIED_KEY_PREFIX = 'duocmind.student-profile-verified.v1.';
 
@@ -85,6 +87,7 @@ export const supabaseAuthGateway: AuthGateway = {
     const { error } = await getSupabaseClient().auth.signOut();
     throwIfError(error);
     if (userId) {
+      await closePlannerData(userId);
       await platformSecureKeyValueStorage.deleteItem(`${PROFILE_VERIFIED_KEY_PREFIX}${userId}`);
     }
   },
@@ -97,21 +100,25 @@ export const supabaseAuthGateway: AuthGateway = {
     if (!userId) throw new Error('Inicia sesión para eliminar tu cuenta.');
 
     const releaseEvents = blockEventAccount(userId);
-    try { await completeAccountDeletion({
-      clearLocalData: async () => {
-        await deleteEventData(userId);
-        await deleteLocalCheckinData(userId);
-        await deleteTutorialProgress(userId);
-        await deleteSubjectCache(userId);
-      },
-      deleteRemoteAccount: async () => {
-        const { error } = await client.functions.invoke('delete-account', { body: {} });
-        throwIfError(error);
-      },
-      clearLocalSession: async () => {
-        const { error } = await client.auth.signOut({ scope: 'local' });
-        throwIfError(error);
-      },
-    }); } finally { releaseEvents(); }
+    try {
+      await blockPlannerAccount(userId);
+      await completeAccountDeletion({
+        clearLocalData: async () => {
+          await deletePlannerData(userId);
+          await deleteEventData(userId);
+          await deleteLocalCheckinData(userId);
+          await deleteTutorialProgress(userId);
+          await deleteSubjectCache(userId);
+        },
+        deleteRemoteAccount: async () => {
+          const { error } = await client.functions.invoke('delete-account', { body: {} });
+          throwIfError(error);
+        },
+        clearLocalSession: async () => {
+          const { error } = await client.auth.signOut({ scope: 'local' });
+          throwIfError(error);
+        },
+      });
+    } finally { releaseEvents(); }
   },
 };

@@ -35,8 +35,8 @@ inscripción ni envía datos al organizador.
 
 «Mi agenda» muestra los eventos en su fecha y con su duración real, incluyendo
 continuaciones, finalizados y cancelados. Cambios de fecha/hora/lugar conservan
-la versión guardada hasta elegir Actualizar o Quitar. Las actividades personales
-anteriores mantienen sus reglas y su almacenamiento; no se migran a una cuenta.
+la versión guardada hasta elegir Actualizar o Quitar. La recuperación de
+actividades personales anteriores se describe en el incremento 013, abajo.
 
 Las migraciones `20261011200847_student_event_registration.sql` y
 `20261011200855_student_event_catalog.sql` agregan condiciones y la RPC autenticada
@@ -49,8 +49,8 @@ Intereses y catálogo se separan por UUID: SQLCipher/SecureStore en Android,
 eliminar la cuenta limpia su archivo, clave y cachés. La comprobación de cifrado,
 reinicio y eliminación en Android sigue pendiente: se necesita un development
 build con SQLCipher. La web solo se utiliza con datos sintéticos; cerrar la pestaña
-elimina su almacenamiento de sesión. La agenda personal heredada sigue sin tener
-propietario por cuenta y no recibe esa garantía con este incremento.
+elimina su almacenamiento de sesión. El almacén personal heredado carece de
+propietario verificable; el incremento 013 permite recuperarlo explícitamente.
 
 Para el recorrido local, preparar backend y fixtures con la guía de
 [administración](../admin-web/README.md), e iniciar su API. Desde la raíz:
@@ -68,6 +68,69 @@ El recorrido necesita Chromium de Playwright y las dependencias de `admin-web`;
 crea eventos sintéticos y los retira al terminar. No ejecutar simultáneamente
 suites que cambian las mismas cuentas. Evidencia, criterios y comprobaciones
 pendientes: [verificación 009](specs/009-student-events/verification.md).
+
+## Horarios por semestre y actividades locales (incremento 013)
+
+En Agenda, la tarjeta «Tu horario de clases» permite crear el horario o agregar
+clases directamente. El mismo formulario guarda el ramo y varios bloques con
+salas independientes; si es el primero, también permite nombrar el semestre.
+«Guardar clases» permanece visible y los cruces se revisan antes de confirmar.
+«Editar horario» abre la gestión detallada; las actividades personales tienen
+su acceso junto a las acciones del día y en Pendientes.
+
+En `/schedule` puedes crear semestres y elegir cuál alimenta la agenda y el
+inicio, conservando los anteriores. Cada ramo se escribe manualmente: solo su
+nombre es obligatorio. Sigla y sección son opcionales. Cada bloque semanal tiene
+su propio día, inicio, término, sala y docente; un mismo ramo puede usar salas
+distintas. Las clases usan la hora civil de Santiago y las fechas opcionales del
+semestre. Los cruces requieren confirmación y los duplicados se rechazan.
+
+El horario se guarda primero por cuenta en el dispositivo y se sincroniza con
+Supabase. Ante cambios concurrentes se comparan ambas versiones y se elige
+explícitamente cuál conservar. La migración
+`20261018175733_personal_semester_schedule.sql` está probada y aplicada **solo en
+local**; aplicarla en cloud requiere autorización separada. Si falta, la app
+informa la actualización pendiente y conserva los cambios locales.
+
+`/pendientes` gestiona pruebas, tareas y actividades personales **solo en este
+dispositivo**. Las pruebas y tareas nuevas usan el semestre activo y requieren un
+ramo de él. Las personales se crean generales, con ramo opcional o «Sin ramo».
+Cada actividad permite definir hora de inicio y término del mismo día; las antiguas
+sin término explícito conservan su duración de una hora. El intervalo se muestra
+en agenda, pendientes e inicio y se conserva al copiar o mover.
+El formulario no ofrece otros semestres; copiar o mover en lote sigue disponible
+en la gestión de actividades. Editar conserva el contexto histórico guardado.
+Cambiar el semestre activo, incluso de ida y vuelta, conserva todas las actividades,
+sus fechas y sus nombres de ramo; tampoco borra eventos institucionales. La agenda y el
+inicio muestran clases y pendientes reales, sin datos académicos de muestra.
+
+«Recuperar actividades anteriores» advierte que el origen no tiene propietario
+verificable antes de permitir seleccionar registros. No hay importación
+automática y el origen permanece intacto. Cerrar sesión conserva los datos
+propios; otra cuenta usa otro almacén. Eliminar cuenta bloquea reintentos y
+limpia su base/clave; la cascada de Auth elimina horarios y recibos remotos.
+Otro dispositivo desconectado solo detecta la eliminación al reconectar.
+
+Android usa SQLCipher/SecureStore; su recorrido real sigue pendiente en T020.
+La web usa `localStorage` por cuenta y Web Locks, sin acreditar cifrado ni
+persistencia nativa. Borrar los datos del navegador elimina actividades locales.
+Usar únicamente datos sintéticos hasta completar la verificación Android.
+
+Con el backend local preparado y la API disponible, ejecutar desde `DuocMind/`:
+
+```bash
+npm run typecheck
+npm test
+node --test tools/tests/*.test.mjs
+npm --prefix tools run test:backend
+STUDENT_PREVIEW_PORT=8091 npm --prefix tools run student:preview
+# Otra terminal, con Chromium de Playwright instalado en admin-web:
+npm --prefix tools run test:planner
+```
+
+`PLANNER_E2E_URL` permite otro origen loopback. El recorrido crea y elimina sus
+cuentas y eventos sintéticos. Evidencia y límites:
+[verificación 013](specs/013-semester-schedule/verification.md).
 
 ## APK release de pruebas en GitHub Actions
 

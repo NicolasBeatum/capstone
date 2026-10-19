@@ -24,13 +24,11 @@ import { WeekChart, type WeekDayData } from '@/shared/components/WeekChart';
 import { Reveal } from '@/shared/motion/Reveal';
 import { TutorialOverlay } from '@/shared/tutorial/components/TutorialOverlay';
 import { useTutorial } from '@/shared/tutorial/infrastructure/useTutorial';
-import { BellIcon, ClipboardIcon, SparkleIcon, TicketIcon, WindIcon } from '@/shared/components/Icons';
-import {
-  SAMPLE_CURRENT_CLASS,
-  SAMPLE_UPCOMING,
-  SAMPLE_WEEK_INSIGHT,
-  type UpcomingKind,
-} from '../domain/dashboardSample';
+import { BellIcon, ClipboardIcon, TicketIcon, WindIcon } from '@/shared/components/Icons';
+import { usePlanner, type PlannerModel } from '@/shared/planner/application/usePlanner';
+import { projectPlannerDashboard } from '@/shared/planner/application/plannerProjection';
+import { emptySchedule } from '@/shared/planner/domain/schedule';
+import type { ActivityKind } from '@/shared/planner/application/plannerStore';
 import { greetingName, studentInitials } from '../domain/studentName';
 import {
   fetchStudentDisplayName,
@@ -55,26 +53,31 @@ function formatToday(date: Date): string {
 
 const BADGE_STYLE = {
   exam: 'dateBadgeExam',
-  delivery: 'dateBadgeDelivery',
-  oral: 'dateBadgeOral',
-} as const satisfies Record<UpcomingKind, keyof typeof styles>;
+  task: 'dateBadgeDelivery',
+  personal: 'dateBadgeOral',
+} as const satisfies Record<ActivityKind, keyof typeof styles>;
 
 const BADGE_TEXT_STYLE = {
   exam: 'dateTextExam',
-  delivery: 'dateTextDelivery',
-  oral: 'dateTextOral',
-} as const satisfies Record<UpcomingKind, keyof typeof styles>;
+  task: 'dateTextDelivery',
+  personal: 'dateTextOral',
+} as const satisfies Record<ActivityKind, keyof typeof styles>;
 
 const NAME_TIMEOUT_MS = 5000;
 const SPINNER_DELAY_MS = 400;
 
 export default function DashboardScreen() {
+  const planner = usePlanner();
+  const session = planner.snapshot?.session;
+  return <DashboardScreenContent key={session ? `${session.userId}:${session.generation}` : 'signed-out'} planner={planner} />;
+}
+function DashboardScreenContent({planner}: {planner: PlannerModel}) {
   const router = useRouter();
   const { width, fontScale } = useWindowDimensions();
   // Los botones bajan a su propia fila solo si el saludo ya no cabe a su lado.
   const compactHeader = width < 340 || fontScale > 1.15;
-  const now = new Date();
-  const currentClass = SAMPLE_CURRENT_CLASS;
+  const now = planner.now;
+  const plannerView = projectPlannerDashboard(planner.snapshot?.document.working ?? emptySchedule(), planner.snapshot?.document.activities ?? [], now);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<MenuAnchor | null>(null);
@@ -334,51 +337,27 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
             <WeekChart data={weekData} todayIndex={todayWeekIndex(now)} />
-            <View style={styles.insightBox}>
-              <View style={styles.insightIcon}>
-                <SparkleIcon size={16} color="#d4912c" />
-              </View>
-              <View style={styles.insightTextBox}>
-                <Text style={styles.insightText}>
-                  <Text style={styles.insightStrong}>{SAMPLE_WEEK_INSIGHT.highlight}</Text>{' '}
-                  {SAMPLE_WEEK_INSIGHT.message}
-                </Text>
-              </View>
-            </View>
           </LiquidCard>
           </View>
         </Reveal>
 
-        {/* ── Clase en curso ── */}
+        {/* Clases reales del semestre activo. */}
         <Reveal index={2}>
           <View style={styles.classCard}>
-            <View style={styles.classTopRow}>
-              <View style={styles.classBadge}>
-                <View style={styles.classBadgeDot} />
-                <Text style={styles.classBadgeText}>En clase ahora</Text>
-              </View>
-              <Text style={styles.classRemaining}>Termina en {currentClass.minutesLeft} min</Text>
-            </View>
-            <Text style={styles.className}>{currentClass.name}</Text>
-            <Text style={styles.classMeta}>
-              {currentClass.time} · {currentClass.place} · {currentClass.teacher}
-            </Text>
-            <View
-              style={styles.progressTrack}
-              accessibilityRole="progressbar"
-              accessibilityValue={{ min: 0, max: 100, now: currentClass.progress }}
-            >
-              <View style={[styles.progressFill, { width: `${currentClass.progress}%` }]} />
-            </View>
-            <View style={styles.classBottomRow}>
-              <Text style={styles.classNext}>
-                Luego · <Text style={styles.classNextStrong}>{currentClass.next.name}</Text>{' '}
-                {currentClass.next.time}
-              </Text>
-              <TouchableOpacity activeOpacity={0.7}>
-                <Text style={styles.classLink}>Ver día →</Text>
-              </TouchableOpacity>
-            </View>
+            {planner.loading ? <GotaLoader text="Cargando tu horario…" /> : <>
+              <View style={styles.classTopRow}><View style={styles.classBadge}><Text style={styles.classBadgeText}>{plannerView.current.length > 1 ? 'Clases que se cruzan' : plannerView.current.length ? 'En clase ahora' : plannerView.emptyLabel}</Text></View></View>
+              {plannerView.current.map(occurrence => <View key={occurrence.id} style={{ marginBottom: 12 }}>
+                <Text style={styles.className}>{occurrence.subject.name}</Text>
+                <Text style={styles.classMeta}>{[`${occurrence.block.startsAt}–${occurrence.block.endsAt}`, occurrence.block.room, occurrence.block.teacher].filter(Boolean).join(' · ')}</Text>
+                <Text style={styles.classRemaining}>Termina en {occurrence.minutesLeft} min</Text>
+                <View style={styles.progressTrack} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(occurrence.progress) }}><View style={[styles.progressFill, { width: `${occurrence.progress}%` }]} /></View>
+              </View>)}
+              {plannerView.next && <><Text style={styles.className}>{plannerView.current.length ? `Luego · ${plannerView.next.subject.name}` : plannerView.next.subject.name}</Text><Text style={styles.classMeta}>{[`${plannerView.next.block.startsAt}–${plannerView.next.block.endsAt}`, plannerView.next.block.room, plannerView.next.block.teacher].filter(Boolean).join(' · ')}</Text></>}
+              {!plannerView.current.length && !plannerView.next && <Text style={styles.classMeta}>{plannerView.semester ? `Horario activo: ${plannerView.semester.name}` : 'Agrega tus semestres, ramos y bloques para verlos aquí.'}</Text>}
+              {planner.error && <Text style={styles.classMeta}>{planner.error}</Text>}
+              {planner.syncError && <Text style={styles.classMeta}>{planner.syncError}</Text>}
+              <View style={styles.classBottomRow}><ScalePress style={{ minHeight: 44, justifyContent: 'center' }} accessibilityRole="button" accessibilityLabel="Ver mi horario" onPress={() => router.push(plannerView.semester ? { pathname: '/agenda', params: { date: plannerView.date } } : '/schedule')}><Text style={styles.classLink}>{plannerView.semester ? 'Ver día →' : 'Configurar horario →'}</Text></ScalePress></View>
+            </>}
           </View>
         </Reveal>
 
@@ -386,12 +365,11 @@ export default function DashboardScreen() {
         <Reveal index={3}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Se viene</Text>
-            <TouchableOpacity activeOpacity={0.7}>
-              <Text style={styles.sectionLink}>Todo →</Text>
-            </TouchableOpacity>
+            <ScalePress style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => router.push('/pendientes')} accessibilityRole="button" accessibilityLabel="Ver todas mis actividades"><Text style={styles.sectionLink}>Todo →</Text></ScalePress>
           </View>
           <LiquidCard style={styles.upcomingCard}>
-            {SAMPLE_UPCOMING.map((item, index) => (
+            {!plannerView.upcoming.length && <Text style={styles.upcomingDetail}>{planner.loading ? 'Cargando actividades…' : 'No tienes actividades próximas en este dispositivo.'}</Text>}
+            {plannerView.upcoming.map((item, index) => (
               <View
                 key={item.id}
                 style={[styles.upcomingRow, index > 0 && styles.upcomingRowDivider]}
@@ -428,7 +406,7 @@ export default function DashboardScreen() {
             >
               <WindIcon size={26} color="#6b5aa8" />
               <Text style={styles.forYouTitleText}>Respira 3 min</Text>
-              <Text style={styles.forYouDesc}>Antes de tu prueba de mañana</Text>
+              <Text style={styles.forYouDesc}>Un momento para pausar y respirar</Text>
             </ScalePress>
           </View>
         </Reveal>

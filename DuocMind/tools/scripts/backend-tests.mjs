@@ -13,6 +13,8 @@ for (
     "event-types-migration",
     "event-types-schema",
     "event-types",
+    "planner-schedule",
+    "planner-migration",
     "event-types-api",
     "event-registration",
     "event-catalog",

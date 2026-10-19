@@ -50,13 +50,18 @@ El proyecto incluye además un **panel web de administración** para el equipo d
 | Módulo | Descripción |
 | --- | --- |
 | **Autenticación** | Registro, inicio de sesión y perfil de estudiante con Supabase Auth. Sesión guardada en almacenamiento seguro. |
-| **Dashboard** | Resumen semanal del ánimo, notificaciones y accesos rápidos. |
+| **Dashboard** | Resumen semanal del ánimo, clases reales del horario activo y próximos pendientes locales. |
 | **Check-in emocional** | Registro diario del ánimo general mediante una escala deslizable, con historial personal. |
 | **Test de estrés (PSS-10)** | Cuestionario de estrés percibido con niveles de resultado y restricción de frecuencia. |
-| **Agenda** | Registro de pruebas, tareas y actividades académicas, con almacenamiento local. |
+| **Agenda** | Horarios por semestre con ramos manuales y salas por bloque; pruebas, tareas y actividades locales con copia/traslado opcional. |
 | **Bienestar** | Recursos de bienestar incluidos en la app y recursos de crisis disponibles sin conexión. |
-| **Modo offline** | Los check-ins se guardan en una base SQLite cifrada con SQLCipher y se sincronizan cuando vuelve la conexión. |
+| **Modo offline** | Persistencia SQLCipher por cuenta para check-ins y horarios; la verificación nativa del horario sigue pendiente. |
 | **Eliminación de cuenta** | Borrado de datos locales y remotos mediante una Edge Function dedicada. |
+
+El [incremento 013](DuocMind/specs/013-semester-schedule/verification.md) está en
+verificación local: horario sincronizado con Supabase y actividades personales
+solo en el dispositivo. La nueva migración no se ha aplicado a cloud y falta
+validar el recorrido Android; consulta los [pasos locales](DuocMind/README.md).
 
 ### Panel de administración (`admin-web/`)
 
@@ -159,7 +164,7 @@ capstone/
 ├── DuocMind/                 # Aplicación móvil y backend Supabase
 │   ├── src/
 │   │   ├── app/              # Rutas de Expo Router: (auth) y (app)
-│   │   ├── features/         # agenda, auth, dashboard, emotional-checkin, home, pending, wellness
+│   │   ├── features/         # agenda, auth, dashboard, emotional-checkin, home, wellness
 │   │   └── shared/           # backend, components, motion, theme
 │   ├── supabase/
 │   │   ├── migrations/       # Esquema SQL versionado

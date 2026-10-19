@@ -11,6 +11,55 @@ Proyecto de desarrollo: `Duocmind` (`ashgvanzjeaeekpygqgy`). La migración crea 
 - Usa la clave publicable del proyecto. Nunca incluyas una clave `secret` o `service_role` en la app, un archivo `EXPO_PUBLIC_*`, un commit o una petición desde el navegador.
 - Los identificadores son `bigint` autogenerados. Omite la PK en los `POST`; pide `Prefer: return=representation` si necesitas el ID generado.
 
+El horario personal del incremento 013 usa UUID generados por el cliente; sus
+escrituras se realizan exclusivamente mediante RPC, según el contrato siguiente.
+
+## Horario personal por semestre
+
+Migración: `20261018175733_personal_semester_schedule.sql`, verificada y aplicada
+solo en local. Su aplicación cloud requiere autorización separada.
+`personal_schedule`, `schedule_semester`, `schedule_subject` y `schedule_block`
+permiten únicamente lectura propia autenticada mediante RLS. No admiten
+escrituras directas del cliente. El propietario siempre deriva de `auth.uid()`;
+la escritura exige además un perfil `estudiante` propio.
+
+| RPC autenticada | Entrada | Salida |
+| --- | --- | --- |
+| `load_personal_schedule` | `{}` | `{revision, document}`; revisión 0 y horario vacío antes de guardar |
+| `save_personal_schedule` | `{p_expected_revision, p_request_id, p_document}` | `{status:"applied", revision, requestId}` o `{status:"conflict", remote:{revision, document}}` |
+
+`p_request_id` es UUID. Se persiste con el contenido antes de enviar y se reutiliza
+sin cambios tras una respuesta incierta. Repetirlo con el mismo contenido devuelve
+el recibo original; reutilizarlo con otro contenido se rechaza. La revisión global
+se compara bajo bloqueo por propietario y toda la instantánea se guarda en una
+transacción. Un conflicto conserva ambas versiones para resolución explícita.
+
+`document` tiene únicamente estas claves y cada fila exige las claves indicadas:
+
+```ts
+{
+  schema: 1,
+  activeSemesterId: string | null,
+  semesters: [{ id, name, startsOn, endsOn }],
+  subjects: [{ id, semesterId, name, code, section }],
+  blocks: [{ id, subjectId, weekday, startsAt, endsAt, room, teacher }]
+}
+```
+
+IDs UUID, día ISO 1–7, horas `HH:mm`, fechas `AAAA-MM-DD`. Los opcionales se envían
+como `null`: fechas, sigla, sección, sala y docente. Límites: 50 semestres, 1000
+ramos, 10000 bloques y 2 MiB. Nombre de semestre 80 caracteres, ramo/sala 120,
+sigla/sección 40 y docente 160. El semestre activo es obligatorio cuando hay
+semestres y todas las referencias deben pertenecer al documento/cuenta.
+Se rechazan claves desconocidas, intervalos inválidos y duplicados de
+ramo/día/intervalo. No se permite quitar semestres ya sincronizados.
+
+El esquema `schedule_private` no se expone en la Data API; sus ayudantes tienen
+permisos limitados. No existe parámetro de propietario ni se aceptan actividades
+personales en el documento remoto. Las actividades, sus recibos de copia/traslado
+y huellas de recuperación permanecen en el dispositivo. Eliminar Auth borra por
+cascada horarios y recibos remotos.
+
 ## Crear una cuenta
 
 Supabase Auth administra las cuentas en `auth.users`; no se deben crear usuarios insertando filas por SQL. El endpoint de registro email/contraseña está disponible para consumir desde la app:
