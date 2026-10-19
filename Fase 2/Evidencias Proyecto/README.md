@@ -1,11 +1,11 @@
 # Evidencias del proyecto — Fase 2
 
-Esta carpeta reúne las evidencias de DuocMind. Los enlaces simbólicos `DuocMind` y `admin-web` apuntan a `../../DuocMind` y `../../admin-web`, respectivamente, para acceder al código sin mover ni duplicar las carpetas originales. Los enlaces de la tabla también permiten navegar directamente al código en GitHub.
+Esta carpeta reúne las evidencias de DuocMind. Las carpetas `DuocMind` y `admin-web` contienen un README con enlaces al código y su documentación. Estos accesos usan Markdown para navegar en GitHub o desde un visor local; los proyectos conservan su ubicación original.
 
 | Evidencia | Acceso |
 | --- | --- |
-| Aplicación Android DuocMind | [Código y documentación](../../DuocMind/) |
-| Panel administrativo admin-web | [Código y documentación](../../admin-web/) |
+| Aplicación Android DuocMind | [Acceso desde evidencias](DuocMind/README.md) · [Código](../../DuocMind/) |
+| Panel administrativo admin-web | [Acceso desde evidencias](admin-web/README.md) · [Código](../../admin-web/) |
 | Resumen de entrevista con psicólogo | [Leer resumen](Entrevistas/resumen_entrevista_psicologo.md) |
 | Transcripción identificada de la entrevista | [Leer transcripción](Entrevistas/transcripcion_entrevista_psicologo_identificada.md) |
 | Base de datos Supabase | [Exportación SQL, catálogo y alcance](Base%20de%20datos/README.md) |

@@ -5,7 +5,7 @@ Rama de trabajo: `dev`, sincronizada por fast-forward con `origin/dev`, revisió
 | Comprobación | Resultado |
 | --- | --- |
 | Entrevistas | Ambas copias coinciden byte a byte con los documentos originales aportados. |
-| Navegación | Enlaces relativos al código y a los documentos verificados desde su carpeta de origen. Enlaces simbólicos `DuocMind → ../../DuocMind` y `admin-web → ../../admin-web` resueltos a sus carpetas originales. |
+| Navegación | Los enlaces simbólicos, comprobados originalmente solo en el sistema local, se reemplazaron por carpetas con README y enlaces Markdown relativos. Los destinos de código y documentación se verificaron desde ambos README, sin mover los proyectos originales. |
 | Esquema remoto | 30 tablas de `public`, 3 de `private` y 1 de `schedule_private`; las 34 tienen RLS habilitado, confirmado mediante una segunda consulta de catálogo. |
 | SQL | 1190 sentencias aceptadas por el parser PostgreSQL de pglast 8.7. No se ejecutaron sobre la base de datos. |
 | Diagrama | Generado desde el mismo JSON mediante Graphviz WASM; PNG de 2952 × 3283 píxeles y SVG ampliable revisados visualmente. Contiene 34 tablas y 43 relaciones FK, más la referencia externa a `auth.users`. |
