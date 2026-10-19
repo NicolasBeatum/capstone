@@ -104,3 +104,12 @@ Autoriza commit, publicación de `feature/agenda-semestres` y PR hacia `dev`.
 No autoriza fusión ni migraciones o despliegues remotos. T020 sigue pendiente
 y se informa en el PR. Esta autorización sustituye el límite de trabajo
 exclusivamente local de la aprobación inicial para esta entrega.
+
+## Autorización de migración cloud — 2026-10-19
+
+Tras revisar el proyecto y la migración concreta, el usuario confirmó «si adelante»
+para aplicar `20261018175733_personal_semester_schedule.sql` en Duocmind cloud
+(`ashgvanzjeaeekpygqgy`) y verificar permisos/RPC. Esta autorización amplía el
+límite anterior exclusivamente para esa migración. No incluye copiar los datos
+locales, desplegar la aplicación ni cerrar T020. La evidencia se registra en
+`verification.md` y el PR #24 se actualiza con el estado real.

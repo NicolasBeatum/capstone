@@ -178,3 +178,40 @@ T001–T019 verificadas, incluidos los formularios por tipo e intervalos configu
 push de esta rama y PR hacia `dev`; la validación Android pendiente se informa
 en la entrega y no se considera completada por abrir el PR. La migración nueva solo se aplicó a Supabase local. No se ejecutaron
 migraciones, despliegues ni cambios de configuración cloud.
+
+## Migración cloud aplicada y verificada — 2026-10-19
+
+Autorización explícita del usuario para la migración del horario en Duocmind
+(`ashgvanzjeaeekpygqgy`). Antes de aplicarla se comprobaron ausencia de las tablas
+y RPC nuevas, perfil estudiante y extensión `pgcrypto` en `extensions`. Archivo
+`20261018175733_personal_semester_schedule.sql`, SHA-256
+`baf4c1f7fca03c996db46b1da36fa9ef2d26639278238efcd0b72b337e5bb53f`.
+Aplicación MCP correcta; historial alineado a la versión del archivo, sin tocar
+migraciones anteriores. Se crearon cuatro tablas públicas y recibos privados.
+RLS habilitado; lectura propia para authenticated, sin escritura directa ni
+acceso anon. RPC públicas SECURITY INVOKER; función privilegiada privada con
+search_path vacío y validación de propietario.
+
+`cloud-smoke.sql` pasó en cloud: guardado, lectura, dos salas independientes,
+idempotencia, conflicto, aislamiento entre dos propietarios y rechazo de
+escritura directa, recibos privados y acceso anónimo. Todo dentro de una
+transacción terminada en ROLLBACK; consulta posterior confirma cero cuentas y
+perfiles sintéticos residuales. No se copiaron horarios ni actividades locales.
+
+Advisors revisados: sin advertencias nuevas de seguridad. El INFO de RLS sin
+política para `schedule_private.schedule_request` es intencional: tabla privada
+sin permisos del cliente, usada por la función validada.
+[Referencia del linter](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy).
+La advertencia de protección contra contraseñas filtradas ya existía y no se
+cambió la configuración de Auth.
+[Referencia de Auth](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+Performance informa FKs por el orden de columnas en los índices; los índices
+compuestos y la PK por propietario existentes se conservan. No hay cambios
+adicionales de esquema derivados de esos avisos informativos.
+[Referencia del linter](https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys).
+
+Las dos RPC se comprobaron por HTTP con la clave pública: respuesta 401 y código
+42501 para anon, confirmando publicación y permisos.
+
+Esta sección sustituye el estado anterior de migración solo local. T020 sigue
+pendiente; no se desplegó el frontend ni se ejecutaron otras migraciones cloud.

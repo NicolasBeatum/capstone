@@ -464,3 +464,18 @@ medianoche existentes; las altas nuevas son intervalos del mismo día. Verificar
 reapertura, copia/traslado, límites exactos del estado y recorrido de interfaz.
 No cambia el contrato remoto ni añade dependencias. T019 permanece abierta hasta
 completar tipos, suite y regresiones de navegador.
+
+## Aplicación cloud autorizada — 2026-10-19
+
+El usuario autorizó expresamente la migración existente al proyecto Duocmind
+`ashgvanzjeaeekpygqgy`, tras confirmar que faltaban las tablas y RPC. Se aplicó
+el archivo aprobado sin cambiar su esquema ni copiar datos locales. MCP generó
+inicialmente la versión de ejecución `20261019032533`; se alineó únicamente esa
+entrada nueva a `20261018175733` para coincidir con el repositorio y la instalación
+local. No se modificaron entradas históricas anteriores.
+
+Verificación posterior: metadatos de tablas/permisos, advisors, prueba SQL con
+dos propietarios sintéticos y rollback completo, y publicación de las RPC HTTP
+con acceso anónimo rechazado. Reversión: conservar estas tablas aditivas y sus
+datos si se retira el cliente nuevo; no ejecutar borrados remotos. La validación
+Android T020 continúa pendiente.

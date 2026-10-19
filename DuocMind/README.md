@@ -88,8 +88,8 @@ semestre. Los cruces requieren confirmación y los duplicados se rechazan.
 El horario se guarda primero por cuenta en el dispositivo y se sincroniza con
 Supabase. Ante cambios concurrentes se comparan ambas versiones y se elige
 explícitamente cuál conservar. La migración
-`20261018175733_personal_semester_schedule.sql` está probada y aplicada **solo en
-local**; aplicarla en cloud requiere autorización separada. Si falta, la app
+`20261018175733_personal_semester_schedule.sql` está probada y aplicada en local
+y en **Duocmind cloud** desde el 2026-10-19, con autorización explícita. Si falta en otro entorno, la app
 informa la actualización pendiente y conserva los cambios locales.
 
 `/pendientes` gestiona pruebas, tareas y actividades personales **solo en este
