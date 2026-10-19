@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { fontFamily as font } from '@/shared/theme/typography';
 
@@ -33,7 +33,7 @@ export function AgendaWeekStrip({ title, days, selectedKey, todayKey, onSelect, 
           <Text style={styles.arrowText}>›</Text>
         </ScalePress>
       </View>
-      <View style={styles.row}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
         {days.map((day) => {
           const selected = day.key === selectedKey;
           const isToday = day.key === todayKey;
@@ -46,6 +46,7 @@ export function AgendaWeekStrip({ title, days, selectedKey, todayKey, onSelect, 
               accessibilityRole="button"
               accessibilityLabel={`${day.weekday} ${day.number}${isToday ? ', hoy' : ''}${day.busy ? ', con actividades' : ''}`}
               accessibilityState={{ selected }}
+              aria-pressed={selected}
             >
               <Text style={[styles.weekday, selected && styles.weekdaySelected, past && !selected && styles.muted]}>{day.weekday}</Text>
               <Text style={[styles.number, selected && styles.numberSelected, past && !selected && styles.muted]}>{day.number}</Text>
@@ -53,7 +54,7 @@ export function AgendaWeekStrip({ title, days, selectedKey, todayKey, onSelect, 
             </ScalePress>
           );
         })}
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -62,11 +63,11 @@ const NAVY = '#1a2b44';
 const styles = StyleSheet.create({
   card: { backgroundColor: '#fffaf0', borderRadius: 26, borderWidth: 1, borderColor: '#e6dfc9', padding: 10, gap: 6 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  arrow: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  arrow: { width: 44, height: 44, flexShrink: 0, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   arrowText: { color: NAVY, fontSize: 26, lineHeight: 30, fontFamily: font.bold },
-  title: { color: NAVY, fontSize: 15, fontFamily: font.extraBold },
-  row: { flexDirection: 'row', gap: 4 },
-  day: { flex: 1, minHeight: 74, borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  title: { flex: 1, textAlign: 'center', color: NAVY, fontSize: 15, fontFamily: font.extraBold },
+  row: { flexDirection: 'row', flexGrow: 1, gap: 4 },
+  day: { flex: 1, minWidth: 44, minHeight: 74, borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 2 },
   daySelected: { backgroundColor: NAVY },
   weekday: { color: '#8a8272', fontSize: 11, fontFamily: font.bold, letterSpacing: 0.6 },
   weekdaySelected: { color: '#f9dd85' },

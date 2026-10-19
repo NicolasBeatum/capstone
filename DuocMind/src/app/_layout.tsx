@@ -16,7 +16,7 @@ import {
 } from '@expo-google-fonts/inter';
 import { ScreenTransition } from '@/shared/motion/ScreenTransition';
 import { EventProvider } from '@/shared/events/infrastructure/EventProvider';
-import { AgendaProvider } from '@/features/agenda/infrastructure/AgendaProvider';
+import { PlannerProvider } from '@/shared/planner/infrastructure/PlannerProvider';
 import { ThemeProvider } from '@/shared/theme/theme';
 
 export default function RootLayout() {
@@ -38,7 +38,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <EventProvider>
-        <AgendaProvider>
+        <PlannerProvider>
           <Stack
             screenOptions={{ headerShown: false, animation: 'none' }}
             screenLayout={({ children, navigation }) => (
@@ -46,7 +46,7 @@ export default function RootLayout() {
             )}
           />
           <StatusBar style={isDark ? 'light' : 'dark'} />
-        </AgendaProvider>
+        </PlannerProvider>
       </EventProvider>
     </ThemeProvider>
   );

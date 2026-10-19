@@ -1,1 +1,1 @@
-export { default } from '@/features/pending/screens/PendingScreen';
+export { default } from '@/features/agenda/screens/PersonalActivitiesScreen';

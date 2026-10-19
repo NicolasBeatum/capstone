@@ -25,3 +25,9 @@ test('muestra continuaciones y eventos finalizados pero mantiene filtrado person
  assert.equal(composeAgendaItems([],[{...interest,event:long}],null,'2030-10-15',now).length,0);
  assert.throws(()=>composeAgendaItems([],[],null,'2030-02-30',now));
 });
+
+test('compone clases con intervalo real y conserva actividades del día de otros semestres',()=>{
+ const occurrence={id:'clase/2030-10-12',date:'2030-10-12',block:{startsAt:'08:30',endsAt:'10:00',room:'301'},state:'ended'};
+ const items=composeAgendaItems([{...activity,semesterId:'semestre-anterior'}],[interest],catalog,'2030-10-12',now,[occurrence]);
+ assert.deepEqual(items.map(i=>i.kind),['class','activity','event']);assert.equal(items[0].occurrence.block.endsAt,'10:00');assert.equal(items[1].activity.semesterId,'semestre-anterior');
+});
