@@ -1,0 +1,9 @@
+# Herramientas locales usadas para preparar las evidencias.
+/tools/evidence/
+/Fase 2/Evidencias Proyecto/Base de datos/generate_evidence.py
+
+# Dependencias, entornos y cachés de las herramientas.
+node_modules/
+.venv/
+__pycache__/
+*.pyc
