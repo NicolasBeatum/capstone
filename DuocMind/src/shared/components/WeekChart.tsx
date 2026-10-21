@@ -16,13 +16,17 @@ export interface WeekDayData {
   value: number | null;
 }
 
-/* Escala cálida alineada a la paleta de la app: terracota → arena → amarillo */
+/*
+ * Opción A de la decisión de diseño (paleta del gráfico semanal): verde que se desatura
+ * hacia un gris verdoso en los días difíciles. Sin rojo ni amarillo intenso; la altura
+ * de la barra sigue siendo el canal principal del dato.
+ */
 const MOOD_COLORS: Record<WeekMood, string> = {
-  'Muy mal': '#b45f43',
-  'Mal': '#d08053',
-  'Neutro': '#dfc08b',
-  'Bien': '#f0c95e',
-  'Muy bien': '#e5a92e',
+  'Muy mal': '#8c948f',
+  'Mal': '#86a394',
+  'Neutro': '#7db197',
+  'Bien': '#66b087',
+  'Muy bien': '#4ba578',
 };
 
 export const WEEK_MOODS: WeekMood[] = ['Muy mal', 'Mal', 'Neutro', 'Bien', 'Muy bien'];
