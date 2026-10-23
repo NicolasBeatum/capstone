@@ -1,16 +1,14 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { ScrollView, Text, View } from 'react-native';
 import { ScalePress } from '@/shared/components/ScalePress';
-import { ClipboardIcon, SparkleIcon } from '@/shared/components/Icons';
+import { CheckIcon } from '@/shared/components/Icons';
 import { styles } from '../screens/DailyTestScreen.styles';
 import type { ScaleOption, TestQuestion } from '../domain/types';
 import { getQuestionOptions } from '../domain/questionOptions';
+import { TestHeader } from './TestHeader';
 
 interface TestRunnerProps {
-  /** Etiqueta sobre la barra de progreso, ej. 'TEST DE ESTRÉS (PSS-10)' */
-  eyebrow: string;
-  /** Subtítulo del header con el nombre del instrumento */
+  /** Nombre del instrumento, mostrado en el encabezado */
   subtitle: string;
   questions: TestQuestion[];
   options: ScaleOption[];
@@ -19,29 +17,19 @@ interface TestRunnerProps {
   onComplete: (answers: Record<number, number>) => void;
 }
 
-export function TestRunner({ eyebrow, subtitle, questions, options, onAnswer, onComplete }: TestRunnerProps) {
-  const router = useRouter();
+/* Punto de la opción: crece con la frecuencia para que la escala se lea de un vistazo. */
+const DOT_MIN = 8;
+const DOT_GROWTH = 12;
+
+export function TestRunner({ subtitle, questions, options, onAnswer, onComplete }: TestRunnerProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
 
   const currentQuestion = questions[currentStep];
   const currentOptions = getQuestionOptions(currentQuestion, options);
-  const progress = useMemo(
-    () => ((currentStep + 1) / questions.length) * 100,
-    [currentStep, questions.length],
-  );
   const selectedAnswer = answers[currentQuestion.id];
   const isLastStep = currentStep === questions.length - 1;
-
-  /* La barra avanza con una transición suave en lugar de saltar de golpe */
-  const progressAnim = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(progressAnim, {
-      toValue: progress,
-      duration: 450,
-      useNativeDriver: false,
-    }).start();
-  }, [progress, progressAnim]);
+  const canContinue = selectedAnswer !== undefined;
 
   const handleSelect = (option: ScaleOption) => {
     setAnswers((prev) => ({ ...prev, [currentQuestion.id]: option.value }));
@@ -49,99 +37,98 @@ export function TestRunner({ eyebrow, subtitle, questions, options, onAnswer, on
   };
 
   const handleContinue = () => {
-    if (selectedAnswer === undefined) {
-      Alert.alert('Respuesta requerida', 'Selecciona una opción para continuar.');
-      return;
-    }
-
+    if (!canContinue) return;
     if (!isLastStep) {
       setCurrentStep((prev) => prev + 1);
       return;
     }
-
     onComplete(answers);
   };
 
   return (
     <>
-      <View style={styles.header}>
-        <View style={styles.headerIdentity}>
-          <View style={styles.headerAvatar}>
-            <Text style={styles.headerAvatarText}>CM</Text>
-          </View>
-          <View>
-            <Text style={styles.headerTitle}>Equilibrio Académico</Text>
-            <Text style={styles.headerSubtitle}>{subtitle}</Text>
-          </View>
-        </View>
-        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8}>
-          <Text style={styles.closeButton}>×</Text>
-        </TouchableOpacity>
-      </View>
+      <TestHeader title={subtitle} detail={`Pregunta ${currentStep + 1} de ${questions.length}`} />
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.panel}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressLabel}>{eyebrow}</Text>
-            <Text style={styles.progressValue}>
-              {currentStep + 1} / {questions.length}
-            </Text>
-          </View>
-
-          <View style={styles.progressBarTrack}>
-            <Animated.View
+        {/* Un segmento por pregunta: el test es una secuencia y se ve cuánto falta. */}
+        <View
+          style={styles.progressRow}
+          accessibilityRole="progressbar"
+          accessibilityLabel="Avance del test"
+          accessibilityValue={{ min: 1, max: questions.length, now: currentStep + 1 }}
+        >
+          {questions.map((question, index) => (
+            <View
+              key={question.id}
               style={[
-                styles.progressBarFill,
-                {
-                  width: progressAnim.interpolate({
-                    inputRange: [0, 100],
-                    outputRange: ['0%', '100%'],
-                  }),
-                },
+                styles.progressSegment,
+                index < currentStep && styles.progressSegmentDone,
+                index === currentStep && styles.progressSegmentCurrent,
               ]}
             />
-          </View>
+          ))}
+        </View>
 
-          <View style={styles.questionRow}>
-            <View style={styles.questionWrap}>
-              <Text style={styles.questionText}>{currentQuestion.title}</Text>
-              {currentQuestion.helper ? (
-                <Text style={styles.helperText}>{currentQuestion.helper}</Text>
-              ) : null}
-            </View>
-            <View style={styles.questionIllustration}>
-              <SparkleIcon size={10} />
-              <ClipboardIcon size={42} />
-              <SparkleIcon size={8} color="#e8a93c" />
-            </View>
-          </View>
+        <Text style={styles.questionText}>{currentQuestion.title}</Text>
+        {currentQuestion.helper ? (
+          <Text style={styles.helperText}>{currentQuestion.helper}</Text>
+        ) : null}
 
-          <View style={styles.optionsList}>
-            {currentOptions.map((option) => {
-              const isSelected = selectedAnswer === option.value;
+        <View style={styles.optionsList}>
+          {currentOptions.map((option, index) => {
+            const isSelected = selectedAnswer === option.value;
+            const dot =
+              DOT_MIN + (currentOptions.length > 1 ? (index * DOT_GROWTH) / (currentOptions.length - 1) : 0);
 
-              return (
-                <ScalePress
-                  key={option.label}
-                  style={[styles.optionButton, isSelected && styles.optionButtonSelected]}
-                  onPress={() => handleSelect(option)}
-                  accessibilityRole="button"
-                  accessibilityLabel={option.label}
-                  accessibilityState={{ selected: isSelected }}
-                >
-                  <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
-                    {option.label}
-                  </Text>
-                  <View style={[styles.selector, isSelected && styles.selectorSelected]}>
-                    {isSelected && <View style={styles.selectorInner} />}
-                  </View>
-                </ScalePress>
-              );
-            })}
-          </View>
+            return (
+              <ScalePress
+                key={option.label}
+                style={[styles.optionButton, isSelected && styles.optionButtonSelected]}
+                onPress={() => handleSelect(option)}
+                accessibilityRole="radio"
+                accessibilityLabel={option.label}
+                accessibilityState={{ checked: isSelected }}
+              >
+                <View style={styles.optionDotSlot}>
+                  <View
+                    style={[
+                      styles.optionDot,
+                      { width: dot, height: dot, borderRadius: dot / 2 },
+                      isSelected && styles.optionDotSelected,
+                    ]}
+                  />
+                </View>
+                <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                  {option.label}
+                </Text>
+                {isSelected ? <CheckIcon size={16} color="#2b6b50" /> : null}
+              </ScalePress>
+            );
+          })}
+        </View>
 
-          <ScalePress style={styles.primaryButton} onPress={handleContinue}>
-            <Text style={styles.primaryButtonText}>{isLastStep ? 'Finalizar' : 'Siguiente'} →</Text>
+        <View style={styles.actionsRow}>
+          {currentStep > 0 ? (
+            <ScalePress
+              style={styles.backButton}
+              onPress={() => setCurrentStep((prev) => prev - 1)}
+              accessibilityRole="button"
+              accessibilityLabel="Pregunta anterior"
+            >
+              <Text style={styles.backButtonText}>Anterior</Text>
+            </ScalePress>
+          ) : null}
+          <ScalePress
+            style={[styles.primaryButton, styles.primaryButtonFlex, !canContinue && styles.primaryButtonDisabled]}
+            onPress={handleContinue}
+            disabled={!canContinue}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !canContinue }}
+            accessibilityHint={canContinue ? undefined : 'Elige una opción para continuar'}
+          >
+            <Text style={[styles.primaryButtonText, !canContinue && styles.primaryButtonTextDisabled]}>
+              {isLastStep ? 'Finalizar' : 'Siguiente'}
+            </Text>
           </ScalePress>
         </View>
       </ScrollView>

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { BottomNav } from '@/shared/components/BottomNav';
+import { LiquidBackground } from '@/shared/components/Glass';
 import { GotaLoader } from '@/shared/components/GotaLoader';
+import { ScalePress } from '@/shared/components/ScalePress';
 import { styles } from './DailyTestScreen.styles';
 import { TestOffer } from '../components/TestOffer';
 import { TestRunner } from '../components/TestRunner';
@@ -89,12 +91,9 @@ export default function DailyTestScreen() {
   if (loading) {
     return (
       <View style={styles.safeArea}>
-        <View style={styles.container}>
-          <View style={[styles.panel, { alignItems: 'center', paddingVertical: 40 }]}>
-            <GotaLoader style={{ marginBottom: 16 }} />
-            <Text style={styles.questionText}>Cargando Test Estrés Percibido...</Text>
-            <Text style={styles.helperText}>Obteniendo preguntas desde Supabase</Text>
-          </View>
+        <LiquidBackground />
+        <View style={styles.stateBox}>
+          <GotaLoader text="Preparando tu test…" />
         </View>
         <BottomNav currentTab="checkin" />
       </View>
@@ -104,17 +103,14 @@ export default function DailyTestScreen() {
   if (error || !instrument) {
     return (
       <View style={styles.safeArea}>
-        <View style={styles.container}>
-          <View style={[styles.panel, { alignItems: 'center', paddingVertical: 32 }]}>
-            <Text style={[styles.questionText, { textAlign: 'center', marginBottom: 8 }]}>
-              No pudimos cargar el test
-            </Text>
-            <Text style={[styles.helperText, { textAlign: 'center', marginBottom: 20 }]}>
-              {error ?? 'No se encontró el test.'}
-            </Text>
-            <TouchableOpacity style={styles.primaryButton} onPress={loadTest} activeOpacity={0.8}>
+        <LiquidBackground />
+        <View style={styles.stateBox}>
+          <View style={styles.resultCard}>
+            <Text style={styles.resultTitle}>No pudimos cargar el test</Text>
+            <Text style={styles.resultMessage}>{error ?? 'No se encontró el test.'}</Text>
+            <ScalePress style={[styles.primaryButton, styles.primaryButtonBlock]} onPress={loadTest} accessibilityRole="button">
               <Text style={styles.primaryButtonText}>Reintentar</Text>
-            </TouchableOpacity>
+            </ScalePress>
           </View>
         </View>
         <BottomNav currentTab="checkin" />
@@ -124,10 +120,11 @@ export default function DailyTestScreen() {
 
   return (
     <View style={styles.safeArea}>
+      <LiquidBackground />
       {finished ? (
         <TestOffer
           title="Gracias por responder"
-          subtitle="Registro de hoy"
+          subtitle={instrument.name}
           description={
             saveError
               ? `No pudimos guardar tu resultado: ${saveError}`
@@ -139,7 +136,6 @@ export default function DailyTestScreen() {
       ) : (
         <TestRunner
           key={instrument.id}
-          eyebrow={instrument.eyebrow}
           subtitle={instrument.name}
           questions={instrument.questions}
           options={instrument.options}
