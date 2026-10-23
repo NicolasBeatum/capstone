@@ -726,15 +726,16 @@ try {
     'Agenda con clases, salas, actividad y evento; cambiar semestre conserva actividades/eventos: correcto.',
   );
   await page.goto(origin + '/dashboard');
-  await page.getByText('Hoy no tienes clases', { exact: true }).filter({
-    visible: true,
-  }).waitFor({
-    timeout: 60000,
-  });
   await page.getByText('Evaluación local', { exact: true }).filter({
     visible: true,
   }).first()
-    .waitFor();
+    .waitFor({
+      timeout: 60000,
+    });
+  assert.equal(
+    await page.getByText('Hoy no tienes clases', { exact: true }).count(),
+    0,
+  );
   assert.equal(
     await page.getByText('Base de Datos', { exact: true }).count(),
     0,

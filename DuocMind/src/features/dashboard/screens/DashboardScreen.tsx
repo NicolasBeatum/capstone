@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useFocusEffect, useIsFocused, useLocalSearchParams, useRouter } from 'expo-router';
 import {
   daysSinceApplication,
@@ -28,7 +28,7 @@ import { BellIcon, ClipboardIcon, TicketIcon, WindIcon } from '@/shared/componen
 import { usePlanner, type PlannerModel } from '@/shared/planner/application/usePlanner';
 import { projectPlannerDashboard } from '@/shared/planner/application/plannerProjection';
 import { emptySchedule } from '@/shared/planner/domain/schedule';
-import type { ActivityKind } from '@/shared/planner/application/plannerStore';
+import { ACTIVITY_LABELS, type ActivityKind } from '@/shared/planner/application/plannerStore';
 import { greetingName, studentInitials } from '../domain/studentName';
 import {
   fetchStudentDisplayName,
@@ -36,10 +36,10 @@ import {
 } from '../infrastructure/studentProfileRepository';
 import { styles } from './DashboardScreen.styles';
 
-const WEEKDAYS = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+const WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 const MONTHS = [
-  'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
-  'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE',
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
 ];
 
 /* Lunes = 0 ... domingo = 6, igual que las columnas del gráfico semanal */
@@ -47,21 +47,39 @@ function todayWeekIndex(date: Date): number {
   return (date.getDay() + 6) % 7;
 }
 
-function formatToday(date: Date): string {
-  return `${WEEKDAYS[date.getDay()]} ${date.getDate()} DE ${MONTHS[date.getMonth()]}`;
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
 }
 
-const BADGE_STYLE = {
-  exam: 'dateBadgeExam',
-  task: 'dateBadgeDelivery',
-  personal: 'dateBadgeOral',
+function formatToday(date: Date): string {
+  return `${capitalize(WEEKDAYS[date.getDay()])} ${date.getDate()} de ${MONTHS[date.getMonth()]}`;
+}
+
+/* Un solo color por tipo: la franja lateral y la etiqueta comparten tono. */
+const KIND_RAIL_STYLE = {
+  exam: 'railExam',
+  task: 'railTask',
+  personal: 'railPersonal',
 } as const satisfies Record<ActivityKind, keyof typeof styles>;
 
-const BADGE_TEXT_STYLE = {
-  exam: 'dateTextExam',
-  task: 'dateTextDelivery',
-  personal: 'dateTextOral',
+const KIND_TEXT_STYLE = {
+  exam: 'kindTextExam',
+  task: 'kindTextTask',
+  personal: 'kindTextPersonal',
 } as const satisfies Record<ActivityKind, keyof typeof styles>;
+
+type UpcomingItem = ReturnType<typeof projectPlannerDashboard>['upcoming'][number];
+
+/* La lista llega ordenada por fecha: basta con agrupar elementos consecutivos del mismo día. */
+function groupByDate(items: UpcomingItem[]): { date: string; items: UpcomingItem[] }[] {
+  const groups: { date: string; items: UpcomingItem[] }[] = [];
+  for (const item of items) {
+    const last = groups[groups.length - 1];
+    if (last?.date === item.date) last.items.push(item);
+    else groups.push({ date: item.date, items: [item] });
+  }
+  return groups;
+}
 
 const NAME_TIMEOUT_MS = 5000;
 const SPINNER_DELAY_MS = 400;
@@ -267,6 +285,8 @@ function DashboardScreenContent({planner}: {planner: PlannerModel}) {
   return (
     <View ref={rootRef} style={styles.safeArea}>
       <LiquidBackground />
+      {/* El contenedor termina donde empieza la barra inferior: la burbuja de ayuda se ancla a su borde. */}
+      <View style={styles.content}>
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={styles.scrollContent}
@@ -332,17 +352,14 @@ function DashboardScreenContent({planner}: {planner: PlannerModel}) {
           <LiquidCard style={styles.weekCard}>
             <View style={styles.weekCardHeader}>
               <Text style={styles.weekCardTitle}>Vistazo de tu semana</Text>
-              <TouchableOpacity activeOpacity={0.7}>
-                <Text style={styles.weekCardLink}>Ver detalle →</Text>
-              </TouchableOpacity>
             </View>
             <WeekChart data={weekData} todayIndex={todayWeekIndex(now)} />
           </LiquidCard>
           </View>
         </Reveal>
 
-        {/* Clases reales del semestre activo. */}
-        <Reveal index={2}>
+        {/* Clases reales del semestre activo; sin clase en curso ni próxima, la tarjeta no aporta y se oculta. */}
+        {(planner.loading || !plannerView.semester || plannerView.current.length > 0 || plannerView.next || planner.error || planner.syncError) && <Reveal index={2}>
           <View style={styles.classCard}>
             {planner.loading ? <GotaLoader text="Cargando tu horario…" /> : <>
               <View style={styles.classTopRow}><View style={styles.classBadge}><Text style={styles.classBadgeText}>{plannerView.current.length > 1 ? 'Clases que se cruzan' : plannerView.current.length ? 'En clase ahora' : plannerView.emptyLabel}</Text></View></View>
@@ -356,83 +373,108 @@ function DashboardScreenContent({planner}: {planner: PlannerModel}) {
               {!plannerView.current.length && !plannerView.next && <Text style={styles.classMeta}>{plannerView.semester ? `Horario activo: ${plannerView.semester.name}` : 'Agrega tus semestres, ramos y bloques para verlos aquí.'}</Text>}
               {planner.error && <Text style={styles.classMeta}>{planner.error}</Text>}
               {planner.syncError && <Text style={styles.classMeta}>{planner.syncError}</Text>}
-              <View style={styles.classBottomRow}><ScalePress style={{ minHeight: 44, justifyContent: 'center' }} accessibilityRole="button" accessibilityLabel="Ver mi horario" onPress={() => router.push(plannerView.semester ? { pathname: '/agenda', params: { date: plannerView.date } } : '/schedule')}><Text style={styles.classLink}>{plannerView.semester ? 'Ver día →' : 'Configurar horario →'}</Text></ScalePress></View>
+              <View style={styles.classBottomRow}><ScalePress style={{ minHeight: 44, justifyContent: 'center' }} accessibilityRole="button" accessibilityLabel="Ver mi horario" onPress={() => router.push(plannerView.semester ? { pathname: '/agenda', params: { date: plannerView.date } } : '/schedule')}><Text style={styles.classLink}>{plannerView.semester ? 'Ver día' : 'Configurar horario'}</Text></ScalePress></View>
             </>}
           </View>
-        </Reveal>
+        </Reveal>}
 
-        {/* ── Se viene ── */}
+        {/* ── Se viene: línea de tiempo agrupada por día; el día se nombra una vez por grupo ── */}
         <Reveal index={3}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Se viene</Text>
-            <ScalePress style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => router.push('/pendientes')} accessibilityRole="button" accessibilityLabel="Ver todas mis actividades"><Text style={styles.sectionLink}>Todo →</Text></ScalePress>
+            <ScalePress style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => router.push('/pendientes')} accessibilityRole="button" accessibilityLabel="Ver todas mis actividades"><Text style={styles.sectionLink}>Ver todo</Text></ScalePress>
           </View>
           <LiquidCard style={styles.upcomingCard}>
-            {!plannerView.upcoming.length && <Text style={styles.upcomingDetail}>{planner.loading ? 'Cargando actividades…' : 'No tienes actividades próximas en este dispositivo.'}</Text>}
-            {plannerView.upcoming.map((item, index) => (
-              <View
-                key={item.id}
-                style={[styles.upcomingRow, index > 0 && styles.upcomingRowDivider]}
-              >
-                <View style={[styles.dateBadge, styles[BADGE_STYLE[item.kind]]]}>
-                  <Text style={[styles.dateWeekday, styles[BADGE_TEXT_STYLE[item.kind]]]}>
-                    {item.weekday}
-                  </Text>
-                  <Text style={[styles.dateDay, styles[BADGE_TEXT_STYLE[item.kind]]]}>{item.day}</Text>
+            {!plannerView.upcoming.length && <Text style={styles.upcomingEmpty}>{planner.loading ? 'Cargando actividades…' : 'Sin pruebas, tareas ni actividades en los próximos días.'}</Text>}
+            {groupByDate(plannerView.upcoming).map((group, groupIndex) => {
+              const first = group.items[0];
+              return (
+                <View key={group.date} style={groupIndex > 0 && styles.dayGroupSpaced}>
+                  <View style={styles.dayHeader}>
+                    <Text style={[styles.dayWhen, first.urgent && styles.dayWhenUrgent]}>{first.when}</Text>
+                    <Text style={styles.dayDate}>{`${capitalize(first.weekday)} ${first.day}`}</Text>
+                  </View>
+                  {group.items.map(item => (
+                    <ScalePress
+                      key={item.id}
+                      style={styles.eventRow}
+                      onPress={() => router.push({ pathname: '/agenda', params: { date: item.date } })}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${ACTIVITY_LABELS[item.kind]}: ${item.title}, ${item.when}, ${item.detail}`}
+                      accessibilityHint="Abre ese día en la agenda"
+                    >
+                      <View style={[styles.eventRail, styles[KIND_RAIL_STYLE[item.kind]]]} />
+                      <View style={styles.eventBody}>
+                        <Text style={styles.eventTitle} numberOfLines={2}>{item.title}</Text>
+                        <View style={styles.eventMetaRow}>
+                          <Text style={[styles.eventKind, styles[KIND_TEXT_STYLE[item.kind]]]}>{ACTIVITY_LABELS[item.kind]}</Text>
+                          <Text style={styles.eventDetail} numberOfLines={1}>{item.detail}</Text>
+                        </View>
+                      </View>
+                    </ScalePress>
+                  ))}
                 </View>
-                <View style={styles.upcomingText}>
-                  <Text style={styles.upcomingTitle}>{item.title}</Text>
-                  <Text style={styles.upcomingDetail}>{item.detail}</Text>
-                </View>
-                <View style={[styles.whenChip, item.urgent ? styles.whenChipUrgent : styles.whenChipCalm]}>
-                  <Text style={[styles.whenText, item.urgent ? styles.whenTextUrgent : styles.whenTextCalm]}>
-                    {item.when}
-                  </Text>
-                </View>
-              </View>
-            ))}
+              );
+            })}
           </LiquidCard>
         </Reveal>
 
         {/* ── Para ti hoy ── */}
         <Reveal index={4}>
           <Text style={[styles.sectionTitle, styles.forYouTitle]}>Para ti hoy</Text>
-          <View style={styles.forYouRow}>
-            <ScalePress
-              style={[styles.forYouTile, styles.forYouBreathe]}
-              onPress={() => router.push('/wellness')}
-              accessibilityRole="button"
-              accessibilityLabel="Respira 3 minutos"
-            >
-              <WindIcon size={26} color="#6b5aa8" />
+          <ScalePress
+            style={styles.forYouTile}
+            onPress={() => router.push('/wellness')}
+            accessibilityRole="button"
+            accessibilityLabel="Respira 3 minutos"
+          >
+            <View style={styles.forYouIcon}>
+              <WindIcon size={24} color="#6b5aa8" />
+            </View>
+            <View style={styles.forYouText}>
               <Text style={styles.forYouTitleText}>Respira 3 min</Text>
               <Text style={styles.forYouDesc}>Un momento para pausar y respirar</Text>
-            </ScalePress>
-          </View>
+            </View>
+          </ScalePress>
         </Reveal>
 
         <Reveal index={5}>
-          <TouchableOpacity
+          <ScalePress
             onPress={() => router.push('/wellness/crisis-resources')}
-            activeOpacity={0.7}
             accessibilityRole="button"
-            style={styles.supportLink}
+            accessibilityLabel="¿Necesitas hablar con alguien? Ver recursos de apoyo"
+            style={styles.supportCard}
           >
-            <Text style={styles.supportLinkText}>¿Necesitas hablar con alguien? Ver recursos de apoyo →</Text>
-          </TouchableOpacity>
+            {/* Dos voces que se cruzan: habla de conversación, sin íconos de alarma. */}
+            <View style={styles.supportMark} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+              <View style={[styles.supportVoice, styles.supportVoiceA]} />
+              <View style={[styles.supportVoice, styles.supportVoiceB]} />
+            </View>
+            <View style={styles.supportText}>
+              <Text style={styles.supportTitle}>¿Necesitas hablar con alguien?</Text>
+              <Text style={styles.supportBody}>Hay líneas confidenciales que atienden las 24 horas, todos los días.</Text>
+              <View style={styles.supportAction}>
+                <Text style={styles.supportActionText}>Ver recursos de apoyo</Text>
+              </View>
+            </View>
+          </ScalePress>
         </Reveal>
+      </ScrollView>
 
-        <Reveal index={6}>
+      {/* Ayuda siempre a mano, sobre la barra inferior; se oculta mientras corre el recorrido. */}
+      {tutorial.visible || introVisible ? null : (
+        <View style={styles.helpAnchor} pointerEvents="box-none">
           <ScalePress
             onPress={handleStartTutorial}
             accessibilityRole="button"
             accessibilityLabel="Ver tutorial de la app"
-            style={styles.tutorialLink}
+            style={styles.helpBubble}
           >
-            <Text style={styles.supportLinkText}>Ver tutorial de la app</Text>
+            <Text style={styles.helpBubbleText}>?</Text>
           </ScalePress>
-        </Reveal>
-      </ScrollView>
+        </View>
+      )}
+      </View>
 
       <BottomNav
         currentTab="home"
