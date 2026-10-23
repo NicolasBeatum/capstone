@@ -13,9 +13,11 @@ interface GotaLoaderProps {
   style?: StyleProp<ViewStyle>;
 }
 
-// Azul marino de la app: el amarillo no contrastaba con los fondos crema.
-const COLOR = '#1a2b44';
-const HALO = 'rgba(26, 43, 68, 0.16)';
+/* Salvia profunda: el amarillo no contrastaba con el crema y el azul marino se sentía
+ * brusco junto a los pasteles. Este verde mantiene más de 3:1 sobre crema y sobre el
+ * azul marino de la tarjeta de clases, y pertenece a la misma familia que el gráfico. */
+const COLOR = '#468a6c';
+const HALO = 'rgba(70, 138, 108, 0.18)';
 const TEXT_COLOR = '#8a8272';
 const SIZES: Record<GotaLoaderSize, number> = { sm: 48, md: 96, lg: 140 };
 /** Medidas de referencia a 96 px; el resto se escala con el tamaño. */
