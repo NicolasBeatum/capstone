@@ -25,6 +25,17 @@ import {
   registerAccount,
 } from '@/features/auth/application/authentication';
 import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
+import { GotaLoader } from '@/shared/components/GotaLoader';
+import { ConsentCheckbox } from '../components/ConsentCheckbox';
+import { SelectField } from '../components/SelectField';
+import { useRegistrationCatalog } from '../application/useRegistrationCatalog';
+import {
+  campusOptions,
+  careerOptions,
+  semesterOptions,
+  validateAcademicSelection,
+} from '../domain/registration';
+import { openPrivacyPolicy } from '../infrastructure/privacyPolicyDocument';
 import { styles } from './authForm.styles';
 
 export default function RegisterScreen() {
@@ -33,8 +44,15 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [campusId, setCampusId] = useState<string | null>(null);
+  const [careerId, setCareerId] = useState<string | null>(null);
+  const [semester, setSemester] = useState<number | null>(null);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  // Consentimientos opcionales: por ahora solo viven en la pantalla, sin guardarse.
+  const [shareAnonymousData, setShareAnonymousData] = useState(false);
+  const [allowEmergencyContact, setAllowEmergencyContact] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const catalog = useRegistrationCatalog();
   const [feedback, setFeedback] = useState<{ message: string; tone: 'error' | 'success' } | null>(null);
   const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
 
@@ -67,6 +85,11 @@ export default function RegisterScreen() {
       setFeedback({ tone: 'error', message: 'Usa al menos 8 caracteres, un número, una mayúscula y un símbolo.' });
       return;
     }
+    const selectionError = validateAcademicSelection({ campusId, careerId, semester }, catalog.careers);
+    if (selectionError) {
+      setFeedback({ tone: 'error', message: selectionError });
+      return;
+    }
     if (!acceptTerms) {
       setFeedback({ tone: 'error', message: 'Acepta los términos y la política de privacidad para crear la cuenta.' });
       return;
@@ -88,6 +111,14 @@ export default function RegisterScreen() {
       setFeedback({ tone: 'error', message: getAuthenticationErrorMessage(error) });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenPolicy = async () => {
+    try {
+      await openPrivacyPolicy();
+    } catch {
+      setFeedback({ tone: 'error', message: 'No pudimos abrir el documento de consentimientos. Inténtalo de nuevo.' });
     }
   };
 
@@ -228,6 +259,55 @@ export default function RegisterScreen() {
               </View>
             </View>
 
+            {/* Sede, carrera y semestre */}
+            {catalog.loading ? (
+              <GotaLoader size="sm" text="Cargando sedes y carreras…" style={styles.inputGroup} />
+            ) : catalog.failed ? (
+              <View style={styles.inputGroup}>
+                <Text accessibilityLiveRegion="polite" style={styles.feedbackError}>
+                  No pudimos cargar las sedes y carreras. Revisa tu conexión e inténtalo de nuevo.
+                </Text>
+                <TouchableOpacity
+                  style={styles.confirmationLoginButton}
+                  onPress={catalog.reload}
+                  accessibilityRole="button"
+                  accessibilityLabel="Reintentar la carga de sedes y carreras"
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.confirmationLoginText}>Reintentar</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                <SelectField
+                  label="Sede"
+                  placeholder="Elige tu sede"
+                  options={campusOptions(catalog.campuses)}
+                  value={campusId}
+                  onChange={(key) => {
+                    setCampusId(key);
+                    setCareerId(null);
+                  }}
+                />
+                <SelectField
+                  label="Carrera"
+                  placeholder="Elige tu carrera"
+                  options={careerOptions(catalog.careers, campusId)}
+                  value={careerId}
+                  onChange={setCareerId}
+                  disabled={!campusId}
+                  hint={campusId ? undefined : 'Primero elige tu sede.'}
+                />
+                <SelectField
+                  label="Semestre"
+                  placeholder="Elige tu semestre"
+                  options={semesterOptions()}
+                  value={semester === null ? null : String(semester)}
+                  onChange={(key) => setSemester(Number(key))}
+                />
+              </>
+            )}
+
             {/* Términos */}
             <TouchableOpacity
               style={styles.termsRow}
@@ -243,6 +323,32 @@ export default function RegisterScreen() {
                 Acepto los términos de servicio y las políticas de privacidad de Equilibrio Académico.
               </Text>
             </TouchableOpacity>
+
+            {/* Consentimientos opcionales de privacidad */}
+            <ConsentCheckbox
+              checked={shareAnonymousData}
+              onToggle={() => setShareAnonymousData(!shareAnonymousData)}
+              accessibilityLabel="Consentimiento opcional: compartir mis datos de forma anónima"
+            >
+              Acepto entregar mis datos de forma anónima para generar información no personal sobre
+              el nivel de estrés por carrera y semestre. (Opcional){' '}
+              <Text
+                style={styles.footerLink}
+                onPress={handleOpenPolicy}
+                accessibilityRole="link"
+                accessibilityLabel="Leer los consentimientos en detalle"
+              >
+                Leer los consentimientos
+              </Text>
+            </ConsentCheckbox>
+            <ConsentCheckbox
+              checked={allowEmergencyContact}
+              onToggle={() => setAllowEmergencyContact(!allowEmergencyContact)}
+              accessibilityLabel="Consentimiento opcional: contacto en caso de emergencia"
+            >
+              Autorizo que me contacten con los datos que registré en caso de emergencia, por
+              niveles de estrés peligrosos. (Opcional)
+            </ConsentCheckbox>
 
             {/* Crear cuenta */}
             <AuthActionButton
