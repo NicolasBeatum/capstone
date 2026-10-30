@@ -493,6 +493,10 @@ function DashboardScreenContent({planner}: {planner: PlannerModel}) {
         signingOut={signingOut}
         onClose={() => setProfileMenuOpen(false)}
         onSignOut={handleSignOut}
+        onOpenSettings={() => {
+          setProfileMenuOpen(false);
+          router.push('/settings');
+        }}
       />
       <TutorialOverlay
         visible={tutorial.visible && isFocused}

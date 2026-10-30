@@ -35,7 +35,10 @@ import {
   semesterOptions,
   validateAcademicSelection,
 } from '../domain/registration';
-import { openPrivacyPolicy } from '../infrastructure/privacyPolicyDocument';
+import { CONSENT_TEXT } from '@/shared/consents/domain/consents';
+import { consentStore } from '@/shared/consents/infrastructure/consentStorage';
+import { openPrivacyPolicy } from '@/shared/consents/infrastructure/privacyPolicyDocument';
+import { rememberRegistrationConsents } from '../application/registrationConsents';
 import { styles } from './authForm.styles';
 
 export default function RegisterScreen() {
@@ -98,6 +101,8 @@ export default function RegisterScreen() {
     setIsSubmitting(true);
     try {
       const destination = await registerAccount(email, password, supabaseAuthGateway);
+      // Lo elegido se conserva en el dispositivo hasta que la persona complete su perfil.
+      await rememberRegistrationConsents(consentStore, { shareAnonymousData, allowEmergencyContact });
       if (destination === 'profile') {
         router.replace('/profile');
       } else {
@@ -330,8 +335,7 @@ export default function RegisterScreen() {
               onToggle={() => setShareAnonymousData(!shareAnonymousData)}
               accessibilityLabel="Consentimiento opcional: compartir mis datos de forma anónima"
             >
-              Acepto entregar mis datos de forma anónima para generar información no personal sobre
-              el nivel de estrés por carrera y semestre. (Opcional){' '}
+              {CONSENT_TEXT.shareAnonymousData} (Opcional){' '}
               <Text
                 style={styles.footerLink}
                 onPress={handleOpenPolicy}
@@ -346,8 +350,7 @@ export default function RegisterScreen() {
               onToggle={() => setAllowEmergencyContact(!allowEmergencyContact)}
               accessibilityLabel="Consentimiento opcional: contacto en caso de emergencia"
             >
-              Autorizo que me contacten con los datos que registré en caso de emergencia, por
-              niveles de estrés peligrosos. (Opcional)
+              {CONSENT_TEXT.allowEmergencyContact} (Opcional)
             </ConsentCheckbox>
 
             {/* Crear cuenta */}
