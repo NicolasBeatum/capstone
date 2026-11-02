@@ -35,7 +35,7 @@ import {
   semesterOptions,
   validateAcademicSelection,
 } from '../domain/registration';
-import { CONSENT_TEXT } from '@/shared/consents/domain/consents';
+import { CONSENT_SHORT_TEXT } from '@/shared/consents/domain/consents';
 import { consentStore } from '@/shared/consents/infrastructure/consentStorage';
 import { openPrivacyPolicy } from '@/shared/consents/infrastructure/privacyPolicyDocument';
 import { rememberRegistrationConsents } from '../application/registrationConsents';
@@ -325,7 +325,15 @@ export default function RegisterScreen() {
                 {acceptTerms && <Text style={styles.checkboxCheck}>✓</Text>}
               </View>
               <Text style={styles.termsText}>
-                Acepto los términos de servicio y las políticas de privacidad de Equilibrio Académico.
+                Acepto los términos de servicio y las políticas de privacidad de Equilibrio Académico.{' '}
+                <Text
+                  style={styles.footerLink}
+                  onPress={handleOpenPolicy}
+                  accessibilityRole="link"
+                  accessibilityLabel="Leer términos, políticas y consentimientos en detalle"
+                >
+                  Leer términos, políticas y consentimientos
+                </Text>
               </Text>
             </TouchableOpacity>
 
@@ -335,22 +343,14 @@ export default function RegisterScreen() {
               onToggle={() => setShareAnonymousData(!shareAnonymousData)}
               accessibilityLabel="Consentimiento opcional: compartir mis datos de forma anónima"
             >
-              {CONSENT_TEXT.shareAnonymousData} (Opcional){' '}
-              <Text
-                style={styles.footerLink}
-                onPress={handleOpenPolicy}
-                accessibilityRole="link"
-                accessibilityLabel="Leer los consentimientos en detalle"
-              >
-                Leer los consentimientos
-              </Text>
+              {CONSENT_SHORT_TEXT.shareAnonymousData} (Opcional)
             </ConsentCheckbox>
             <ConsentCheckbox
               checked={allowEmergencyContact}
               onToggle={() => setAllowEmergencyContact(!allowEmergencyContact)}
               accessibilityLabel="Consentimiento opcional: contacto en caso de emergencia"
             >
-              {CONSENT_TEXT.allowEmergencyContact} (Opcional)
+              {CONSENT_SHORT_TEXT.allowEmergencyContact} (Opcional)
             </ConsentCheckbox>
 
             {/* Crear cuenta */}

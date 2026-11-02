@@ -17,6 +17,12 @@ export const CONSENT_TEXT: Record<ConsentKey, string> = {
     'Autorizo que me contacten con los datos que registré en caso de emergencia, por niveles de estrés peligrosos.',
 };
 
+/** Versión breve de cada consentimiento para la casilla del registro; el detalle está en el documento de consentimientos. */
+export const CONSENT_SHORT_TEXT: Record<ConsentKey, string> = {
+  shareAnonymousData: 'Aceptar compartir datos anónimos',
+  allowEmergencyContact: 'Aceptar que se le contacte en caso de emergencia',
+};
+
 /** Valida lo guardado en el dispositivo: cualquier dato inválido equivale a «desactivado». */
 export function parseConsentChoices(raw: string | null): ConsentChoices {
   if (!raw) return NO_CONSENTS;
