@@ -61,7 +61,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
     id: 'cierre',
     title: 'Todo listo',
-    body: 'Ya conoces lo principal. Puedes volver a ver este recorrido con «Ver tutorial de la app», al final del inicio.',
+    body: 'Ya conoces lo principal. Puedes volver a ver este recorrido con «Ver tutorial de la app», el botón ? en la esquina inferior del inicio.',
     kind: 'closing',
     target: null,
   },

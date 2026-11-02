@@ -30,12 +30,15 @@ export function FeaturedEventCard({ event, now, saved, onOpen }: FeaturedEventCa
 
   return (
     <LiquidPanel from={palette.gradientFrom} to={palette.gradientTo} radius={28} style={styles.panel}>
-      {/* Ondas decorativas: no comunican nada, por eso quedan fuera de accesibilidad. */}
-      <Svg style={styles.waves} width={220} height={220} pointerEvents="none" importantForAccessibility="no-hide-descendants">
-        <Circle cx={150} cy={70} r={34} fill="rgba(255,255,255,0.08)" />
-        <Circle cx={150} cy={70} r={62} stroke="rgba(255,255,255,0.12)" strokeWidth={1} fill="none" />
-        <Circle cx={150} cy={70} r={92} stroke="rgba(255,255,255,0.08)" strokeWidth={1} fill="none" />
-      </Svg>
+      {/* Ondas decorativas: no comunican nada, por eso quedan fuera de accesibilidad.
+          Las props de accesibilidad van en el View: en web, Svg las pasa tal cual al DOM. */}
+      <View style={styles.waves} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <Svg width={220} height={220}>
+          <Circle cx={150} cy={70} r={34} fill="rgba(255,255,255,0.08)" />
+          <Circle cx={150} cy={70} r={62} stroke="rgba(255,255,255,0.12)" strokeWidth={1} fill="none" />
+          <Circle cx={150} cy={70} r={92} stroke="rgba(255,255,255,0.08)" strokeWidth={1} fill="none" />
+        </Svg>
+      </View>
       <View style={styles.topRow}>
         <View style={styles.countdown}>
           <Text style={styles.countdownText}>{eventCountdownLabel(event, now)}</Text>

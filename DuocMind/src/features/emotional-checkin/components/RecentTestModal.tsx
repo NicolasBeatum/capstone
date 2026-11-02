@@ -11,12 +11,11 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
+import Svg, { Circle } from 'react-native-svg';
 import { glassTokens } from '@/shared/components/Glass';
-import { ClipboardIcon, SparkleIcon } from '@/shared/components/Icons';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { fontFamily as font } from '@/shared/theme/typography';
-import { formatDaysAgo } from '../domain/stressTestRecency';
+import { formatDaysAgo, STRESS_TEST_REMINDER_DAYS } from '../domain/stressTestRecency';
 
 interface RecentTestModalProps {
   visible: boolean;
@@ -26,15 +25,34 @@ interface RecentTestModalProps {
   onContinue: () => void;
 }
 
+const NAVY = '#1a2b44';
+const SAGE = '#468a6c';
+const MUTED = '#8a8272';
+const MONTHS = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+];
+
+const RING_SIZE = 136;
+const RING_STROKE = 10;
+const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
+
 /* backdropFilter solo existe en web; en Android el vidrio se simula con la superficie translúcida */
 const webBlur = (amount: number): ViewStyle =>
   Platform.OS === 'web' ? ({ backdropFilter: `blur(${amount}px)` } as ViewStyle) : {};
 
+/** Primer día en que el inicio vuelve a avisar: pasados los 30 días desde la última vez. */
+function formatNextReminder(days: number): string {
+  const next = new Date();
+  next.setDate(next.getDate() + STRESS_TEST_REMINDER_DAYS + 1 - days);
+  return `${next.getDate()} de ${MONTHS[next.getMonth()]}`;
+}
+
 /**
- * Pop-up glass que avisa que el estudiante ya respondió el Test Estrés Percibido,
- * mostrado sobre la vista actual antes de navegar al test.
- * Entrada inspirada en React Bits (Animated Content + Count Up), hecha con
- * Animated de React Native para que funcione igual en web y Android.
+ * Aviso de que el Test Estrés Percibido ya se respondió dentro del ciclo de 30 días.
+ * El anillo muestra cuánto del ciclo pasó y el texto dice cuándo vuelve a corresponder;
+ * la acción principal es cerrar, y responder igual queda como opción secundaria.
  */
 export function RecentTestModal({ visible, days, onClose, onContinue }: RecentTestModalProps) {
   const card = useRef(new Animated.Value(0)).current;
@@ -55,7 +73,7 @@ export function RecentTestModal({ visible, days, onClose, onContinue }: RecentTe
     if (!visible) return;
     counter.setValue(0);
     setShownDays(0);
-    const listener = counter.addListener(({ value }) => setShownDays(Math.round(value)));
+    const listener = counter.addListener(({ value }) => setShownDays(value));
 
     if (reduceMotion.current) {
       card.setValue(1);
@@ -71,7 +89,7 @@ export function RecentTestModal({ visible, days, onClose, onContinue }: RecentTe
       bounciness: 0,
       useNativeDriver: true,
     });
-    // El contador re-renderiza cada frame, así que parte cuando la tarjeta ya se asentó.
+    // El anillo y el número avanzan juntos cuando la tarjeta ya se asentó.
     const count = Animated.timing(counter, {
       toValue: days,
       duration: Math.min(900, 300 + days * 50),
@@ -98,6 +116,10 @@ export function RecentTestModal({ visible, days, onClose, onContinue }: RecentTe
     ],
   };
 
+  const progress = Math.min(shownDays / STRESS_TEST_REMINDER_DAYS, 1);
+  const nextReminder = formatNextReminder(days);
+  const summary = `Lo respondiste ${formatDaysAgo(days)}. El test se responde cada ${STRESS_TEST_REMINDER_DAYS} días; te avisaremos desde el ${nextReminder}.`;
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable
@@ -111,58 +133,59 @@ export function RecentTestModal({ visible, days, onClose, onContinue }: RecentTe
           style={[styles.card, webBlur(24), cardStyle]}
           accessibilityViewIsModal
           accessibilityRole="alert"
-          accessibilityLabel={`Ya has hecho el Test Estrés Percibido ${formatDaysAgo(days)}`}
+          accessibilityLabel={`Ya respondiste este test. ${summary}`}
         >
-          {/* Orbes líquidos dentro del vidrio, mismos tonos que LiquidBackground */}
-          <Svg style={styles.liquid} width="100%" height="100%" pointerEvents="none">
-            <Defs>
-              <RadialGradient id="recentTestOrbAmber" cx="50%" cy="50%" r="50%">
-                <Stop offset="0" stopColor="rgba(238, 178, 66, 0.55)" />
-                <Stop offset="1" stopColor="rgba(238, 178, 66, 0)" />
-              </RadialGradient>
-              <RadialGradient id="recentTestOrbSage" cx="50%" cy="50%" r="50%">
-                <Stop offset="0" stopColor="rgba(158, 168, 112, 0.35)" />
-                <Stop offset="1" stopColor="rgba(158, 168, 112, 0)" />
-              </RadialGradient>
-            </Defs>
-            <Circle cx="92%" cy="6%" r="150" fill="url(#recentTestOrbAmber)" />
-            <Circle cx="4%" cy="96%" r="140" fill="url(#recentTestOrbSage)" />
-          </Svg>
           <View style={styles.sheen} pointerEvents="none" />
 
-          <View style={styles.iconBadge}>
-            <ClipboardIcon size={30} color="#b4561a" />
-            <View style={styles.sparkle}>
-              <SparkleIcon size={12} color="#e8a93c" />
+          <View style={styles.ring} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+            <Svg width={RING_SIZE} height={RING_SIZE}>
+              <Circle
+                cx={RING_SIZE / 2}
+                cy={RING_SIZE / 2}
+                r={RING_RADIUS}
+                stroke="#ece4cf"
+                strokeWidth={RING_STROKE}
+                fill="none"
+              />
+              {/* Con 0 días el extremo redondeado dibujaría un punto suelto. */}
+              {progress > 0 ? (
+                <Circle
+                  cx={RING_SIZE / 2}
+                  cy={RING_SIZE / 2}
+                  r={RING_RADIUS}
+                  stroke={SAGE}
+                  strokeWidth={RING_STROKE}
+                  strokeLinecap="round"
+                  strokeDasharray={`${RING_LENGTH} ${RING_LENGTH}`}
+                  strokeDashoffset={RING_LENGTH * (1 - progress)}
+                  fill="none"
+                  transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
+                />
+              ) : null}
+            </Svg>
+            <View style={styles.ringCenter}>
+              {days === 0 ? (
+                <Text style={styles.ringNumber}>Hoy</Text>
+              ) : (
+                <>
+                  <Text style={styles.ringNumber}>{Math.round(shownDays)}</Text>
+                  <Text style={styles.ringUnit}>
+                    {days === 1 ? 'día' : 'días'} de {STRESS_TEST_REMINDER_DAYS}
+                  </Text>
+                </>
+              )}
             </View>
           </View>
 
-          <Text style={styles.eyebrow}>TEST ESTRÉS PERCIBIDO</Text>
           <Text style={styles.title}>Ya respondiste este test</Text>
+          <Text style={styles.message}>{summary}</Text>
 
-          <View style={styles.counterBox}>
-            {days === 0 ? (
-              <Text style={styles.counterNumber}>Hoy</Text>
-            ) : (
-              <>
-                <Text style={styles.counterNumber}>{shownDays}</Text>
-                <Text style={styles.counterUnit}>{days === 1 ? 'día' : 'días'}</Text>
-              </>
-            )}
-          </View>
-
-          <Text style={styles.message}>
-            Ya has hecho el Test Estrés Percibido {formatDaysAgo(days)}.
-          </Text>
-
-          <View style={styles.buttons}>
-            <ScalePress style={styles.primaryButton} onPress={onContinue} accessibilityRole="button">
-              <Text style={styles.primaryButtonText}>Continuar al test →</Text>
-            </ScalePress>
-            <ScalePress style={styles.secondaryButton} onPress={onClose} accessibilityRole="button">
-              <Text style={styles.secondaryButtonText}>Ahora no</Text>
-            </ScalePress>
-          </View>
+          <ScalePress style={styles.primaryButton} onPress={onClose} accessibilityRole="button">
+            <Text style={styles.primaryButtonText}>Entendido</Text>
+          </ScalePress>
+          <ScalePress style={styles.secondaryButton} onPress={onContinue} accessibilityRole="button">
+            <Text style={styles.secondaryButtonText}>Responder de todas formas</Text>
+          </ScalePress>
         </Animated.View>
       </View>
     </Modal>
@@ -186,22 +209,17 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    maxWidth: 380,
+    maxWidth: 360,
     overflow: 'hidden',
-    backgroundColor: Platform.OS === 'web' ? glassTokens.surface : 'rgba(255, 252, 244, 0.94)',
+    backgroundColor: Platform.OS === 'web' ? 'rgba(255, 253, 247, 0.86)' : 'rgba(255, 253, 247, 0.97)',
     borderWidth: 1,
     borderColor: glassTokens.border,
     borderRadius: 28,
     paddingHorizontal: 24,
     paddingTop: 28,
-    paddingBottom: 22,
+    paddingBottom: 14,
     alignItems: 'center',
     ...glassTokens.shadow,
-  },
-  liquid: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
   },
   sheen: {
     position: 'absolute',
@@ -212,93 +230,67 @@ const styles = StyleSheet.create({
     borderRadius: 1,
     backgroundColor: glassTokens.sheen,
   },
-  iconBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(253, 238, 226, 0.85)',
-    borderWidth: 1,
-    borderColor: glassTokens.border,
+  ring: {
+    width: RING_SIZE,
+    height: RING_SIZE,
+    marginBottom: 18,
+  },
+  ringCenter: {
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 14,
   },
-  sparkle: {
-    position: 'absolute',
-    top: 6,
-    right: 4,
+  ringNumber: {
+    fontSize: 38,
+    lineHeight: 42,
+    color: NAVY,
+    fontFamily: font.extraBold,
   },
-  eyebrow: {
-    fontSize: 11,
-    letterSpacing: 1.2,
-    color: '#b4561a',
-    fontFamily: font.bold,
-    marginBottom: 6,
+  ringUnit: {
+    fontSize: 12,
+    color: MUTED,
+    fontFamily: font.semiBold,
   },
   title: {
     fontSize: 20,
     lineHeight: 26,
-    color: '#1a2b44',
+    color: NAVY,
     textAlign: 'center',
-    fontFamily: font.bold,
-    marginBottom: 16,
-  },
-  counterBox: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
-    backgroundColor: glassTokens.surfaceStrong,
-    borderWidth: 1,
-    borderColor: glassTokens.border,
-    borderRadius: 18,
-    paddingHorizontal: 22,
-    paddingVertical: 10,
-    marginBottom: 14,
-  },
-  counterNumber: {
-    fontSize: 40,
-    lineHeight: 46,
-    color: '#1a2b44',
-    fontFamily: font.bold,
-  },
-  counterUnit: {
-    fontSize: 16,
-    color: '#1a2b44',
-    fontFamily: font.bold,
+    fontFamily: font.extraBold,
+    marginBottom: 8,
   },
   message: {
-    fontSize: 15,
+    fontSize: 14,
     lineHeight: 21,
-    color: '#334155',
+    color: MUTED,
     textAlign: 'center',
-    marginBottom: 20,
-  },
-  buttons: {
-    width: '100%',
-    gap: 10,
+    fontFamily: font.regular,
+    marginBottom: 22,
   },
   primaryButton: {
-    backgroundColor: '#1a2b44',
-    borderRadius: 14,
-    paddingVertical: 14,
+    alignSelf: 'stretch',
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: NAVY,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   primaryButtonText: {
     color: '#ffffff',
     fontSize: 15,
-    fontFamily: font.bold,
+    fontFamily: font.extraBold,
   },
   secondaryButton: {
-    backgroundColor: glassTokens.surfaceStrong,
-    borderRadius: 14,
-    paddingVertical: 14,
+    alignSelf: 'stretch',
+    minHeight: 44,
+    marginTop: 4,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: glassTokens.border,
+    justifyContent: 'center',
   },
+  // Salvia más oscura que el anillo: el texto necesita 4.5:1 sobre la tarjeta.
   secondaryButtonText: {
-    color: '#1a2b44',
-    fontSize: 15,
+    color: '#2b6b50',
+    fontSize: 14,
     fontFamily: font.bold,
   },
 });

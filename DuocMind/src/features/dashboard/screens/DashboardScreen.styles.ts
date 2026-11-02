@@ -16,6 +16,9 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: cream,
   },
+  content: {
+    flex: 1,
+  },
   scrollContent: {
     padding: 20,
     paddingTop: 24,
@@ -42,10 +45,9 @@ export const styles = StyleSheet.create({
     marginRight: 6,
   },
   dateEyebrow: {
-    fontSize: 11,
-    letterSpacing: 0.8,
+    fontSize: 13,
     color: textSecondary,
-    fontFamily: font.bold,
+    fontFamily: font.semiBold,
   },
   greetingTitle: {
     fontSize: 26,
@@ -107,11 +109,6 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     color: navy,
     fontFamily: font.extraBold,
-  },
-  weekCardLink: {
-    fontSize: 12,
-    color: navy,
-    fontFamily: font.bold,
   },
   insightBox: {
     flexDirection: 'row',
@@ -239,118 +236,210 @@ export const styles = StyleSheet.create({
     color: navy,
     fontFamily: font.bold,
   },
-  /* ── Se viene ── */
+  /* ── Se viene: línea de tiempo por día ── */
   upcomingCard: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 10,
     marginBottom: 22,
   },
-  upcomingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
+  upcomingEmpty: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: textSecondary,
+    paddingBottom: 6,
+    fontFamily: font.regular,
   },
-  upcomingRowDivider: {
+  dayGroupSpaced: {
+    marginTop: 10,
+    paddingTop: 14,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(138, 130, 114, 0.18)',
+    borderTopColor: 'rgba(138, 130, 114, 0.16)',
   },
-  dateBadge: {
-    width: 46,
-    height: 46,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
+  dayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 4,
   },
-  dateBadgeExam: { backgroundColor: '#dfe7fb' },
-  dateBadgeDelivery: { backgroundColor: '#fbe3cd' },
-  dateBadgeOral: { backgroundColor: '#d9efe3' },
-  dateWeekday: {
-    fontSize: 9,
-    letterSpacing: 0.5,
-    fontFamily: font.extraBold,
+  dayWhen: {
+    fontSize: 13,
+    color: textSecondary,
+    fontFamily: font.bold,
   },
-  dateDay: {
-    fontSize: 19,
-    lineHeight: 22,
-    fontFamily: font.extraBold,
-  },
-  dateTextExam: { color: '#2f4e9e' },
-  dateTextDelivery: { color: '#a3531b' },
-  dateTextOral: { color: '#2b7a53' },
-  upcomingText: {
-    flex: 1,
-    marginHorizontal: 12,
-  },
-  upcomingTitle: {
-    fontSize: 14,
+  /* Hoy y mañana se leen primero: mismo tono que los títulos. */
+  dayWhenUrgent: {
     color: navy,
     fontFamily: font.extraBold,
   },
-  upcomingDetail: {
-    fontSize: 11,
+  dayDate: {
+    fontSize: 12,
     color: textSecondary,
-    marginTop: 2,
-    fontFamily: font.regular,
+    fontFamily: font.semiBold,
   },
-  whenChip: {
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  eventRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    minHeight: 44,
+    paddingVertical: 8,
   },
-  whenChipUrgent: { backgroundColor: '#fbdcc9' },
-  whenChipCalm: { backgroundColor: '#ece6d6' },
-  whenText: {
-    fontSize: 11,
+  eventRail: {
+    width: 4,
+    borderRadius: 2,
+    marginRight: 12,
+  },
+  railExam: { backgroundColor: '#3d5fb8' },
+  railTask: { backgroundColor: '#d0803d' },
+  railPersonal: { backgroundColor: '#3f9468' },
+  eventBody: {
+    flex: 1,
+  },
+  eventTitle: {
+    fontSize: 15,
+    lineHeight: 20,
+    color: navy,
     fontFamily: font.extraBold,
   },
-  whenTextUrgent: { color: '#a3531b' },
-  whenTextCalm: { color: '#5c5646' },
+  eventMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+    marginTop: 2,
+  },
+  eventKind: {
+    fontSize: 12,
+    fontFamily: font.bold,
+  },
+  kindTextExam: { color: '#2f4e9e' },
+  kindTextTask: { color: '#a3531b' },
+  kindTextPersonal: { color: '#2b7a53' },
+  eventDetail: {
+    flexShrink: 1,
+    fontSize: 12,
+    color: textSecondary,
+    fontFamily: font.regular,
+  },
   /* ── Para ti hoy ── */
   forYouTitle: {
     marginBottom: 10,
   },
-  forYouRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 18,
-  },
   forYouTile: {
-    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: 22,
-    padding: 16,
-    minHeight: 128,
+    padding: 14,
+    marginBottom: 18,
+    backgroundColor: '#e6e0f5',
     borderWidth: 1,
     borderColor: glassTokens.border,
   },
-  forYouBreathe: { backgroundColor: '#e6e0f5' },
+  forYouIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  forYouText: {
+    flex: 1,
+  },
   forYouTitleText: {
     fontSize: 15,
     color: navy,
-    marginTop: 14,
     fontFamily: font.extraBold,
   },
   forYouDesc: {
-    fontSize: 11,
+    fontSize: 12,
+    color: textSecondary,
+    marginTop: 2,
+    fontFamily: font.regular,
+  },
+  /* ── Apoyo: tarjeta tranquila, sin tonos de alarma ──
+   * El margen inferior la deja por encima de la burbuja de ayuda al llegar al final. */
+  supportCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(255, 253, 247, 0.92)',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(70, 138, 108, 0.24)',
+    padding: 16,
+    marginBottom: 60,
+  },
+  supportMark: {
+    width: 52,
+    height: 44,
+    marginRight: 14,
+    marginTop: 2,
+  },
+  supportVoice: {
+    position: 'absolute',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+  },
+  supportVoiceA: {
+    top: 0,
+    left: 0,
+    backgroundColor: 'rgba(107, 90, 168, 0.30)',
+  },
+  supportVoiceB: {
+    top: 10,
+    left: 18,
+    backgroundColor: 'rgba(70, 138, 108, 0.34)',
+  },
+  supportText: {
+    flex: 1,
+  },
+  supportTitle: {
+    fontSize: 15,
+    lineHeight: 20,
+    color: navy,
+    fontFamily: font.extraBold,
+  },
+  supportBody: {
+    fontSize: 13,
+    lineHeight: 19,
     color: textSecondary,
     marginTop: 4,
     fontFamily: font.regular,
   },
-  supportLink: {
-    minHeight: 44,
+  supportAction: {
+    alignSelf: 'flex-start',
+    marginTop: 12,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(70, 138, 108, 0.13)',
+  },
+  supportActionText: {
+    fontSize: 13,
+    color: '#2b6b50',
+    fontFamily: font.bold,
+  },
+  /* ── Burbuja de ayuda: abre el tutorial ── */
+  helpAnchor: {
+    position: 'absolute',
+    right: 18,
+    bottom: 4,
+  },
+  helpBubble: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 253, 247, 0.96)',
+    borderWidth: 1,
+    borderColor: glassTokens.border,
     alignItems: 'center',
     justifyContent: 'center',
+    ...glassTokens.shadow,
   },
-  /* El margen inferior deja el enlace por encima de la barra flotante al llegar al final. */
-  tutorialLink: {
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 96,
-  },
-  supportLinkText: {
-    fontSize: 12,
-    color: textSecondary,
-    textDecorationLine: 'underline',
-    fontFamily: font.semiBold,
+  helpBubbleText: {
+    fontSize: 19,
+    lineHeight: 22,
+    color: navy,
+    fontFamily: font.extraBold,
   },
 });

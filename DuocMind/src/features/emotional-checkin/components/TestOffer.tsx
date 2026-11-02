@@ -1,14 +1,14 @@
 import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { ScrollView, Text, View } from 'react-native';
+import { CheckIcon } from '@/shared/components/Icons';
 import { ScalePress } from '@/shared/components/ScalePress';
-import { SparkleIcon } from '@/shared/components/Icons';
 import { styles } from '../screens/DailyTestScreen.styles';
+import { TestHeader } from './TestHeader';
 
 interface TestOfferProps {
   /** Título de la tarjeta, ej. 'Gracias por responder' */
   title: string;
-  /** Subtítulo del header */
+  /** Nombre del instrumento, mostrado en el encabezado */
   subtitle: string;
   description: string;
   primaryLabel: string;
@@ -18,7 +18,7 @@ interface TestOfferProps {
 }
 
 /**
- * Tarjeta de cierre del flujo del test, con acción principal y secundaria opcional.
+ * Cierre del flujo del test, con acción principal y secundaria opcional.
  */
 export function TestOffer({
   title,
@@ -29,53 +29,32 @@ export function TestOffer({
   secondaryLabel,
   onSecondary,
 }: TestOfferProps) {
-  const router = useRouter();
-
   return (
     <>
-      <View style={styles.header}>
-        <View style={styles.headerIdentity}>
-          <View style={styles.headerAvatar}>
-            <Text style={styles.headerAvatarText}>CM</Text>
-          </View>
-          <View>
-            <Text style={styles.headerTitle}>Equilibrio Académico</Text>
-            <Text style={styles.headerSubtitle}>{subtitle}</Text>
-          </View>
-        </View>
-        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8}>
-          <Text style={styles.closeButton}>×</Text>
-        </TouchableOpacity>
-      </View>
+      <TestHeader title={subtitle} detail="Test terminado" />
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.resultCard}>
-          <View style={styles.resultHeaderRow}>
-            <Text style={styles.resultEyebrow}>CHECK-IN EMOCIONAL</Text>
-            <View style={styles.questionIllustration}>
-              <SparkleIcon size={12} />
-              <SparkleIcon size={9} color="#e8a93c" />
-            </View>
+          <View style={styles.resultMark}>
+            <CheckIcon size={28} color="#2b6b50" />
           </View>
-
-          <Text style={styles.resultTitle}>{title}</Text>
+          <Text style={styles.resultTitle} accessibilityLiveRegion="polite">{title}</Text>
           <Text style={styles.resultMessage}>{description}</Text>
 
-          <View style={styles.resultButtonsRow}>
-            <ScalePress style={styles.acceptButton} onPress={onPrimary}>
-              <Text style={styles.acceptButtonText}>{primaryLabel} →</Text>
-            </ScalePress>
+          <ScalePress style={[styles.primaryButton, styles.primaryButtonBlock]} onPress={onPrimary} accessibilityRole="button">
+            <Text style={styles.primaryButtonText}>{primaryLabel}</Text>
+          </ScalePress>
 
-            {secondaryLabel ? (
-              <ScalePress
-                style={styles.rejectButton}
-                onPress={onSecondary}
-                disabled={!onSecondary}
-              >
-                <Text style={styles.rejectButtonText}>{secondaryLabel}</Text>
-              </ScalePress>
-            ) : null}
-          </View>
+          {secondaryLabel ? (
+            <ScalePress
+              style={styles.backButton}
+              onPress={onSecondary}
+              disabled={!onSecondary}
+              accessibilityRole="button"
+            >
+              <Text style={styles.backButtonText}>{secondaryLabel}</Text>
+            </ScalePress>
+          ) : null}
         </View>
       </ScrollView>
     </>
