@@ -368,6 +368,7 @@ git commit -m "feat: agrega historial semanal del check-in"
 | [admin-web/README.md](admin-web/README.md) | Ejecución y uso del panel de administración |
 | [DuocMind/AGENTS.md](DuocMind/AGENTS.md) | Guía de trabajo, arquitectura y diseño |
 | [DuocMind/docs/constitution.md](DuocMind/docs/constitution.md) | Principios y reglas del proyecto |
+| [DuocMind/docs/scrum/](DuocMind/docs/scrum/product-vision.md) | Product Vision, Product Backlog, Sprint Backlog, Definition of Done y retrospectivas |
 | [DuocMind/docs/configurar-env-supabase.md](DuocMind/docs/configurar-env-supabase.md) | Configuración de Supabase, migraciones y Android cifrado |
 | [DuocMind/supabase/ENDPOINTS.md](DuocMind/supabase/ENDPOINTS.md) | Contrato de la API de datos |
 
