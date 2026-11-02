@@ -17,6 +17,8 @@ import {
   getAuthenticationErrorMessage,
 } from '@/features/auth/application/authentication';
 import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
+import { consentStore } from '@/shared/consents/infrastructure/consentStorage';
+import { adoptRegistrationConsents } from '../application/registrationConsents';
 import { styles } from './authForm.styles';
 
 export default function StudentProfileScreen() {
@@ -31,6 +33,8 @@ export default function StudentProfileScreen() {
     setIsSubmitting(true);
     try {
       await completeStudentProfile({ rut, firstName, lastName }, supabaseAuthGateway);
+      // Lo que se eligió en el registro pasa a la configuración de la cuenta.
+      await adoptRegistrationConsents(supabaseAuthGateway, consentStore);
       router.replace('/dashboard');
     } catch (error) {
       Alert.alert('No se pudo completar el perfil', getAuthenticationErrorMessage(error));

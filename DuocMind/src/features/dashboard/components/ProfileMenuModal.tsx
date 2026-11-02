@@ -20,6 +20,7 @@ interface ProfileMenuModalProps {
   signingOut: boolean;
   onClose: () => void;
   onSignOut: () => void;
+  onOpenSettings: () => void;
 }
 
 /** Menú que se despliega hacia abajo desde el avatar del dashboard. */
@@ -30,6 +31,7 @@ export function ProfileMenuModal({
   signingOut,
   onClose,
   onSignOut,
+  onOpenSettings,
 }: ProfileMenuModalProps) {
   const reduceMotion = useReducedMotion();
   const panel = useRef(new Animated.Value(0)).current;
@@ -88,6 +90,14 @@ export function ProfileMenuModal({
           </Text>
           <View style={styles.divider} />
           <ScalePress
+            style={styles.menuItem}
+            onPress={onOpenSettings}
+            accessibilityRole="button"
+            accessibilityLabel="Configuración"
+          >
+            <Text style={styles.menuItemText}>Configuración</Text>
+          </ScalePress>
+          <ScalePress
             style={[styles.signOut, signingOut && styles.signOutDisabled]}
             onPress={onSignOut}
             disabled={signingOut}
@@ -129,6 +139,17 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: 'rgba(26, 43, 68, 0.1)',
+  },
+  menuItem: {
+    minHeight: 44,
+    justifyContent: 'center',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+  },
+  menuItemText: {
+    fontSize: 14,
+    color: '#1a2b44',
+    fontFamily: font.bold,
   },
   signOut: {
     minHeight: 44,
