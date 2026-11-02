@@ -9,16 +9,8 @@ export type ConsentKey = keyof ConsentChoices;
 
 export const NO_CONSENTS: ConsentChoices = { shareAnonymousData: false, allowEmergencyContact: false };
 
-/** Textos de cada consentimiento, compartidos por el registro y la configuración. */
+/** Texto breve de cada consentimiento, compartido por el registro y Mi perfil; el detalle está en el documento de consentimientos. */
 export const CONSENT_TEXT: Record<ConsentKey, string> = {
-  shareAnonymousData:
-    'Acepto entregar mis datos de forma anónima para generar información no personal sobre el nivel de estrés por carrera y semestre.',
-  allowEmergencyContact:
-    'Autorizo que me contacten con los datos que registré en caso de emergencia, por niveles de estrés peligrosos.',
-};
-
-/** Versión breve de cada consentimiento para la casilla del registro; el detalle está en el documento de consentimientos. */
-export const CONSENT_SHORT_TEXT: Record<ConsentKey, string> = {
   shareAnonymousData: 'Aceptar compartir datos anónimos',
   allowEmergencyContact: 'Aceptar que se le contacte en caso de emergencia',
 };

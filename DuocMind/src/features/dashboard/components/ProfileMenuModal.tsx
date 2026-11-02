@@ -93,9 +93,9 @@ export function ProfileMenuModal({
             style={styles.menuItem}
             onPress={onOpenSettings}
             accessibilityRole="button"
-            accessibilityLabel="Configuración"
+            accessibilityLabel="Mi perfil"
           >
-            <Text style={styles.menuItemText}>Configuración</Text>
+            <Text style={styles.menuItemText}>Mi perfil</Text>
           </ScalePress>
           <ScalePress
             style={[styles.signOut, signingOut && styles.signOutDisabled]}

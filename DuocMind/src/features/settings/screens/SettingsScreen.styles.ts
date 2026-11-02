@@ -68,24 +68,47 @@ export const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 14,
   },
+  sectionHeader: {
+    marginTop: 18,
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    color: navy,
+    fontFamily: font.extraBold,
+  },
+  profileRow: {
+    paddingVertical: 10,
+  },
+  profileRowDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: glassTokens.border,
+  },
+  profileLabel: {
+    fontSize: 11,
+    letterSpacing: 0.6,
+    color: textSecondary,
+    marginBottom: 2,
+    fontFamily: font.bold,
+  },
+  profileValue: {
+    fontSize: 15,
+    lineHeight: 21,
+    color: navy,
+    fontFamily: font.regular,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 14,
+    paddingVertical: 12,
   },
-  rowText: {
+  consentText: {
     flex: 1,
-  },
-  rowTitle: {
-    fontSize: 13,
+    fontSize: 14,
+    lineHeight: 20,
     color: navy,
-    marginBottom: 4,
-    fontFamily: font.bold,
-  },
-  rowBody: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: textSecondary,
     fontFamily: font.regular,
   },
   link: {

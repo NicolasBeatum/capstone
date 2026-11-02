@@ -35,7 +35,7 @@ import {
   semesterOptions,
   validateAcademicSelection,
 } from '../domain/registration';
-import { CONSENT_SHORT_TEXT } from '@/shared/consents/domain/consents';
+import { CONSENT_TEXT } from '@/shared/consents/domain/consents';
 import { consentStore } from '@/shared/consents/infrastructure/consentStorage';
 import { openPrivacyPolicy } from '@/shared/consents/infrastructure/privacyPolicyDocument';
 import { rememberRegistrationConsents } from '../application/registrationConsents';
@@ -343,14 +343,14 @@ export default function RegisterScreen() {
               onToggle={() => setShareAnonymousData(!shareAnonymousData)}
               accessibilityLabel="Consentimiento opcional: compartir mis datos de forma anónima"
             >
-              {CONSENT_SHORT_TEXT.shareAnonymousData} (Opcional)
+              {CONSENT_TEXT.shareAnonymousData} (Opcional)
             </ConsentCheckbox>
             <ConsentCheckbox
               checked={allowEmergencyContact}
               onToggle={() => setAllowEmergencyContact(!allowEmergencyContact)}
               accessibilityLabel="Consentimiento opcional: contacto en caso de emergencia"
             >
-              {CONSENT_SHORT_TEXT.allowEmergencyContact} (Opcional)
+              {CONSENT_TEXT.allowEmergencyContact} (Opcional)
             </ConsentCheckbox>
 
             {/* Crear cuenta */}
