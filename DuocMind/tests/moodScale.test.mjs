@@ -21,6 +21,13 @@ test('clamps positions outside the track', () => {
   assert.equal(moodFromValue(7), 'Muy bien');
 });
 
+test('a value that is not a number falls back to Neutro instead of spreading NaN', () => {
+  assert.equal(clampMoodValue(NaN), 2);
+  assert.equal(moodFromValue(NaN), 'Neutro');
+  assert.equal(clampMoodValue(Infinity), 4);
+  assert.equal(clampMoodValue(-Infinity), 0);
+});
+
 test('round-trips moods and slider positions', () => {
   assert.equal(valueFromMood('Neutro'), 2);
   assert.equal(moodFromValue(valueFromMood('Bien')), 'Bien');

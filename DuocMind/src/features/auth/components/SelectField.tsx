@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
+import { CheckIcon, ChevronDownIcon } from '@/shared/components/Icons';
 import { ScalePress } from '@/shared/components/ScalePress';
+import { warmPalette } from '@/shared/theme/warmPalette';
 import type { SelectOption } from '../domain/registration';
 import { styles } from './SelectField.styles';
 
@@ -11,13 +13,15 @@ interface SelectFieldProps {
   /** `key` de la opción elegida, o null si aún no se elige. */
   value: string | null;
   onChange: (key: string) => void;
+  /** Ícono a la izquierda del texto. */
+  icon: React.ReactNode;
   disabled?: boolean;
   /** Texto bajo el campo cuando está deshabilitado o no hay opciones. */
   hint?: string;
 }
 
 /** Selector entre opciones fijas: la persona elige de una lista, nunca escribe. */
-export function SelectField({ label, placeholder, options, value, onChange, disabled = false, hint }: SelectFieldProps) {
+export function SelectField({ label, placeholder, options, value, onChange, icon, disabled = false, hint }: SelectFieldProps) {
   const [open, setOpen] = useState(false);
   const selected = options.find((option) => option.key === value);
   const isOpen = open && !disabled;
@@ -33,10 +37,13 @@ export function SelectField({ label, placeholder, options, value, onChange, disa
         accessibilityLabel={`${label}: ${selected ? selected.label : placeholder}`}
         accessibilityState={{ disabled, expanded: isOpen }}
       >
+        {icon}
         <Text style={[styles.triggerText, !selected && styles.placeholder]} numberOfLines={1}>
           {selected ? selected.label : placeholder}
         </Text>
-        <Text style={styles.chevron}>{isOpen ? '▴' : '▾'}</Text>
+        <View style={isOpen ? styles.chevronOpen : undefined}>
+          <ChevronDownIcon size={20} color={warmPalette.textSecondary} />
+        </View>
       </ScalePress>
 
       {isOpen ? (
@@ -57,7 +64,7 @@ export function SelectField({ label, placeholder, options, value, onChange, disa
                   accessibilityState={{ selected: active }}
                 >
                   <Text style={[styles.optionText, active && styles.optionTextActive]}>{option.label}</Text>
-                  {active ? <Text style={styles.optionCheck}>✓</Text> : null}
+                  {active ? <CheckIcon size={18} color={warmPalette.navy} /> : null}
                 </ScalePress>
               );
             })}

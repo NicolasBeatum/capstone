@@ -16,6 +16,7 @@ import { Brote } from '@/shared/components/Brote';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { Reveal } from '@/shared/motion/Reveal';
 import { notifyTutorialCheckinSaved } from '@/shared/tutorial/infrastructure/tutorialRuntime';
+import type { CheckinMood } from '../application/localCheckinStore';
 import { MoodLabel } from '../components/MoodLabel';
 import { SaveOverlay } from '../components/SaveOverlay';
 import { MoodSlider } from '../components/MoodSlider';
@@ -27,7 +28,14 @@ type SaveState = 'idle' | 'saving' | 'saved' | 'saved-offline';
 // El guardado local es casi instantáneo; la gota se deja ver un momento para que el cierre se sienta calmado.
 const MIN_SAVING_FEEDBACK_MS = 2200;
 // Tiempo que se lee el agradecimiento antes de llevar a la persona al inicio.
-const THANKS_VISIBLE_MS = 3200;
+// Mal y Muy mal llevan más texto y es el más importante de leer, así que se quedan un segundo más.
+const THANKS_VISIBLE_MS: Record<CheckinMood, number> = {
+  'Muy mal': 6200,
+  Mal: 6200,
+  Neutro: 5200,
+  Bien: 5200,
+  'Muy bien': 5200,
+};
 
 /** Sube los check-ins que quedaron en la outbox cifrada mientras no había conexión. */
 async function syncPendingInBackground(): Promise<void> {
@@ -112,7 +120,7 @@ export default function CheckinScreen() {
       await keepLoaderVisible();
       setSaveState(result.syncStatus === 'synced' ? 'saved' : 'saved-offline');
       // Tras el agradecimiento se va al inicio para que no se registre de nuevo por error.
-      redirectTimer.current = setTimeout(goToDashboard, THANKS_VISIBLE_MS);
+      redirectTimer.current = setTimeout(goToDashboard, THANKS_VISIBLE_MS[mood]);
     } catch {
       await keepLoaderVisible();
       setFeedback('No se pudo registrar. Revisa tu conexión e inténtalo de nuevo.');
@@ -168,6 +176,7 @@ export default function CheckinScreen() {
         <SaveOverlay
           phase={saveState === 'saving' ? 'saving' : 'thanks'}
           t={clampMoodValue(moodValue) / MOOD_MAX}
+          mood={mood}
           savedOffline={saveState === 'saved-offline'}
           onContinue={goToDashboard}
         />

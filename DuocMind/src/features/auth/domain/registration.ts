@@ -1,8 +1,3 @@
-export interface Campus {
-  id: string;
-  name: string;
-}
-
 export interface Career {
   id: string;
   name: string;
@@ -15,7 +10,6 @@ export interface SelectOption {
 }
 
 export interface AcademicSelection {
-  campusId: string | null;
   careerId: string | null;
   semester: number | null;
 }
@@ -23,11 +17,17 @@ export interface AcademicSelection {
 const MAX_ITEMS = 1000;
 const MAX_NAME = 160;
 
+/**
+ * La sede ya no se elige en el registro; mientras la base de datos conserva el dato, todas las
+ * cuentas usan la sede 1. Cuando se elimine la sede del modelo, esto se retira.
+ */
+export const DEFAULT_CAMPUS_ID = '1';
+
 /** Semestres que ofrece el registro: del 1 al 13. */
 export const SEMESTERS: readonly number[] = Array.from({ length: 13 }, (_, index) => index + 1);
 
 function fail(): never {
-  throw new Error('La información de sedes y carreras no es válida.');
+  throw new Error('La información de carreras no es válida.');
 }
 
 function readRows(value: unknown): Record<string, unknown>[] {
@@ -49,11 +49,6 @@ function readName(value: unknown): string {
   return value.trim();
 }
 
-/** Valida en el límite las sedes que llegan del backend. */
-export function parseCampuses(value: unknown): Campus[] {
-  return readRows(value).map((row) => ({ id: readId(row.id_sede), name: readName(row.nombre_sede) }));
-}
-
 /** Valida en el límite las carreras que llegan del backend. */
 export function parseCareers(value: unknown): Career[] {
   return readRows(value).map((row) => ({
@@ -67,15 +62,10 @@ function byName(a: { name: string }, b: { name: string }): number {
   return a.name.localeCompare(b.name, 'es');
 }
 
-export function campusOptions(campuses: Campus[]): SelectOption[] {
-  return [...campuses].sort(byName).map((campus) => ({ key: campus.id, label: campus.name }));
-}
-
-/** Carreras de la sede elegida; sin sede no hay opciones. */
-export function careerOptions(careers: Career[], campusId: string | null): SelectOption[] {
-  if (!campusId) return [];
+/** Carreras de la sede por defecto, ordenadas por nombre. */
+export function careerOptions(careers: Career[]): SelectOption[] {
   return careers
-    .filter((career) => career.campusId === campusId)
+    .filter((career) => career.campusId === DEFAULT_CAMPUS_ID)
     .sort(byName)
     .map((career) => ({ key: career.id, label: career.name }));
 }
@@ -86,10 +76,9 @@ export function semesterOptions(): SelectOption[] {
 
 /** Mensaje en español de lo que falta elegir, o null si la selección está completa y es coherente. */
 export function validateAcademicSelection(selection: AcademicSelection, careers: Career[]): string | null {
-  if (!selection.campusId) return 'Elige tu sede para continuar.';
   if (!selection.careerId) return 'Elige tu carrera para continuar.';
   const career = careers.find((item) => item.id === selection.careerId);
-  if (!career || career.campusId !== selection.campusId) return 'Elige una carrera de tu sede.';
+  if (!career || career.campusId !== DEFAULT_CAMPUS_ID) return 'Elige una carrera válida.';
   if (selection.semester === null) return 'Elige tu semestre para continuar.';
   if (!SEMESTERS.includes(selection.semester)) return 'Elige un semestre válido.';
   return null;

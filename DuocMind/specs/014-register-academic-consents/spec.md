@@ -143,7 +143,17 @@ Fuera de alcance:
 
 Este documento no autoriza migraciones remotas, despliegues, commits ni push.
 
+6. **Sede ya no se elige (2026-11-04).** Por indicación del usuario, el registro deja
+   de pedir sede (se eliminará del modelo de datos). Mientras tanto se usa la sede 1
+   por defecto: la carrera se filtra por ella, el selector de carrera ya no depende de
+   otro campo y el registro no lee la tabla `sede`. Esto reemplaza lo que RF-001 y
+   RF-002 dicen sobre la sede. El registro también se rediseña visualmente (tres
+   tarjetas numeradas, indicador de seguridad de contraseña, enlace global de
+   términos y etiquetas «Obligatorio»/«Opcional»), sin cambiar la lógica de
+   autenticación. **Pendiente de confirmación formal de esta revisión.**
+
 ### Historial de revisiones
 
 - **0.1.0 — 2026-10-30:** borrador inicial.
 - **0.2.0 — 2026-10-30:** aprobada por el usuario; decisión 4 confirmada.
+- **0.3.0 — 2026-11-04:** sede deja de elegirse (sede 1 por defecto) y se rediseña la pantalla; ver decisión 6.

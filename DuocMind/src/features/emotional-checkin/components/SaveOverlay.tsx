@@ -12,12 +12,16 @@ import {
 } from '@/shared/motion/motionTokens';
 import { useReducedMotion } from '@/shared/motion/useReducedMotion';
 import { fontFamily as font } from '@/shared/theme/typography';
+import type { CheckinMood } from '../application/localCheckinStore';
+import { thanksMessage } from '../domain/moodMessages';
 
 interface SaveOverlayProps {
   /** 'saving' muestra la gota a pantalla completa; 'thanks' el agradecimiento. */
   phase: 'saving' | 'thanks';
   /** Posición del ánimo registrado (0 a 1) para dibujar el Brote del agradecimiento. */
   t: number;
+  /** Estado registrado; elige el mensaje de cierre. */
+  mood: CheckinMood;
   /** El registro quedó solo en el dispositivo y se enviará al recuperar conexión. */
   savedOffline: boolean;
   onContinue: () => void;
@@ -32,7 +36,7 @@ const MUTED = '#8a8272';
  * cuando el registro queda guardado, un agradecimiento que explica que ya no hace
  * falta registrar de nuevo antes de llevar a la persona al inicio.
  */
-export function SaveOverlay({ phase, t, savedOffline, onContinue }: SaveOverlayProps) {
+export function SaveOverlay({ phase, t, mood, savedOffline, onContinue }: SaveOverlayProps) {
   const reduceMotion = useReducedMotion();
   const appear = useRef(new Animated.Value(0)).current;
   const swap = useRef(new Animated.Value(0)).current;
@@ -95,10 +99,11 @@ export function SaveOverlay({ phase, t, savedOffline, onContinue }: SaveOverlayP
         <Text style={styles.title} accessibilityLiveRegion="polite">
           ¡Gracias por registrar tu emoción de hoy!
         </Text>
-        <Text style={styles.body}>
+        <Text style={styles.body}>{thanksMessage(mood)}</Text>
+        <Text style={styles.status}>
           {savedOffline
-            ? 'Quedó guardado en tu dispositivo y se enviará cuando tengas conexión. No necesitas registrarla otra vez.'
-            : 'Tu registro ya quedó guardado. No necesitas registrarlo otra vez; mañana puedes volver a contarnos cómo te sientes.'}
+            ? 'Quedó guardado en tu dispositivo y se enviará cuando tengas conexión.'
+            : 'Tu registro ya quedó guardado.'}
         </Text>
         <ScalePress
           style={styles.button}
@@ -137,8 +142,17 @@ const styles = StyleSheet.create({
   body: {
     marginTop: 10,
     maxWidth: 320,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 24,
+    color: NAVY,
+    textAlign: 'center',
+    fontFamily: font.semiBold,
+  },
+  status: {
+    marginTop: 12,
+    maxWidth: 320,
+    fontSize: 13,
+    lineHeight: 19,
     color: MUTED,
     textAlign: 'center',
     fontFamily: font.semiBold,

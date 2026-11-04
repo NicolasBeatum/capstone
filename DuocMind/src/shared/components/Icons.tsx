@@ -419,6 +419,41 @@ export function ChevronLeftIcon({ size = 20, color = '#1a2b44' }: IconProps) {
   );
 }
 
+export function ChevronRightIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M9.5 5.5 L16 12 l-6.5 6.5" stroke={color} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function ChevronDownIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M5.5 9.5 L12 16 l6.5 -6.5" stroke={color} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function DocumentIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M7 3.5 h7 l4 4 V19 a1.5 1.5 0 0 1 -1.5 1.5 h-9.5 A1.5 1.5 0 0 1 5.5 19 V5 A1.5 1.5 0 0 1 7 3.5 z" stroke={color} strokeWidth={STROKE} fill="none" strokeLinejoin="round" />
+      <Path d="M14 3.5 V7.5 h4 M8.5 12 h7 M8.5 15.5 h5" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+/* Libro abierto: la carrera en el registro. */
+export function BookIcon({ size = 20, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M5.5 4.5 h9.5 a3 3 0 0 1 3 3 V19.5 H8.5 a3 3 0 0 1 -3 -3 z" stroke={color} strokeWidth={STROKE} fill="none" strokeLinejoin="round" />
+      <Path d="M5.5 16.5 a3 3 0 0 1 3 -3 H18" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 /* Entrada de evento: distingue "Eventos" de "Agenda", que usa el calendario. */
 export function TicketIcon({ size = 20, color = '#1a2b44' }: IconProps) {
   return (

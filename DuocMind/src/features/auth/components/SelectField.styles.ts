@@ -1,66 +1,59 @@
 import { StyleSheet } from 'react-native';
 
-import { glassTokens } from '@/shared/components/Glass';
 import { fontFamily as font } from '@/shared/theme/typography';
+import { warmPalette as palette } from '@/shared/theme/warmPalette';
 
-/* Misma paleta cálida que authForm.styles.ts. */
-const navy = '#1a2b44';
-const yellowSoft = '#f9dd85';
-const textSecondary = '#8a8272';
-const textMuted = '#b0a891';
-
+/* Misma paleta cálida que registerForm.styles.ts. */
 export const styles = StyleSheet.create({
   group: {
     marginBottom: 16,
   },
   label: {
-    fontSize: 12,
-    color: navy,
-    marginBottom: 6,
+    fontSize: 14,
+    color: palette.navy,
+    marginBottom: 8,
     fontFamily: font.bold,
   },
   trigger: {
-    minHeight: 48,
+    minHeight: 54,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: glassTokens.surfaceStrong,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: glassTokens.border,
+    backgroundColor: palette.card,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: palette.inputBorder,
     paddingHorizontal: 14,
-    gap: 10,
+    gap: 12,
   },
   triggerDisabled: {
     opacity: 0.55,
   },
   triggerText: {
     flex: 1,
-    fontSize: 13,
-    color: navy,
-    fontFamily: font.regular,
+    fontSize: 16,
+    color: palette.navy,
+    fontFamily: font.semiBold,
   },
   placeholder: {
-    color: textMuted,
+    color: palette.placeholder,
+    fontFamily: font.regular,
   },
-  chevron: {
-    fontSize: 12,
-    color: textSecondary,
-    fontFamily: font.bold,
+  chevronOpen: {
+    transform: [{ rotate: '180deg' }],
   },
   list: {
     marginTop: 6,
-    backgroundColor: glassTokens.surfaceStrong,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: glassTokens.border,
+    backgroundColor: palette.card,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: palette.inputBorder,
     overflow: 'hidden',
   },
   listScroll: {
     maxHeight: 220,
   },
   option: {
-    minHeight: 44,
+    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -69,30 +62,22 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
   optionActive: {
-    backgroundColor: 'rgba(249, 221, 133, 0.35)',
+    backgroundColor: palette.goldSoft,
   },
   optionText: {
     flex: 1,
-    fontSize: 13,
-    color: navy,
+    fontSize: 15,
+    color: palette.navy,
     fontFamily: font.regular,
   },
   optionTextActive: {
     fontFamily: font.bold,
   },
-  optionCheck: {
-    color: navy,
-    backgroundColor: yellowSoft,
-    borderRadius: 8,
-    paddingHorizontal: 5,
-    fontSize: 12,
-    fontFamily: font.extraBold,
-  },
   hint: {
     marginTop: 6,
-    fontSize: 11,
-    lineHeight: 16,
-    color: textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+    color: palette.textSecondary,
     fontFamily: font.regular,
   },
 });

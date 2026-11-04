@@ -44,14 +44,19 @@ export function MoodSlider({ value, onChange }: MoodSliderProps) {
 
   const measure = () => {
     trackRef.current?.measureInWindow((left, _top, measuredWidth) => {
-      track.current = { left, width: measuredWidth };
+      // En web la medida puede llegar sin número; se conserva la anterior en vez de contaminar el cálculo.
+      if (Number.isFinite(left) && Number.isFinite(measuredWidth)) {
+        track.current = { left, width: measuredWidth };
+      }
     });
   };
 
   const valueAt = (event: GestureResponderEvent) => {
     const { left, width: trackWidth } = track.current;
     const usable = Math.max(1, trackWidth - THUMB);
-    return clampMoodValue(((event.nativeEvent.pageX - left - THUMB / 2) / usable) * MOOD_MAX);
+    const raw = ((event.nativeEvent.pageX - left - THUMB / 2) / usable) * MOOD_MAX;
+    // Si el gesto no trae posición válida, la barra se queda donde estaba.
+    return Number.isFinite(raw) ? clampMoodValue(raw) : clampMoodValue(valueRef.current);
   };
 
   const responder = useMemo(

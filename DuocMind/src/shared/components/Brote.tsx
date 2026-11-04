@@ -3,7 +3,7 @@ import { Animated, Easing, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
 import { NATIVE_DRIVER } from '@/shared/motion/motionTokens';
 import { useReducedMotion } from '@/shared/motion/useReducedMotion';
-import { BROTE_COLORS, broteParams, clamp01, mixColors } from './broteParams';
+import { BROTE_COLORS, broteParams, mixColors, safeT } from './broteParams';
 
 interface BroteProps {
   /** Posición continua de 0 (Muy mal) a 1 (Muy bien). */
@@ -34,17 +34,18 @@ const SPARKLES = [
 
 type Point = { x: number; y: number };
 
-function bezierPoint(p0: Point, p1: Point, p2: Point, p3: Point, u: number): Point {
-  const k = 1 - u;
-  const a = k * k * k;
-  const b = 3 * k * k * u;
-  const c = 3 * k * u * u;
-  const d = u * u * u;
-  return {
-    x: a * p0.x + b * p1.x + c * p2.x + d * p3.x,
-    y: a * p0.y + b * p1.y + c * p2.y + d * p3.y,
-  };
-}
+// El tallo siempre crece recto hacia arriba.
+const GROWTH_ANGLE = -Math.PI / 2;
+// Escena de descanso (círculo, luna y nubes) detrás del Brote.
+const SCENE_CENTER = { x: CENTER_X, y: 130 };
+const SCENE_RADIUS = 78;
+const MOON = { x: 112, y: 82, r: 11 };
+const STARS = [
+  { x: 44, y: 84, r: 5 },
+  { x: 30, y: 128, r: 3.5 },
+  { x: 130, y: 128, r: 3.5 },
+  { x: 92, y: 62, r: 3 },
+];
 
 /** Hoja o pétalo en forma de lente: sale de `base` en la dirección `angle` (radianes). */
 function leafPath(base: Point, angle: number, length: number): string {
@@ -69,26 +70,14 @@ function PlantLayer({ t, size }: { t: number; size: number }) {
   const p = broteParams(t);
   const height = (size * VIEW_H) / VIEW_W;
 
-  const p0 = { x: CENTER_X, y: STEM_BASE_Y };
-  const p1 = { x: CENTER_X, y: STEM_BASE_Y - p.stemHeight * 0.55 };
-  const p2 = {
-    x: CENTER_X + p.stemCurve * 0.6,
-    y: STEM_BASE_Y - p.stemHeight * 0.85 + p.stemCurve * 0.1,
-  };
-  const p3 = {
-    x: CENTER_X + p.stemCurve,
-    y: STEM_BASE_Y - p.stemHeight + p.stemCurve * 0.45,
-  };
-  const stemPath = `M${p0.x} ${p0.y} C${p1.x} ${p1.y} ${p2.x} ${p2.y} ${p3.x} ${p3.y}`;
-
-  // La punta apunta hacia donde termina la curva del tallo.
-  const tipAngle = Math.atan2(p3.y - p2.y, p3.x - p2.x);
-  const leafBase = bezierPoint(p0, p1, p2, p3, p.leafAttach);
+  const tip: Point = { x: CENTER_X, y: STEM_BASE_Y - p.stemHeight };
+  const leafBase: Point = { x: CENTER_X, y: STEM_BASE_Y - p.stemHeight * p.leafAttach };
+  const stemPath = `M${CENTER_X} ${STEM_BASE_Y} L${tip.x} ${tip.y}`;
   const leafAngle = toRadians(p.leafAngle);
 
-  const budEnd = {
-    x: p3.x + Math.cos(tipAngle) * p.budLength * 0.5,
-    y: p3.y + Math.sin(tipAngle) * p.budLength * 0.5,
+  const budEnd: Point = {
+    x: tip.x + Math.cos(GROWTH_ANGLE) * p.budLength * 0.5,
+    y: tip.y + Math.sin(GROWTH_ANGLE) * p.budLength * 0.5,
   };
   const budScale = 1 - p.flower;
   const petalLength = 16 * p.flower;
@@ -115,25 +104,13 @@ function PlantLayer({ t, size }: { t: number; size: number }) {
         strokeLinejoin="round"
       />
 
-      {p.dryLeaf > 0 ? (
+      {budScale > 0 ? (
         <Path
-          d={leafPath(p3, tipAngle, 20)}
-          fill={BROTE_COLORS.dryLeaf}
-          stroke={ink}
-          strokeWidth={DETAIL_OUTLINE}
-          strokeLinejoin="round"
-          opacity={p.dryLeaf}
-        />
-      ) : null}
-
-      {p.bud > 0 && budScale > 0 ? (
-        <Path
-          d={leafPath(p3, tipAngle, p.budLength * budScale)}
+          d={leafPath(tip, GROWTH_ANGLE, p.budLength * budScale)}
           fill={p.budColor}
           stroke={ink}
           strokeWidth={DETAIL_OUTLINE}
           strokeLinejoin="round"
-          opacity={p.bud}
         />
       ) : null}
 
@@ -202,27 +179,6 @@ function PotLayer({ t, size }: { t: number; size: number }) {
         strokeLinejoin="round"
       />
 
-      {face.brows > 0 ? (
-        <G opacity={face.brows}>
-          <Path d="M57 175 L72 168.5" stroke={ink} strokeWidth={3} strokeLinecap="round" />
-          <Path d="M103 175 L88 168.5" stroke={ink} strokeWidth={3} strokeLinecap="round" />
-        </G>
-      ) : null}
-
-      {face.sadEyes > 0 ? (
-        <G opacity={face.sadEyes}>
-          {eyeXs.map((x) => (
-            <Path
-              key={x}
-              d={`M${x - 6} ${eyeY} Q${x} ${eyeY + 6} ${x + 6} ${eyeY}`}
-              stroke={ink}
-              strokeWidth={3}
-              fill="none"
-              strokeLinecap="round"
-            />
-          ))}
-        </G>
-      ) : null}
       {face.dotEyes > 0 ? (
         <G opacity={face.dotEyes}>
           {eyeXs.map((x) => (
@@ -255,14 +211,6 @@ function PotLayer({ t, size }: { t: number; size: number }) {
         </G>
       ) : null}
 
-      {face.tear > 0 ? (
-        <Path
-          d="M62 186 q-3.2 5 0 7 q3.2 -2 0 -7 z"
-          fill={BROTE_COLORS.tear}
-          opacity={face.tear}
-        />
-      ) : null}
-
       <Path
         d={mouthPath}
         stroke={ink}
@@ -272,6 +220,45 @@ function PotLayer({ t, size }: { t: number; size: number }) {
         fill="#7A2E1F"
         fillOpacity={face.mouthOpen}
       />
+    </Svg>
+  );
+}
+
+/** Círculo del color del estado (púrpura o verde); con luna y estrellas en Muy mal y nubes en Mal. */
+function SceneLayer({ t, size }: { t: number; size: number }) {
+  const { scene } = broteParams(t);
+  const height = (size * VIEW_H) / VIEW_W;
+  const { moon: m, cloud: c } = scene;
+  // Media luna: arco exterior y arco interior más suave, abierta hacia la derecha.
+  const moonPath = `M${MOON.x} ${MOON.y - MOON.r} A${MOON.r} ${MOON.r} 0 1 0 ${MOON.x} ${MOON.y + MOON.r} A${MOON.r * 1.2} ${MOON.r * 1.2} 0 0 1 ${MOON.x} ${MOON.y - MOON.r} Z`;
+
+  return (
+    <Svg width={size} height={height} viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} style={StyleSheet.absoluteFill}>
+      <Circle
+        cx={SCENE_CENTER.x}
+        cy={SCENE_CENTER.y}
+        r={SCENE_RADIUS}
+        fill={scene.tint}
+        opacity={scene.circle}
+      />
+      {m > 0 ? (
+        <G opacity={m}>
+          <Path d={moonPath} fill={BROTE_COLORS.moon} />
+          {STARS.map((star) => (
+            <Path key={`${star.x}-${star.y}`} d={sparklePath(star)} fill={BROTE_COLORS.moon} />
+          ))}        </G>
+      ) : null}
+      {c > 0 ? (
+        <G opacity={c * 0.9} fill={BROTE_COLORS.cloud}>
+          <Ellipse cx={116} cy={90} rx={21} ry={7} />
+          <Circle cx={105} cy={85} r={9} />
+          <Circle cx={117} cy={80} r={11} />
+          <Circle cx={128} cy={87} r={8} />
+          <Ellipse cx={44} cy={104} rx={12} ry={5} />
+          <Circle cx={40} cy={100} r={5} />
+          <Circle cx={50} cy={99} r={6} />
+        </G>
+      ) : null}
     </Svg>
   );
 }
@@ -289,15 +276,17 @@ function SparkleLayer({ size }: { size: number }) {
 
 /**
  * Brote: una plantita en un macetero con cara que se transforma de forma continua
- * según t. Con t bajo se marchita; con t alto crece, florece y destella. En reposo
- * se balancea suavemente, salvo que se pida reducir el movimiento.
+ * según t. El macetero es siempre amarillo. Con t bajo descansa (verde, erguida y
+ * serena, en un círculo púrpura con luna o nubes), nunca se marchita ni se ve triste;
+ * con t alto crece, florece y destella dentro de un círculo verde. En reposo se balancea suavemente, salvo que se pida
+ * reducir el movimiento.
  */
 export function Brote({ t, size = 200, idle = true }: BroteProps) {
   const reduceMotion = useReducedMotion();
   const animate = idle && !reduceMotion;
   const sway = useRef(new Animated.Value(-1)).current;
   const twinkle = useRef(new Animated.Value(0)).current;
-  const clamped = clamp01(t);
+  const clamped = safeT(t);
   const sparkle = broteParams(clamped).sparkle;
   const twinkling = animate && sparkle > 0;
 
@@ -381,6 +370,7 @@ export function Brote({ t, size = 200, idle = true }: BroteProps) {
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
+      <SceneLayer t={clamped} size={size} />
       <Animated.View style={[StyleSheet.absoluteFill, swayStyle]}>
         <PlantLayer t={clamped} size={size} />
       </Animated.View>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { motionDuration, motionEasing, NATIVE_DRIVER } from '@/shared/motion/motionTokens';
 import { useReducedMotion } from '@/shared/motion/useReducedMotion';
+import { MOOD_PALETTE } from './broteParams';
 
 export type WeekMood = 'Muy mal' | 'Mal' | 'Neutro' | 'Bien' | 'Muy bien';
 
@@ -21,13 +22,7 @@ export interface WeekDayData {
  * días difíciles, beige neutro al centro y verde en los buenos. Sin rojo ni amarillo
  * intenso; la altura de la barra sigue siendo el canal principal del dato.
  */
-const MOOD_COLORS: Record<WeekMood, string> = {
-  'Muy mal': '#8b80b1',
-  'Mal': '#a99fcf',
-  'Neutro': '#cfc8b9',
-  'Bien': '#9fcaa8',
-  'Muy bien': '#5bb07f',
-};
+const MOOD_COLORS: Record<WeekMood, string> = MOOD_PALETTE;
 
 export const WEEK_MOODS: WeekMood[] = ['Muy mal', 'Mal', 'Neutro', 'Bien', 'Muy bien'];
 

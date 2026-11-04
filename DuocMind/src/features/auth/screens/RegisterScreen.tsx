@@ -5,41 +5,49 @@ import {
   Platform,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LiquidBackground, LiquidCard } from '@/shared/components/Glass';
+import { LiquidBackground } from '@/shared/components/Glass';
 import { AuthActionButton } from '@/shared/components/AuthActionButton';
 import {
+  BookIcon,
+  CalendarIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DocumentIcon,
   EyeIcon,
   EyeOffIcon,
   GradCapIcon,
   LockIcon,
-  MailIcon,
-  SparkleIcon,
 } from '@/shared/components/Icons';
+import { ScalePress } from '@/shared/components/ScalePress';
 import {
   getAuthenticationErrorMessage,
   registerAccount,
 } from '@/features/auth/application/authentication';
 import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
 import { GotaLoader } from '@/shared/components/GotaLoader';
+import { Reveal } from '@/shared/motion/Reveal';
+import { warmPalette } from '@/shared/theme/warmPalette';
 import { ConsentCheckbox } from '../components/ConsentCheckbox';
+import { PasswordStrengthMeter } from '../components/PasswordStrengthMeter';
+import { RegisterSection } from '../components/RegisterSection';
+import { RegisterTextField } from '../components/RegisterTextField';
 import { SelectField } from '../components/SelectField';
 import { useRegistrationCatalog } from '../application/useRegistrationCatalog';
+import { careerOptions, semesterOptions, validateAcademicSelection } from '../domain/registration';
 import {
-  campusOptions,
-  careerOptions,
-  semesterOptions,
-  validateAcademicSelection,
-} from '../domain/registration';
-import { CONSENT_TEXT } from '@/shared/consents/domain/consents';
+  REGISTER_BLOCKER_HINTS,
+  REGISTER_CONSENT_LABELS,
+  passwordStrength,
+  registerBlocker,
+} from '../domain/registerForm';
 import { consentStore } from '@/shared/consents/infrastructure/consentStorage';
 import { openPrivacyPolicy } from '@/shared/consents/infrastructure/privacyPolicyDocument';
 import { rememberRegistrationConsents } from '../application/registrationConsents';
-import { styles } from './authForm.styles';
+import { styles } from './registerForm.styles';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -47,11 +55,10 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [campusId, setCampusId] = useState<string | null>(null);
   const [careerId, setCareerId] = useState<string | null>(null);
   const [semester, setSemester] = useState<number | null>(null);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  // Consentimientos opcionales: por ahora solo viven en la pantalla, sin guardarse.
+  // Consentimientos opcionales: siempre parten desmarcados.
   const [shareAnonymousData, setShareAnonymousData] = useState(false);
   const [allowEmergencyContact, setAllowEmergencyContact] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,18 +66,10 @@ export default function RegisterScreen() {
   const [feedback, setFeedback] = useState<{ message: string; tone: 'error' | 'success' } | null>(null);
   const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
 
-  const hasMinLength = password.length >= 8;
-  const hasNumber = /\d/.test(password);
-  const hasUppercase = /[A-Z]/.test(password);
-  const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-  const requirements = [
-    { label: 'Mínimo 8 carac.', met: hasMinLength },
-    { label: 'Un número', met: hasNumber },
-    { label: 'Una mayúscula', met: hasUppercase },
-    { label: 'Un símbolo (@, #)', met: hasSymbol },
-  ];
-  const metCount = requirements.filter((requirement) => requirement.met).length;
+  const strength = passwordStrength(password);
+  const blocker = registerBlocker({ email, password, confirmPassword, careerId, semester, acceptTerms });
+  const confirmError =
+    confirmPassword.length > 0 && confirmPassword !== password ? 'Las contraseñas no coinciden.' : null;
 
   const handleRegister = async () => {
     Keyboard.dismiss();
@@ -84,11 +83,11 @@ export default function RegisterScreen() {
       setFeedback({ tone: 'error', message: 'Las contraseñas no coinciden.' });
       return;
     }
-    if (metCount < requirements.length) {
+    if (strength.level !== 'strong') {
       setFeedback({ tone: 'error', message: 'Usa al menos 8 caracteres, un número, una mayúscula y un símbolo.' });
       return;
     }
-    const selectionError = validateAcademicSelection({ campusId, careerId, semester }, catalog.careers);
+    const selectionError = validateAcademicSelection({ careerId, semester }, catalog.careers);
     if (selectionError) {
       setFeedback({ tone: 'error', message: selectionError });
       return;
@@ -127,6 +126,8 @@ export default function RegisterScreen() {
     }
   };
 
+  const iconColor = warmPalette.textSecondary;
+
   return (
     <View style={styles.safeArea}>
       <LiquidBackground />
@@ -139,230 +140,176 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* ── Barra superior ── */}
-          <View style={styles.topBar}>
-            <TouchableOpacity
+          {/* ── Encabezado ── */}
+          <Reveal>
+            <ScalePress
               style={styles.backButton}
               onPress={() => router.push('/login')}
               accessibilityRole="button"
               accessibilityLabel="Volver al inicio de sesión"
             >
-              <Text style={styles.backArrow}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.topBarTitle}>CREAR CUENTA</Text>
-            <View style={styles.topBarSpacer} />
-          </View>
-
-          {/* ── Bienvenida ── */}
-          <View style={styles.intro}>
-            <Text style={styles.introEyebrow}>ESPACIO SERENO</Text>
-            <Text style={styles.introTitle}>Crea tu cuenta</Text>
-            <Text style={styles.introSubtitle}>
-              Empieza a balancear tu vida académica y emocional hoy mismo.
+              <ChevronLeftIcon size={22} color={warmPalette.navy} />
+            </ScalePress>
+            <Text style={styles.title} accessibilityRole="header">
+              Crea tu cuenta
             </Text>
-          </View>
+            <Text style={styles.subtitle}>Tu agenda y tu bienestar, en un solo lugar.</Text>
+          </Reveal>
 
-          {/* ── Aviso de comunidad ── */}
-          <View style={styles.insightBox}>
-            <View style={styles.insightIcon}>
-              <SparkleIcon size={16} color="#d4912c" />
-            </View>
-            <View style={styles.insightTextBox}>
-              <Text style={styles.insightText}>
-                <Text style={styles.insightStrong}>Comunidad Consciente:</Text> únete a más de
-                12,000 estudiantes que priorizan su bienestar.
-              </Text>
-            </View>
-          </View>
+          {/* ── 1. Tu cuenta ── */}
+          <Reveal index={1}>
+            <RegisterSection step={1} title="Tu cuenta">
+              <RegisterTextField
+                label="Correo institucional"
+                icon={<GradCapIcon size={20} color={iconColor} />}
+                placeholder="tu.correo@duocuc.cl"
+                autoCapitalize="none"
+                autoComplete="email"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+              />
 
-          {/* ── Formulario de registro ── */}
-          <LiquidCard style={styles.formCard}>
-            {/* Correo */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Correo institucional</Text>
-              <View style={styles.inputContainer}>
-                <GradCapIcon size={17} color="#b0a891" />
-                <TextInput
-                  style={styles.input}
-                  placeholder="tu.correo@universidad.edu"
-                  placeholderTextColor="#b0a891"
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  value={email}
-                  onChangeText={setEmail}
-                />
-              </View>
-            </View>
+              <RegisterTextField
+                label="Contraseña"
+                icon={<LockIcon size={20} color={iconColor} />}
+                placeholder="Crea una contraseña segura"
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                value={password}
+                onChangeText={setPassword}
+                trailing={
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.eyeButton}
+                    accessibilityRole="button"
+                    accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    {showPassword ? <EyeOffIcon size={22} color={iconColor} /> : <EyeIcon size={22} color={iconColor} />}
+                  </TouchableOpacity>
+                }
+              />
 
-            {/* Contraseña */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Contraseña</Text>
-              <View style={styles.inputContainer}>
-                <LockIcon size={17} color="#b0a891" />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Crea una contraseña segura"
-                  placeholderTextColor="#b0a891"
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={setPassword}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={styles.eyeButton}
-                  accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                >
-                  {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
-                </TouchableOpacity>
-              </View>
+              <PasswordStrengthMeter password={password} />
 
-              {/* Checklist de requisitos de contraseña */}
-              <View style={styles.strengthBox}>
-                <View style={styles.strengthHeader}>
-                  <Text style={styles.strengthLabel}>Fortaleza de seguridad</Text>
-                  <Text style={styles.strengthStatus}>
-                    {metCount === requirements.length ? 'Buena' : 'En progreso'}
+              <RegisterTextField
+                label="Confirma tu contraseña"
+                icon={<LockIcon size={20} color={iconColor} />}
+                placeholder="Repite tu contraseña"
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                error={confirmError}
+              />
+            </RegisterSection>
+          </Reveal>
+
+          {/* ── 2. Tu carrera ── */}
+          <Reveal index={2}>
+            <RegisterSection step={2} title="Tu carrera">
+              {catalog.loading ? (
+                <GotaLoader size="sm" text="Cargando carreras…" />
+              ) : catalog.failed ? (
+                <View>
+                  <Text accessibilityLiveRegion="polite" style={styles.catalogError}>
+                    No pudimos cargar las carreras. Revisa tu conexión e inténtalo de nuevo.
                   </Text>
+                  <ScalePress
+                    style={styles.retryButton}
+                    onPress={catalog.reload}
+                    accessibilityRole="button"
+                    accessibilityLabel="Reintentar la carga de carreras"
+                  >
+                    <Text style={styles.retryText}>Reintentar</Text>
+                  </ScalePress>
                 </View>
-                <View style={styles.strengthBarBg}>
-                  <View
-                    style={[
-                      styles.strengthBarFill,
-                      { width: `${(metCount / requirements.length) * 100}%` },
-                    ]}
+              ) : (
+                <>
+                  <SelectField
+                    label="Carrera"
+                    placeholder="Elige tu carrera"
+                    icon={<BookIcon size={20} color={iconColor} />}
+                    options={careerOptions(catalog.careers)}
+                    value={careerId}
+                    onChange={setCareerId}
                   />
+                  <SelectField
+                    label="Semestre"
+                    placeholder="Elige tu semestre"
+                    icon={<CalendarIcon size={20} color={iconColor} />}
+                    options={semesterOptions()}
+                    value={semester === null ? null : String(semester)}
+                    onChange={(key) => setSemester(Number(key))}
+                  />
+                </>
+              )}
+            </RegisterSection>
+          </Reveal>
+
+          {/* ── 3. Privacidad y consentimientos ── */}
+          <Reveal index={3}>
+            <RegisterSection step={3} title="Privacidad y consentimientos">
+              {/* Enlace global: aplica a las tres casillas, no solo a la primera. */}
+              <ScalePress
+                style={styles.termsLink}
+                onPress={handleOpenPolicy}
+                accessibilityRole="link"
+                accessibilityLabel="Leer términos, políticas y consentimientos. Aplica a las 3 opciones de abajo."
+              >
+                <View style={styles.termsLinkIcon}>
+                  <DocumentIcon size={22} color={warmPalette.navy} />
                 </View>
-
-                <View style={styles.reqGrid}>
-                  {requirements.map((requirement) => (
-                    <View key={requirement.label} style={styles.reqItem}>
-                      <Text style={[styles.reqIcon, requirement.met && styles.reqPassed]}>
-                        {requirement.met ? '✓' : '○'}
-                      </Text>
-                      <Text style={[styles.reqText, requirement.met && styles.reqPassedText]}>
-                        {requirement.label}
-                      </Text>
-                    </View>
-                  ))}
+                <View style={styles.termsLinkBody}>
+                  <Text style={styles.termsLinkTitle}>Leer términos, políticas y consentimientos</Text>
+                  <Text style={styles.termsLinkScope}>Aplica a las 3 opciones de abajo</Text>
                 </View>
-              </View>
-            </View>
+                <ChevronRightIcon size={22} color={warmPalette.navy} />
+              </ScalePress>
 
-            {/* Confirmar contraseña */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Confirmación de contraseña</Text>
-              <View style={styles.inputContainer}>
-                <LockIcon size={17} color="#b0a891" />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Repite tu contraseña"
-                  placeholderTextColor="#b0a891"
-                  secureTextEntry={!showPassword}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
+              <View style={styles.consentGroup}>
+                <ConsentCheckbox
+                  requirement="Obligatorio"
+                  label={REGISTER_CONSENT_LABELS.terms}
+                  checked={acceptTerms}
+                  onToggle={() => setAcceptTerms(!acceptTerms)}
+                />
+                <ConsentCheckbox
+                  requirement="Opcional"
+                  label={REGISTER_CONSENT_LABELS.shareAnonymousData}
+                  checked={shareAnonymousData}
+                  onToggle={() => setShareAnonymousData(!shareAnonymousData)}
+                />
+                <ConsentCheckbox
+                  requirement="Opcional"
+                  label={REGISTER_CONSENT_LABELS.allowEmergencyContact}
+                  checked={allowEmergencyContact}
+                  onToggle={() => setAllowEmergencyContact(!allowEmergencyContact)}
                 />
               </View>
-            </View>
+            </RegisterSection>
+          </Reveal>
 
-            {/* Sede, carrera y semestre */}
-            {catalog.loading ? (
-              <GotaLoader size="sm" text="Cargando sedes y carreras…" style={styles.inputGroup} />
-            ) : catalog.failed ? (
-              <View style={styles.inputGroup}>
-                <Text accessibilityLiveRegion="polite" style={styles.feedbackError}>
-                  No pudimos cargar las sedes y carreras. Revisa tu conexión e inténtalo de nuevo.
-                </Text>
-                <TouchableOpacity
-                  style={styles.confirmationLoginButton}
-                  onPress={catalog.reload}
-                  accessibilityRole="button"
-                  accessibilityLabel="Reintentar la carga de sedes y carreras"
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.confirmationLoginText}>Reintentar</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <>
-                <SelectField
-                  label="Sede"
-                  placeholder="Elige tu sede"
-                  options={campusOptions(catalog.campuses)}
-                  value={campusId}
-                  onChange={(key) => {
-                    setCampusId(key);
-                    setCareerId(null);
-                  }}
-                />
-                <SelectField
-                  label="Carrera"
-                  placeholder="Elige tu carrera"
-                  options={careerOptions(catalog.careers, campusId)}
-                  value={careerId}
-                  onChange={setCareerId}
-                  disabled={!campusId}
-                  hint={campusId ? undefined : 'Primero elige tu sede.'}
-                />
-                <SelectField
-                  label="Semestre"
-                  placeholder="Elige tu semestre"
-                  options={semesterOptions()}
-                  value={semester === null ? null : String(semester)}
-                  onChange={(key) => setSemester(Number(key))}
-                />
-              </>
-            )}
-
-            {/* Términos */}
-            <TouchableOpacity
-              style={styles.termsRow}
-              onPress={() => setAcceptTerms(!acceptTerms)}
-              activeOpacity={0.8}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: acceptTerms }}
-            >
-              <View style={[styles.checkbox, acceptTerms && styles.checkboxActive]}>
-                {acceptTerms && <Text style={styles.checkboxCheck}>✓</Text>}
-              </View>
-              <Text style={styles.termsText}>
-                Acepto los términos de servicio y las políticas de privacidad de Equilibrio Académico.{' '}
-                <Text
-                  style={styles.footerLink}
-                  onPress={handleOpenPolicy}
-                  accessibilityRole="link"
-                  accessibilityLabel="Leer términos, políticas y consentimientos en detalle"
-                >
-                  Leer términos, políticas y consentimientos
-                </Text>
-              </Text>
-            </TouchableOpacity>
-
-            {/* Consentimientos opcionales de privacidad */}
-            <ConsentCheckbox
-              checked={shareAnonymousData}
-              onToggle={() => setShareAnonymousData(!shareAnonymousData)}
-              accessibilityLabel="Consentimiento opcional: compartir mis datos de forma anónima"
-            >
-              {CONSENT_TEXT.shareAnonymousData} (Opcional)
-            </ConsentCheckbox>
-            <ConsentCheckbox
-              checked={allowEmergencyContact}
-              onToggle={() => setAllowEmergencyContact(!allowEmergencyContact)}
-              accessibilityLabel="Consentimiento opcional: contacto en caso de emergencia"
-            >
-              {CONSENT_TEXT.allowEmergencyContact} (Opcional)
-            </ConsentCheckbox>
-
-            {/* Crear cuenta */}
+          {/* ── Crear cuenta ── */}
+          <Reveal index={4}>
             <AuthActionButton
-              label="Crear Cuenta"
+              label="Crear cuenta"
               busyLabel="Creando cuenta…"
               isBusy={isSubmitting}
+              disabled={blocker !== null}
               onPress={handleRegister}
               style={styles.primaryButton}
+              disabledStyle={styles.primaryButtonDisabled}
               textStyle={styles.primaryButtonText}
               arrowStyle={styles.buttonArrow}
+              accessibilityLabel="Crear cuenta"
             />
+
+            {blocker ? (
+              <Text accessibilityLiveRegion="polite" style={styles.blockerHint}>
+                {REGISTER_BLOCKER_HINTS[blocker]}
+              </Text>
+            ) : null}
 
             {feedback ? (
               <Text
@@ -374,25 +321,28 @@ export default function RegisterScreen() {
             ) : null}
 
             {needsEmailConfirmation ? (
-              <TouchableOpacity
+              <ScalePress
                 style={styles.confirmationLoginButton}
                 onPress={() => router.replace('/login')}
                 accessibilityRole="button"
-                activeOpacity={0.8}
+                accessibilityLabel="Ir a iniciar sesión"
               >
                 <Text style={styles.confirmationLoginText}>Ir a iniciar sesión</Text>
-              </TouchableOpacity>
+              </ScalePress>
             ) : null}
-          </LiquidCard>
+          </Reveal>
 
           {/* ── Pie ── */}
-          <View style={styles.footerContainer}>
-            <Text style={styles.footerText}>
-              ¿Ya tienes una cuenta?{' '}
-              <Text style={styles.footerLink} onPress={() => router.push('/login')}>
-                Inicia sesión
-              </Text>
-            </Text>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>¿Ya tienes cuenta?</Text>
+            <ScalePress
+              style={styles.footerLinkButton}
+              onPress={() => router.push('/login')}
+              accessibilityRole="link"
+              accessibilityLabel="Inicia sesión"
+            >
+              <Text style={styles.footerLink}>Inicia sesión</Text>
+            </ScalePress>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

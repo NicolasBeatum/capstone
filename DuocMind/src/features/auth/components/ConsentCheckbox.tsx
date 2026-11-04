@@ -1,30 +1,40 @@
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
-import { styles } from '../screens/authForm.styles';
+import { Text, View } from 'react-native';
+import { CheckIcon } from '@/shared/components/Icons';
+import { ScalePress } from '@/shared/components/ScalePress';
+import { warmPalette } from '@/shared/theme/warmPalette';
+import { styles } from '../screens/registerForm.styles';
 
 interface ConsentCheckboxProps {
   checked: boolean;
   onToggle: () => void;
-  /** Texto de la casilla; puede contener un enlace anidado. */
-  children: React.ReactNode;
-  accessibilityLabel: string;
+  label: string;
+  /** Etiqueta pequeña sobre la casilla; también se anuncia en voz alta. */
+  requirement: 'Obligatorio' | 'Opcional';
 }
 
-/** Casilla con el estilo de la de términos, para consentimientos de privacidad. */
-export function ConsentCheckbox({ checked, onToggle, children, accessibilityLabel }: ConsentCheckboxProps) {
+/** Casilla del registro con su etiqueta «Obligatorio» u «Opcional». */
+export function ConsentCheckbox({ checked, onToggle, label, requirement }: ConsentCheckboxProps) {
+  const required = requirement === 'Obligatorio';
   return (
-    <TouchableOpacity
-      style={styles.termsRow}
+    <ScalePress
+      style={styles.consent}
       onPress={onToggle}
-      activeOpacity={0.8}
       accessibilityRole="checkbox"
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={`${requirement}: ${label}`}
       accessibilityState={{ checked }}
     >
-      <View style={[styles.checkbox, checked && styles.checkboxActive]}>
-        {checked && <Text style={styles.checkboxCheck}>✓</Text>}
+      <View style={[styles.tag, required ? styles.tagRequired : styles.tagOptional]}>
+        <Text style={[styles.tagText, required ? styles.tagTextRequired : styles.tagTextOptional]}>
+          {requirement}
+        </Text>
       </View>
-      <Text style={styles.termsText}>{children}</Text>
-    </TouchableOpacity>
+      <View style={styles.consentRow}>
+        <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
+          {checked ? <CheckIcon size={20} color={warmPalette.white} /> : null}
+        </View>
+        <Text style={styles.consentText}>{label}</Text>
+      </View>
+    </ScalePress>
   );
 }

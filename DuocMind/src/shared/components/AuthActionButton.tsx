@@ -17,6 +17,12 @@ interface AuthActionButtonProps {
   style: StyleProp<ViewStyle>;
   textStyle: StyleProp<TextStyle>;
   arrowStyle: StyleProp<TextStyle>;
+  /** Botón apagado e inactivo, por ejemplo mientras faltan datos o un consentimiento obligatorio. */
+  disabled?: boolean;
+  /** Estilo extra que se aplica solo cuando está deshabilitado. */
+  disabledStyle?: StyleProp<ViewStyle>;
+  /** Etiqueta de accesibilidad; por defecto se lee el texto del botón. */
+  accessibilityLabel?: string;
 }
 
 export function AuthActionButton({
@@ -27,15 +33,21 @@ export function AuthActionButton({
   style,
   textStyle,
   arrowStyle,
+  disabled = false,
+  disabledStyle,
+  accessibilityLabel,
 }: AuthActionButtonProps) {
+  const inactive = isBusy || disabled;
+
   if (Platform.OS === 'web') {
     return (
-      <View style={style}>
+      <View style={[style, disabled && disabledStyle]}>
         <button
           type="button"
-          disabled={isBusy}
+          disabled={inactive}
+          aria-label={accessibilityLabel}
           onClick={() => onPress()}
-          style={webButtonStyle}
+          style={{ ...webButtonStyle, cursor: inactive ? 'default' : 'pointer' }}
         >
           <Text style={textStyle}>{isBusy ? busyLabel : label}</Text>
           {!isBusy && <Text style={arrowStyle}>→</Text>}
@@ -46,11 +58,13 @@ export function AuthActionButton({
 
   return (
     <TouchableOpacity
-      style={style}
+      style={[style, disabled && disabledStyle]}
       onPress={onPress}
-      disabled={isBusy}
+      disabled={inactive}
       activeOpacity={0.85}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: inactive, busy: isBusy }}
     >
       <Text style={textStyle}>{isBusy ? busyLabel : label}</Text>
       {!isBusy && <Text style={arrowStyle}>→</Text>}
@@ -67,6 +81,5 @@ const webButtonStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  cursor: 'pointer',
   fontFamily: 'inherit',
 };
