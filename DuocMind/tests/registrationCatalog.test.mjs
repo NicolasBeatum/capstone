@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadRegistrationCatalog } from '../src/features/auth/application/registrationCatalog.ts';
 
-const careers = [{ id: '1', name: 'Diseño', campusId: '1' }];
+const careers = [{ id: '1', name: 'Diseño' }];
 
 test('CA-001: devuelve las carreras del gateway', async () => {
   const result = await loadRegistrationCatalog({ fetch: async () => ({ careers }) });

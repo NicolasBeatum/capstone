@@ -5,7 +5,7 @@ import type { RegistrationCatalogGateway } from '../application/registrationCata
 export const supabaseRegistrationCatalogGateway: RegistrationCatalogGateway = {
   async fetch() {
     // Catálogo público: se lee antes de tener sesión, con la política de lectura abierta.
-    const careers = await getSupabaseClient().from('carrera').select('id_carrera, nombre_carrera, sede_id_sede');
+    const careers = await getSupabaseClient().from('carrera').select('id_carrera, nombre_carrera');
     if (careers.error) throw careers.error;
     return { careers: parseCareers(careers.data) };
   },
