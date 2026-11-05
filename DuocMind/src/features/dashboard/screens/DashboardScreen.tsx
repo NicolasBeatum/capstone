@@ -24,11 +24,16 @@ import { WeekChart, type WeekDayData } from '@/shared/components/WeekChart';
 import { Reveal } from '@/shared/motion/Reveal';
 import { TutorialOverlay } from '@/shared/tutorial/components/TutorialOverlay';
 import { useTutorial } from '@/shared/tutorial/infrastructure/useTutorial';
-import { BellIcon, ClipboardIcon, TicketIcon, WindIcon } from '@/shared/components/Icons';
+import { BellIcon, CalendarIcon, ClipboardIcon, MoonIcon, TicketIcon, WindIcon } from '@/shared/components/Icons';
 import { usePlanner, type PlannerModel } from '@/shared/planner/application/usePlanner';
 import { projectPlannerDashboard } from '@/shared/planner/application/plannerProjection';
 import { emptySchedule } from '@/shared/planner/domain/schedule';
 import { ACTIVITY_LABELS, type ActivityKind } from '@/shared/planner/application/plannerStore';
+import {
+  FEATURED_SLOT_LABELS,
+  FEATURED_TOOLS,
+  type FeaturedToolIcon,
+} from '../domain/featuredTools';
 import { greetingName, studentInitials } from '../domain/studentName';
 import {
   fetchStudentDisplayName,
@@ -36,7 +41,13 @@ import {
 } from '../infrastructure/studentProfileRepository';
 import { styles } from './DashboardScreen.styles';
 
-const WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+/* Cada herramienta destacada lleva su propio tono; la imagen real llegará con imagen_path. */
+const FEATURED_VISUALS: Record<FeaturedToolIcon, { icon: React.ReactNode; tile: 'featuredTileCalm' | 'featuredTileBreath' }> = {
+  moon: { icon: <MoonIcon size={28} color="#2f4ea3" />, tile: 'featuredTileCalm' },
+  wind: { icon: <WindIcon size={28} color="#6b5aa8" />, tile: 'featuredTileBreath' },
+};
+
+const WEEKDAYS =['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 const MONTHS = [
   'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
   'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
@@ -385,7 +396,15 @@ function DashboardScreenContent({planner}: {planner: PlannerModel}) {
             <ScalePress style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => router.push('/pendientes')} accessibilityRole="button" accessibilityLabel="Ver todas mis actividades"><Text style={styles.sectionLink}>Ver todo</Text></ScalePress>
           </View>
           <LiquidCard style={styles.upcomingCard}>
-            {!plannerView.upcoming.length && <Text style={styles.upcomingEmpty}>{planner.loading ? 'Cargando actividades…' : 'Sin pruebas, tareas ni actividades en los próximos días.'}</Text>}
+            {!plannerView.upcoming.length && (
+              <View style={styles.upcomingEmptyRow}>
+                <View style={styles.upcomingEmptyIcon}><CalendarIcon size={20} color="#a4691a" /></View>
+                <View style={styles.upcomingEmptyText}>
+                  <Text style={styles.upcomingEmptyTitle}>{planner.loading ? 'Cargando actividades…' : 'Todo al día'}</Text>
+                  {!planner.loading && <Text style={styles.upcomingEmptyDesc}>No tienes pruebas ni tareas para los próximos días.</Text>}
+                </View>
+              </View>
+            )}
             {groupByDate(plannerView.upcoming).map((group, groupIndex) => {
               const first = group.items[0];
               return (
@@ -422,20 +441,29 @@ function DashboardScreenContent({planner}: {planner: PlannerModel}) {
         {/* ── Para ti hoy ── */}
         <Reveal index={4}>
           <Text style={[styles.sectionTitle, styles.forYouTitle]}>Para ti hoy</Text>
-          <ScalePress
-            style={styles.forYouTile}
-            onPress={() => router.push('/wellness')}
-            accessibilityRole="button"
-            accessibilityLabel="Respira 3 minutos"
-          >
-            <View style={styles.forYouIcon}>
-              <WindIcon size={24} color="#6b5aa8" />
-            </View>
-            <View style={styles.forYouText}>
-              <Text style={styles.forYouTitleText}>Respira 3 min</Text>
-              <Text style={styles.forYouDesc}>Un momento para pausar y respirar</Text>
-            </View>
-          </ScalePress>
+          {FEATURED_TOOLS.map((tool) => {
+            const visual = FEATURED_VISUALS[tool.icon];
+            const label = FEATURED_SLOT_LABELS[tool.slot];
+            return (
+              <ScalePress
+                key={tool.slot}
+                style={styles.featuredCard}
+                onPress={() => router.push('/wellness')}
+                accessibilityRole="button"
+                accessibilityLabel={`${label}: ${tool.title}. ${tool.description}`}
+              >
+                <View style={[styles.featuredTile, styles[visual.tile]]}>{visual.icon}</View>
+                <View style={styles.featuredText}>
+                  <Text style={styles.featuredLabel}>{label}</Text>
+                  <Text style={styles.featuredTitle} numberOfLines={2}>{tool.title}</Text>
+                  <Text style={styles.featuredDesc} numberOfLines={2}>{tool.description}</Text>
+                </View>
+                <View style={styles.featuredCategory}>
+                  <Text style={styles.featuredCategoryText}>{tool.category}</Text>
+                </View>
+              </ScalePress>
+            );
+          })}
         </Reveal>
 
         <Reveal index={5}>

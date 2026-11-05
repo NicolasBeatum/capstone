@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 import { interFamily as font } from '@/shared/theme/typography';
 
-/* ── Recursos de crisis: misma paleta cálida que el test, con tipografía Inter ── */
+/* ── Apoyo y bienestar: paleta cálida, tarjetas suaves y poco texto ── */
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -46,215 +46,250 @@ export const styles = StyleSheet.create({
     fontFamily: font.regular,
   },
   closeButton: {
-    fontSize: 28,
-    color: '#1a2b44',
-    lineHeight: 28,
-    fontFamily: font.semiBold,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  crisisContainer: {
+  container: {
     paddingHorizontal: 20,
     paddingBottom: 120,
   },
-  crisisHeroCard: {
+  title: {
+    fontSize: 26,
+    lineHeight: 32,
+    color: '#1a2b44',
+    marginTop: 4,
+    fontFamily: font.extraBold,
+  },
+  intro: {
+    fontSize: 15,
+    lineHeight: 23,
+    color: '#6b7385',
+    marginTop: 10,
+    marginBottom: 20,
+    fontFamily: font.regular,
+  },
+
+  /* Programa de Apoyo a la Salud Mental */
+  programCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 24,
+    borderRadius: 28,
     borderWidth: 1,
     borderColor: '#f0ead9',
-    padding: 18,
-    marginBottom: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
+    overflow: 'hidden',
+    marginBottom: 16,
     shadowColor: '#1a2b44',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 3,
   },
-  crisisIconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#fbf0cd',
+  programHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fdeab5',
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+  },
+  programIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
-  crisisHeroText: {
+  programHeaderText: {
     flex: 1,
-    marginRight: 10,
+    alignItems: 'flex-start',
   },
-  crisisHeroTitle: {
-    fontSize: 18,
-    color: '#1a2b44',
+  programBadge: {
+    backgroundColor: '#fff4d6',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     marginBottom: 6,
-    fontFamily: font.extraBold,
   },
-  crisisHeroDesc: {
-    fontSize: 13,
-    lineHeight: 20,
-    color: '#7d8698',
-    fontFamily: font.regular,
+  programBadgeText: {
+    fontSize: 12,
+    color: '#7a5410',
+    fontFamily: font.semiBold,
   },
-  crisisSectionCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#f0ead9',
-    padding: 20,
-    marginBottom: 14,
-    shadowColor: '#1a2b44',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  crisisSectionTitle: {
-    fontSize: 17,
+  programTitle: {
+    fontSize: 18,
+    lineHeight: 23,
     color: '#1a2b44',
-    marginBottom: 4,
     fontFamily: font.extraBold,
   },
-  crisisSectionDesc: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: '#8a94a6',
-    marginBottom: 14,
+  programBody: {
+    padding: 20,
+  },
+  programLead: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#1a2b44',
+    marginBottom: 16,
     fontFamily: font.regular,
   },
-  crisisRow: {
+  benefitRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#f0ead9',
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 10,
+    marginBottom: 14,
   },
-  crisisRowIconCircle: {
+  benefitIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#fbf0cd',
+    borderRadius: 12,
+    backgroundColor: '#fdf1d3',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
-  crisisRowText: {
+  benefitText: {
     flex: 1,
-    marginRight: 8,
   },
-  crisisRowTitle: {
-    fontSize: 14,
-    color: '#1a2b44',
-    fontFamily: font.extraBold,
-  },
-  crisisRowPhone: {
+  benefitTitle: {
     fontSize: 15,
     color: '#1a2b44',
-    marginTop: 1,
     fontFamily: font.bold,
   },
-  crisisRowDesc: {
-    fontSize: 12,
-    lineHeight: 17,
-    color: '#8a94a6',
+  benefitDetail: {
+    fontSize: 13,
+    color: '#6b7385',
     marginTop: 1,
     fontFamily: font.regular,
   },
-  crisisRowArrow: {
-    fontSize: 18,
-    color: '#1a2b44',
-    fontFamily: font.bold,
-  },
-  programCard: {
-    backgroundColor: '#fdf6dd',
-    borderWidth: 1,
-    borderColor: '#e3c766',
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 14,
-  },
-  programCardHeader: {
+  bookButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: '#1a2b44',
+    borderRadius: 999,
+    paddingVertical: 17,
+    marginTop: 6,
   },
-  programIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#f5e3ac',
+  bookButtonText: {
+    color: '#ffffff',
+    fontSize: 17,
+    fontFamily: font.bold,
+  },
+  programNote: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#8a94a6',
+    textAlign: 'center',
+    marginTop: 14,
+    fontFamily: font.regular,
+  },
+
+  /* Conversar ahora */
+  callCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#f0ead9',
+    padding: 18,
+  },
+  callHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  callIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#e8eff9',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
-  programCardTitle: {
+  callHeaderText: {
     flex: 1,
-    fontSize: 15,
+  },
+  callTitle: {
+    fontSize: 17,
     color: '#1a2b44',
     fontFamily: font.extraBold,
   },
-  programButton: {
-    marginTop: 14,
-    backgroundColor: '#1a2b44',
-    borderRadius: 999,
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  programButtonText: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontFamily: font.bold,
-  },
-  referralText: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: '#6b7280',
-    marginBottom: 12,
-    fontFamily: font.regular,
-  },
-  resourceDesc: {
-    fontSize: 12,
-    lineHeight: 17,
-    color: '#8a94a6',
+  callDesc: {
+    fontSize: 14,
+    color: '#6b7385',
     marginTop: 2,
     fontFamily: font.regular,
   },
-  crisisDivider: {
-    flexDirection: 'row',
+  callButton: {
     alignItems: 'center',
-    marginVertical: 4,
+    borderWidth: 1.5,
+    borderColor: '#d9dde6',
+    borderRadius: 16,
+    paddingVertical: 16,
   },
-  crisisDividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#e5dcc4',
-  },
-  crisisDividerText: {
-    flexShrink: 1,
-    fontSize: 10,
-    color: '#a39a7e',
-    letterSpacing: 0.8,
-    textAlign: 'center',
-    marginHorizontal: 10,
+  callButtonText: {
+    fontSize: 18,
+    color: '#1a2b44',
     fontFamily: font.bold,
   },
-  outlineButton: {
+  callFooter: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
-    borderWidth: 1.5,
-    borderColor: '#1a2b44',
-    borderRadius: 999,
-    paddingVertical: 14,
-    marginTop: 12,
+    marginTop: 14,
   },
-  outlineButtonText: {
-    color: '#1a2b44',
+  callFooterText: {
     fontSize: 15,
+    color: '#6b7385',
+    fontFamily: font.regular,
+  },
+  moreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minHeight: 44,
+    paddingLeft: 12,
+  },
+  moreButtonText: {
+    fontSize: 15,
+    color: '#1a2b44',
+    fontFamily: font.bold,
+  },
+  chevronOpen: {
+    transform: [{ rotate: '180deg' }],
+  },
+  moreList: {
+    marginTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: '#f0ead9',
+  },
+  moreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 56,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f6f1e3',
+  },
+  moreRowText: {
+    flex: 1,
+    marginRight: 10,
+  },
+  moreRowTitle: {
+    fontSize: 15,
+    color: '#1a2b44',
+    fontFamily: font.bold,
+  },
+  moreRowDesc: {
+    fontSize: 13,
+    color: '#8a94a6',
+    marginTop: 1,
+    fontFamily: font.regular,
+  },
+  moreRowPhone: {
+    fontSize: 17,
+    color: '#2f5aa3',
     fontFamily: font.bold,
   },
 });

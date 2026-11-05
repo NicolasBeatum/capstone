@@ -243,11 +243,33 @@ export const styles = StyleSheet.create({
     paddingBottom: 10,
     marginBottom: 22,
   },
-  upcomingEmpty: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: textSecondary,
+  upcomingEmptyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingBottom: 6,
+  },
+  upcomingEmptyIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: '#fdf1d3',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  upcomingEmptyText: {
+    flex: 1,
+  },
+  upcomingEmptyTitle: {
+    fontSize: 15,
+    color: navy,
+    fontFamily: font.extraBold,
+  },
+  upcomingEmptyDesc: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: textSecondary,
+    marginTop: 1,
     fontFamily: font.regular,
   },
   dayGroupSpaced: {
@@ -323,38 +345,63 @@ export const styles = StyleSheet.create({
   forYouTitle: {
     marginBottom: 10,
   },
-  forYouTile: {
+  featuredCard: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 22,
-    padding: 14,
-    marginBottom: 18,
-    backgroundColor: '#e6e0f5',
+    padding: 12,
+    marginBottom: 12,
+    backgroundColor: 'rgba(255, 253, 247, 0.92)',
     borderWidth: 1,
     borderColor: glassTokens.border,
   },
-  forYouIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  /* Marcador de imagen: se reemplaza por la imagen de la herramienta cuando venga de la base. */
+  featuredTile: {
+    width: 72,
+    height: 72,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
   },
-  forYouText: {
+  featuredTileCalm: { backgroundColor: '#dfe8f8' },
+  featuredTileBreath: { backgroundColor: '#e6e0f5' },
+  featuredText: {
     flex: 1,
   },
-  forYouTitleText: {
-    fontSize: 15,
-    color: navy,
+  featuredLabel: {
+    fontSize: 11,
+    color: '#a4691a',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
     fontFamily: font.extraBold,
   },
-  forYouDesc: {
+  featuredTitle: {
+    fontSize: 15,
+    lineHeight: 20,
+    color: navy,
+    marginTop: 2,
+    fontFamily: font.extraBold,
+  },
+  featuredDesc: {
     fontSize: 12,
+    lineHeight: 17,
     color: textSecondary,
     marginTop: 2,
     fontFamily: font.regular,
+  },
+  featuredCategory: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(26, 43, 68, 0.06)',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginLeft: 8,
+  },
+  featuredCategoryText: {
+    fontSize: 11,
+    color: navy,
+    fontFamily: font.semiBold,
   },
   /* ── Apoyo: tarjeta tranquila, sin tonos de alarma ──
    * El margen inferior la deja por encima de la burbuja de ayuda al llegar al final. */

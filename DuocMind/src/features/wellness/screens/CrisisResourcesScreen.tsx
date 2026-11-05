@@ -1,50 +1,40 @@
-import React from 'react';
-import { Alert, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Linking, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { BottomNav } from '@/shared/components/BottomNav';
 import {
+  CalendarIcon,
   ChatIcon,
+  ChevronDownIcon,
+  CloseIcon,
+  HandsHeartIcon,
   HeartIcon,
   PhoneIcon,
-  SirenIcon,
+  SparkleIcon,
 } from '@/shared/components/Icons';
+import { ScalePress } from '@/shared/components/ScalePress';
+import { Reveal } from '@/shared/motion/Reveal';
 import { styles } from './CrisisResourcesScreen.styles';
 
 const BOOKING_URL = 'https://agenda.achs.cl/booking/step-1';
 
-interface CrisisResource {
-  icon: 'phone' | 'chat' | 'siren';
-  title: string;
-  phone: string;
-  description: string;
-}
+const MAIN_LINE = { label: 'Salud Responde', phone: '600 360 7777' };
 
-const URGENT_RESOURCES: CrisisResource[] = [
-  {
-    icon: 'phone',
-    title: 'Línea de prevención del suicidio (MINSAL)',
-    phone: '141',
-    description: 'Atención confidencial 24/7, todos los días.',
-  },
-  {
-    icon: 'chat',
-    title: 'Salud Responde',
-    phone: '600 360 7777',
-    description: 'Orientación en salud del Ministerio de Salud, disponible 24/7.',
-  },
-  {
-    icon: 'siren',
-    title: 'Emergencias',
-    phone: '131 - 133',
-    description: 'SAMU (131) y Carabineros (133) ante una emergencia inmediata.',
-  },
+const MORE_LINES = [
+  { label: 'Línea de prevención del suicidio', desc: 'Atención confidencial, 24/7', phone: '141' },
+  { label: 'SAMU', desc: 'Emergencias de salud', phone: '131' },
+  { label: 'Carabineros', desc: 'Emergencias', phone: '133' },
 ];
 
-const RESOURCE_ICONS = {
-  phone: PhoneIcon,
-  chat: ChatIcon,
-  siren: SirenIcon,
-};
+const PROGRAM_BENEFITS = [
+  { icon: ChatIcon, title: 'Atención psicológica gratuita', detail: undefined },
+  { icon: SparkleIcon, title: 'Charlas de bienestar', detail: undefined },
+  {
+    icon: HandsHeartIcon,
+    title: 'Sé Promotor/a del Bienestar',
+    detail: 'Fórmate y descubre sus beneficios',
+  },
+];
 
 const handleOpenBooking = () => {
   Linking.openURL(BOOKING_URL).catch(() => {
@@ -52,8 +42,16 @@ const handleOpenBooking = () => {
   });
 };
 
+const handleCall = (phone: string) => {
+  const digits = phone.replace(/\D/g, '');
+  Linking.openURL(`tel:${digits}`).catch(() => {
+    Alert.alert('No se pudo iniciar la llamada', `Puedes marcar directamente al ${phone}.`);
+  });
+};
+
 export default function CrisisResourcesScreen() {
   const router = useRouter();
+  const [showMore, setShowMore] = useState(false);
 
   return (
     <View style={styles.safeArea}>
@@ -64,97 +62,136 @@ export default function CrisisResourcesScreen() {
           </View>
           <View>
             <Text style={styles.headerTitle}>Estamos contigo</Text>
-            <Text style={styles.headerSubtitle}>Apoyo inmediato</Text>
+            <Text style={styles.headerSubtitle}>Bienestar y apoyo</Text>
           </View>
         </View>
-        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8}>
-          <Text style={styles.closeButton}>×</Text>
-        </TouchableOpacity>
+        <ScalePress
+          onPress={() => router.back()}
+          style={styles.closeButton}
+          accessibilityRole="button"
+          accessibilityLabel="Cerrar"
+        >
+          <CloseIcon size={22} />
+        </ScalePress>
       </View>
 
-      <ScrollView contentContainerStyle={styles.crisisContainer} showsVerticalScrollIndicator={false}>
-        {/* ── Tarjeta principal ── */}
-        <View style={styles.crisisHeroCard}>
-          <View style={styles.crisisIconCircle}>
-            <HeartIcon size={26} />
-          </View>
-          <View style={styles.crisisHeroText}>
-            <Text style={styles.crisisHeroTitle}>Tu bienestar importa</Text>
-            <Text style={styles.crisisHeroDesc}>
-              Tus respuestas indican que podrías estar sintiendo un alto nivel de malestar
-              emocional. No estás solo/a, hay personas y recursos disponibles para ayudarte.
-            </Text>
-          </View>
-        </View>
-
-        {/* ── Recursos de ayuda inmediata ── */}
-        <View style={styles.crisisSectionCard}>
-          <Text style={styles.crisisSectionTitle}>Busca ayuda ahora</Text>
-          <Text style={styles.crisisSectionDesc}>
-            Puedes comunicarte con profesionales de forma gratuita y confidencial.
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <Reveal>
+          <Text style={styles.title}>Cuidar de ti también es importante</Text>
+          <Text style={styles.intro}>
+            Si estás pasando por un momento difícil, no tienes que enfrentarlo solo/a. Aquí puedes
+            pedir ayuda cuando lo necesites.
           </Text>
-
-          {URGENT_RESOURCES.map((resource) => {
-            const Icon = RESOURCE_ICONS[resource.icon];
-            return (
-              <View key={resource.title} style={styles.crisisRow}>
-                <View style={styles.crisisRowIconCircle}>
-                  <Icon size={20} />
-                </View>
-                <View style={styles.crisisRowText}>
-                  <Text style={styles.crisisRowTitle}>{resource.title}</Text>
-                  <Text style={styles.crisisRowPhone}>{resource.phone}</Text>
-                  <Text style={styles.crisisRowDesc}>{resource.description}</Text>
-                </View>
-                <Text style={styles.crisisRowArrow}>→</Text>
-              </View>
-            );
-          })}
-        </View>
+        </Reveal>
 
         {/* ── Programa de Apoyo a la Salud Mental ── */}
-        <View style={styles.programCard}>
-          <View style={styles.programCardHeader}>
-            <View style={styles.programIconCircle}>
-              <HeartIcon size={22} />
+        <Reveal index={1}>
+          <View style={styles.programCard}>
+            <View style={styles.programHeader}>
+              <View style={styles.programIconBox}>
+                <HeartIcon size={26} color="#d69a2d" />
+              </View>
+              <View style={styles.programHeaderText}>
+                <View style={styles.programBadge}>
+                  <Text style={styles.programBadgeText}>En alianza con ACHS</Text>
+                </View>
+                <Text style={styles.programTitle}>Programa de Apoyo a la Salud Mental</Text>
+              </View>
             </View>
-            <Text style={styles.programCardTitle}>Programa de Apoyo a la Salud Mental</Text>
+
+            <View style={styles.programBody}>
+              <Text style={styles.programLead}>
+                Pide una hora con un psicólogo o psicóloga, sin costo para ti.
+              </Text>
+
+              {PROGRAM_BENEFITS.map(({ icon: Icon, title, detail }) => (
+                <View key={title} style={styles.benefitRow}>
+                  <View style={styles.benefitIcon}>
+                    <Icon size={20} color="#a4691a" />
+                  </View>
+                  <View style={styles.benefitText}>
+                    <Text style={styles.benefitTitle}>{title}</Text>
+                    {detail ? <Text style={styles.benefitDetail}>{detail}</Text> : null}
+                  </View>
+                </View>
+              ))}
+
+              <ScalePress
+                style={styles.bookButton}
+                onPress={handleOpenBooking}
+                accessibilityRole="button"
+                accessibilityLabel="Reservar hora con un psicólogo o psicóloga"
+              >
+                <CalendarIcon size={20} color="#ffffff" />
+                <Text style={styles.bookButtonText}>Reservar hora</Text>
+              </ScalePress>
+
+              <Text style={styles.programNote}>
+                Más información en la APP Vivo Duoc, sección Bienestar
+              </Text>
+            </View>
           </View>
-          <Text style={styles.referralText}>
-            Con programas diseñados para apoyarte, desde charlas hasta atención psicológica
-            gratuita, creamos una comunidad donde el bienestar es primordial. Fórmate como
-            Promotor/a del Bienestar y descubre sus beneficios personales. Tu bienestar importa.
-          </Text>
-          <Text style={styles.referralText}>
-            ¡Prioriza tu bienestar! Reserva tu cita para atención psicológica en el siguiente
-            enlace.
-          </Text>
-          <TouchableOpacity style={styles.programButton} onPress={handleOpenBooking} activeOpacity={0.85}>
-            <Text style={styles.programButtonText}>Reservar hora →</Text>
-          </TouchableOpacity>
-          <Text style={styles.resourceDesc}>
-            Infórmate de más apoyos ingresando a la APP Vivo Duoc, sección Bienestar y Salud
-            Mental.
-          </Text>
-        </View>
+        </Reveal>
 
-        {/* ── Volver ── */}
-        <View style={styles.crisisDivider}>
-          <View style={styles.crisisDividerLine} />
-          <Text style={styles.crisisDividerText}>
-            SI SIENTES QUE ESTÁS EN PELIGRO INMEDIATO, POR FAVOR LLAMA AL 131
-          </Text>
-          <View style={styles.crisisDividerLine} />
-        </View>
+        {/* ── Conversar ahora ── */}
+        <Reveal index={2}>
+          <View style={styles.callCard}>
+            <View style={styles.callHeader}>
+              <View style={styles.callIconBox}>
+                <PhoneIcon size={22} color="#2f5aa3" />
+              </View>
+              <View style={styles.callHeaderText}>
+                <Text style={styles.callTitle}>¿Prefieres conversar ahora?</Text>
+                <Text style={styles.callDesc}>{MAIN_LINE.label} te acompaña, 24/7.</Text>
+              </View>
+            </View>
 
-        <TouchableOpacity
-          style={styles.outlineButton}
-          onPress={() => router.replace('/home')}
-          activeOpacity={0.85}
-        >
-          <PhoneIcon size={16} />
-          <Text style={styles.outlineButtonText}>Volver al inicio</Text>
-        </TouchableOpacity>
+            <ScalePress
+              style={styles.callButton}
+              onPress={() => handleCall(MAIN_LINE.phone)}
+              accessibilityRole="button"
+              accessibilityLabel={`Llamar a ${MAIN_LINE.label}, ${MAIN_LINE.phone}`}
+            >
+              <Text style={styles.callButtonText}>Llamar al {MAIN_LINE.phone}</Text>
+            </ScalePress>
+
+            <View style={styles.callFooter}>
+              <Text style={styles.callFooterText}>Emergencias: 131 · 133</Text>
+              <ScalePress
+                style={styles.moreButton}
+                onPress={() => setShowMore((value) => !value)}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showMore }}
+                accessibilityLabel={showMore ? 'Ocultar otras líneas' : 'Ver más líneas'}
+              >
+                <Text style={styles.moreButtonText}>Más líneas</Text>
+                <View style={showMore ? styles.chevronOpen : undefined}>
+                  <ChevronDownIcon size={18} />
+                </View>
+              </ScalePress>
+            </View>
+
+            {showMore ? (
+              <View style={styles.moreList}>
+                {MORE_LINES.map((line) => (
+                  <ScalePress
+                    key={line.phone}
+                    style={styles.moreRow}
+                    onPress={() => handleCall(line.phone)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Llamar a ${line.label}, ${line.phone}`}
+                  >
+                    <View style={styles.moreRowText}>
+                      <Text style={styles.moreRowTitle}>{line.label}</Text>
+                      <Text style={styles.moreRowDesc}>{line.desc}</Text>
+                    </View>
+                    <Text style={styles.moreRowPhone}>{line.phone}</Text>
+                  </ScalePress>
+                ))}
+              </View>
+            ) : null}
+          </View>
+        </Reveal>
       </ScrollView>
 
       <BottomNav currentTab="checkin" />
