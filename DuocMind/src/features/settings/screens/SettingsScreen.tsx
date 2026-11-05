@@ -8,20 +8,91 @@ import { CONSENT_TEXT, type ConsentKey } from '@/shared/consents/domain/consents
 import { openPrivacyPolicy } from '@/shared/consents/infrastructure/privacyPolicyDocument';
 import { Reveal } from '@/shared/motion/Reveal';
 import { useConsentSettings } from '../application/useConsentSettings';
-import { useStudentProfile } from '../application/useStudentProfile';
+import type { EditResult } from '../application/studentProfileEdit';
+import { useStudentProfile, type StudentProfile } from '../application/useStudentProfile';
+import { ChilePhonePrefix } from '../components/ChileFlag';
+import { EditableProfileRow, type EditableField } from '../components/EditableProfileRow';
 import { displayValue, type StudentProfileDetails } from '../domain/studentProfile';
+import {
+  formatPhone,
+  nationalPhone,
+  sanitizeEmailInput,
+  sanitizeNameInput,
+  sanitizePhoneInput,
+} from '../domain/studentProfileEdit';
 import { styles } from './SettingsScreen.styles';
 
 const CONSENT_KEYS: ConsentKey[] = ['shareAnonymousData', 'allowEmergencyContact'];
 
-function profileRows(profile: StudentProfileDetails): { label: string; value: string }[] {
+/* Nombre, correo y teléfono se editan con doble toque; carrera y RUT son de solo lectura. */
+function profileRows(profile: StudentProfileDetails, student: StudentProfile): ProfileRow[] {
   return [
-    { label: 'Nombre', value: profile.fullName },
-    { label: 'Correo', value: displayValue(profile.email) },
-    { label: 'Teléfono', value: displayValue(profile.phone) },
+    {
+      label: 'Nombre',
+      value: profile.fullName,
+      fields: [
+        {
+          key: 'names',
+          label: 'Nombres',
+          initial: profile.names,
+          autoCapitalize: 'words',
+          autoComplete: 'name',
+          sanitize: sanitizeNameInput,
+        },
+        {
+          key: 'surnames',
+          label: 'Apellidos',
+          initial: profile.surnames,
+          autoCapitalize: 'words',
+          sanitize: sanitizeNameInput,
+        },
+      ],
+      onSave: (values) => student.updateName(values.names, values.surnames),
+    },
+    {
+      label: 'Correo',
+      value: displayValue(profile.email),
+      fields: [
+        {
+          key: 'email',
+          label: 'Correo',
+          initial: profile.email ?? '',
+          placeholder: 'tu.correo@duocuc.cl',
+          keyboardType: 'email-address',
+          autoComplete: 'email',
+          sanitize: sanitizeEmailInput,
+        },
+      ],
+      onSave: (values) => student.updateEmail(values.email),
+    },
+    {
+      label: 'Teléfono',
+      value: profile.phone ? formatPhone(profile.phone) : displayValue(null),
+      fields: [
+        {
+          key: 'phone',
+          label: 'Teléfono',
+          initial: sanitizePhoneInput(nationalPhone(profile.phone)),
+          placeholder: '912345678',
+          keyboardType: 'phone-pad',
+          autoComplete: 'tel',
+          sanitize: sanitizePhoneInput,
+          prefix: <ChilePhonePrefix />,
+          prefixLabel: 'Chile, código +56',
+        },
+      ],
+      onSave: (values) => student.updatePhone(values.phone),
+    },
     { label: 'Carrera', value: displayValue(profile.career) },
     { label: 'RUT', value: displayValue(profile.rut) },
   ];
+}
+
+interface ProfileRow {
+  label: string;
+  value: string;
+  fields?: EditableField[];
+  onSave?: (values: Record<string, string>) => Promise<EditResult>;
 }
 
 export default function SettingsScreen() {
@@ -63,7 +134,6 @@ export default function SettingsScreen() {
 
         <View style={styles.intro}>
           <Text style={styles.title}>Tus datos</Text>
-          <Text style={styles.subtitle}>Esta es la información con la que te registraste.</Text>
         </View>
 
         {studentProfile.loading ? (
@@ -77,16 +147,15 @@ export default function SettingsScreen() {
         ) : studentProfile.profile ? (
           <Reveal index={0}>
             <LiquidCard style={styles.card}>
-              {profileRows(studentProfile.profile).map((row, index, rows) => (
-                <View
+              {profileRows(studentProfile.profile, studentProfile).map((row, index, rows) => (
+                <EditableProfileRow
                   key={row.label}
-                  accessible
-                  accessibilityLabel={`${row.label}: ${row.value}`}
-                  style={[styles.profileRow, index < rows.length - 1 && styles.profileRowDivider]}
-                >
-                  <Text style={styles.profileLabel}>{row.label}</Text>
-                  <Text style={styles.profileValue}>{row.value}</Text>
-                </View>
+                  label={row.label}
+                  value={row.value}
+                  fields={row.fields}
+                  onSave={row.onSave}
+                  divider={index < rows.length - 1}
+                />
               ))}
             </LiquidCard>
           </Reveal>

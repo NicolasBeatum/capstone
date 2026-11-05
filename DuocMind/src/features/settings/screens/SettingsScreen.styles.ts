@@ -77,25 +77,9 @@ export const styles = StyleSheet.create({
     color: navy,
     fontFamily: font.extraBold,
   },
-  profileRow: {
-    paddingVertical: 10,
-  },
   profileRowDivider: {
     borderBottomWidth: 1,
     borderBottomColor: glassTokens.border,
-  },
-  profileLabel: {
-    fontSize: 11,
-    letterSpacing: 0.6,
-    color: textSecondary,
-    marginBottom: 2,
-    fontFamily: font.bold,
-  },
-  profileValue: {
-    fontSize: 15,
-    lineHeight: 21,
-    color: navy,
-    fontFamily: font.regular,
   },
   row: {
     flexDirection: 'row',

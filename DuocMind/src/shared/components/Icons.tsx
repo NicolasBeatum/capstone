@@ -299,6 +299,15 @@ export function LockIcon({ size = 18, color = '#94a3b8' }: IconProps) {
   );
 }
 
+export function PencilIcon({ size = 16, color = '#1a2b44' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M4.5 19.5 l1 -4.2 L15.8 5 a2 2 0 0 1 2.9 0 l0.3 0.3 a2 2 0 0 1 0 2.9 L8.7 18.5 z" stroke={color} strokeWidth={STROKE} fill="none" strokeLinejoin="round" />
+      <Path d="M14 6.8 l3.2 3.2" stroke={color} strokeWidth={STROKE} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 export function EyeIcon({ size = 18, color = '#94a3b8' }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">

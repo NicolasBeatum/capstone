@@ -1,6 +1,10 @@
 /** Datos del estudiante que se muestran en «Mi perfil». Los ausentes quedan en null. */
 export interface StudentProfileDetails {
   fullName: string;
+  /** Primer y segundo nombre, para editarlos juntos. */
+  names: string;
+  /** Primer y segundo apellido, para editarlos juntos. */
+  surnames: string;
   email: string | null;
   phone: string | null;
   career: string | null;
@@ -34,13 +38,19 @@ export function parseStudentProfile(
 ): StudentProfileDetails | null {
   if (!row || typeof row !== 'object' || Array.isArray(row)) return null;
   const data = row as Record<string, unknown>;
-  const fullName = [data.primer_nombre, data.segundo_nombre, data.primer_apellido, data.segundo_apellido]
-    .map(readText)
-    .filter((part): part is string => part !== null)
-    .join(' ');
+  const joinParts = (...parts: unknown[]) =>
+    parts
+      .map(readText)
+      .filter((part): part is string => part !== null)
+      .join(' ');
+  const names = joinParts(data.primer_nombre, data.segundo_nombre);
+  const surnames = joinParts(data.primer_apellido, data.segundo_apellido);
+  const fullName = joinParts(names, surnames);
   if (!fullName) return null;
   return {
     fullName,
+    names,
+    surnames,
     // El correo de la cuenta de acceso manda sobre el copiado en el perfil.
     email: readText(sessionEmail) ?? readText(data.correo),
     phone: readText(data.numero_telefonico),
