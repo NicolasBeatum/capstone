@@ -45,4 +45,8 @@ Producción es la referencia del esquema. Una comparación de catálogos mostró
 
 `20261106130000_production_alignment.sql` aplica lo que faltaba: `admin_mutate` sin el tipo eliminado `material_apoyo`, borrado de consentimientos en `erase_student_personal_data`, `registro_emocional` en Realtime y permisos `UPDATE`/`DELETE` de agenda y ramos.
 
-El historial de migraciones sigue divergente: hay 2 versiones solo remotas y 10 locales sin registrar, cuya limpieza queda fuera de este incremento.
+## Historial de migraciones reconciliado (2026-11-06)
+
+Las 2 versiones solo remotas se recuperaron desde `supabase_migrations.schema_migrations`. Las 10 locales sin registrar se marcaron como aplicadas después de confirmar el esquema contra producción, y `20261106140000_match_production_schema.sql` cierra las diferencias.
+
+Una base local creada desde cero coincide con producción en columnas, constraints, índices, funciones, policies, triggers, vistas, RLS y permisos. Los datos de `carrera` y `asignatura` no van en migraciones.
