@@ -12,11 +12,6 @@ export function Overview() {
       "Total del registro de DuocMind",
     ],
     [
-      "Sedes disponibles",
-      model.options?.campuses.length,
-      "Sedes del catálogo institucional",
-    ],
-    [
       "Carreras disponibles",
       model.options?.careers.length,
       "Carreras del catálogo institucional",
@@ -54,7 +49,7 @@ export function Overview() {
           [
             "/students",
             "Alumnos",
-            "Buscar por nombre o correo y consultar carrera y sede.",
+            "Buscar por nombre o correo y consultar su carrera.",
           ],
           [
             "/tests",
@@ -62,7 +57,6 @@ export function Overview() {
             "Crear cuestionarios y gestionar su publicación.",
           ],
           ["/events", "Eventos", "Preparar ferias, talleres y actividades."],
-          ["/tips", "Tips", "Crear consejos generales o personalizados."],
         ].map(([path, title, description]) => (
           <Link key={path} to={path} className="card overview-shortcut">
             <NavigationIcon section={title} />
@@ -71,20 +65,14 @@ export function Overview() {
           </Link>
         ))}
       </div>
-      <section
-        className="card sharing-status"
-        aria-label="Compartición voluntaria"
-      >
-        <span className="badge">Pendiente de habilitar</span>
-        <h2>Información de bienestar compartida voluntariamente</h2>
+      <section className="card sharing-status" aria-label="Emociones agregadas">
+        <h2>Emociones de quienes eligen compartir</h2>
         <p>
-          El acceso al historial emocional y a resultados individuales todavía
-          no está habilitado. Este dashboard muestra datos de registro.
+          La página Emociones muestra datos agregados y anónimos de estudiantes
+          que aceptaron compartirlos. No incluye historiales individuales.
         </p>
-        <p className="field-help">
-          La compartición requiere que cada alumno elija qué datos compartir con
-          Bienestar y Salud y pueda retirar su autorización. El permiso para una
-          derivación no concede acceso a todo su historial.
+        <p>
+          <Link to="/emotions">Ver Emociones →</Link>
         </p>
       </section>
       <section aria-label="Vista del registro de alumnos">
@@ -104,7 +92,6 @@ export function Overview() {
                   <th>Nombre</th>
                   <th>Correo de la cuenta</th>
                   <th>Carrera</th>
-                  <th>Sede</th>
                 </tr>
               </thead>
               <tbody>
@@ -113,7 +100,6 @@ export function Overview() {
                     <td>{student.name}</td>
                     <td>{student.email ?? "Sin cuenta vinculada"}</td>
                     <td>{student.career ?? "Sin información"}</td>
-                    <td>{student.campus ?? "Sin información"}</td>
                   </tr>
                 ))}
               </tbody>

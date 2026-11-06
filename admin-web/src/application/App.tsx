@@ -17,7 +17,7 @@ import { Tests } from "../pages/Tests";
 import { TestEditor } from "../pages/TestEditor";
 import { EventTypes } from "../pages/EventTypes";
 import { Events } from "../pages/Events";
-import { Tips } from "../pages/Tips";
+import { Emotions } from "../pages/Emotions";
 import { Brand } from "../components/Brand";
 import { NavigationIcon } from "../components/NavigationIcon";
 function Protected() {
@@ -26,8 +26,8 @@ function Protected() {
   const section = location.pathname.startsWith("/tests") ? "Tests" : location.pathname.startsWith("/events") ? "Eventos" : ({
     "/overview": "Dashboard",
     "/students": "Alumnos",
+    "/emotions": "Emociones",
     "/events": "Eventos",
-    "/tips": "Tips",
   }[location.pathname] ?? "Administración");
   if (session.loading) return <main role="status">Comprobando sesión…</main>;
   if (!session.allowed) return <Navigate to="/login" replace />;
@@ -42,12 +42,15 @@ function Protected() {
         <p className="eyebrow sidebar-label">Administración</p>
         <nav aria-label="Administración">
           {[["/overview", "Dashboard"], ["/students", "Alumnos"], [
+            "/emotions",
+            "Emociones",
+          ], [
             "/tests",
             "Tests",
           ], [
             "/events",
             "Eventos",
-          ], ["/tips", "Tips"]].map(([path, label]) => (
+          ]].map(([path, label]) => (
             <NavLink key={path} to={path}>
               <NavigationIcon section={label} />
               {label}
@@ -85,12 +88,12 @@ export function App() {
           <Route element={<Protected />}>
             <Route path="/overview" element={<Overview />} />
             <Route path="/students" element={<Students />} />
+            <Route path="/emotions" element={<Emotions />} />
             <Route path="/tests" element={<Tests />} />
             <Route path="/tests/new" element={<TestEditor />} />
             <Route path="/tests/versions/:versionId" element={<TestEditor />} />
             <Route path="/events" element={<Events />} />
             <Route path="/events/types" element={<EventTypes />} />
-            <Route path="/tips" element={<Tips />} />
           </Route>
           <Route path="*" element={<Navigate to="/students" replace />} />
         </Routes>

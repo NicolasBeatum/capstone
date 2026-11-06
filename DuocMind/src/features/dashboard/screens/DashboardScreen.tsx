@@ -21,6 +21,10 @@ import { LiquidBackground, LiquidCard } from '@/shared/components/Glass';
 import { GotaLoader } from '@/shared/components/GotaLoader';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { WeekChart, type WeekDayData } from '@/shared/components/WeekChart';
+import { loadConsents } from '@/shared/consents/application/consentSettings';
+import { consentOwnerGateway } from '@/shared/consents/infrastructure/consentOwnerGateway';
+import { consentRemoteGateway } from '@/shared/consents/infrastructure/consentRemoteGateway';
+import { consentStore } from '@/shared/consents/infrastructure/consentStorage';
 import { Reveal } from '@/shared/motion/Reveal';
 import { TutorialOverlay } from '@/shared/tutorial/components/TutorialOverlay';
 import { useTutorial } from '@/shared/tutorial/infrastructure/useTutorial';
@@ -153,6 +157,9 @@ function DashboardScreenContent({planner}: {planner: PlannerModel}) {
 
   useEffect(() => {
     void getDismissedNotificationIds().then(setDismissedIds);
+    // Al entrar con sesión se concilian los consentimientos con el servidor (RF-007). No bloquea
+    // la pantalla y nunca lanza; si falla, Mi perfil lo vuelve a intentar al abrirse.
+    void loadConsents({ owners: consentOwnerGateway, store: consentStore, remote: consentRemoteGateway });
 
     let active = true;
     // Si la red tarda demasiado se muestra "Hola" para no dejar la vista bloqueada.

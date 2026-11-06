@@ -24,6 +24,8 @@ for (
     "concurrency",
     "api-access",
     "queries",
+    "emotions",
+    "consents",
     "protected-api",
     "security",
     "recovery",

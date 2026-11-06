@@ -3,7 +3,7 @@
 Panel React + TypeScript de la Spec 005, en la rama
 `feature/admin-dashboard-implementation`. Administra alumnos, recuperación de
 contraseña, cuestionarios propios, disponibilidad de instrumentos protegidos,
-eventos y tips. Publicar/activar confirma el estado del backend; el consumo de
+eventos. Publicar/activar confirma el estado del backend; el consumo de
 contenido nuevo en Android corresponde a otra spec.
 
 ## Ejecutar con Docker y Supabase cloud
@@ -120,24 +120,17 @@ automáticamente. En revisión se pueden probar las respuestas sin guardarlas. S
 falta un campo al guardar, muestra el paso y enfoca ese campo. Se conservan la
 separación entre guardar/publicar/activar y la protección de versiones.
 
-## Tips y dashboard
+## Eventos y dashboard
 
-Tips y eventos abren inicialmente un listado con búsqueda y filtros. «Nuevo» y
+Los eventos abren inicialmente un listado con búsqueda y filtros. «Nuevo» y
 «Ver o editar» abren una ventana modal, sin desplazar al usuario a un formulario
 fuera de pantalla. El teclado permanece dentro de la ventana y el foco regresa
 al botón de origen al cerrar. Cerrar con cambios solicita conservarlos o
 descartarlos; una escritura sin confirmar bloquea el cierre hasta reintentar o
 recargar el estado. Los conflictos conservan el formulario.
 
-El editor de tips presenta tres pasos: contenido, cuándo se aplica y revisión.
-«General · sin condiciones» está disponible también en Nivel de resultado y
-elimina las condiciones anteriores. Las reglas por ánimo y resultado de test
-tienen ejemplos; basta una coincidencia y se conserva catálogo/versión/nivel. El
-resumen muestra las condiciones seleccionadas y una vista previa del mensaje. Un
-consejo personalizado necesita al menos una condición antes de guardarse.
-
-El menú Dashboard abre `/overview`, con total del registro, catálogos de
-sedes/carreras, accesos y hasta cinco alumnos con sus campos aprobados. La
+El menú Dashboard abre `/overview`, con total del registro, catálogo de
+carreras, accesos y hasta cinco alumnos con sus campos aprobados. La
 información emocional compartida voluntariamente está pendiente de definir y
 habilitar; no se consulta ni se deduce de los consentimientos para derivación.
 Ver
@@ -169,7 +162,7 @@ publicable del `.env` de DuocMind y arranca Vite en modo `remote`. Abrir el
 panel en `http://127.0.0.1:5173/login` y la previsualización en
 `http://localhost:8081`. El backend administrativo está aplicado al proyecto
 real por autorización posterior; la cuenta de prueba está habilitada. El consumo
-de nuevos tests y tips en Android sigue pendiente de otra spec; Eventos se implementa en el incremento 009, con validación nativa todavía pendiente. La
+de nuevos tests en Android sigue pendiente de otra spec; Eventos se implementa en el incremento 009, con validación nativa todavía pendiente. La
 recuperación por correo remota todavía requiere una plantilla compatible y SMTP
 o plan que la admita: ver
 [operación remota](../DuocMind/specs/005-admin-dashboard/remote.md). No ejecutar

@@ -22,6 +22,15 @@ export function fields(
     required.some((k) => !(k in value))
   ) throw new HttpError(422, "Campos inválidos.");
 }
+// Consultas GET con reglas propias. /emotions solo admite `days` (7, 30 o 90).
+// La base repite la validación; aquí se rechaza antes de llegar al RPC.
+export function validateReadQuery(path: string, query: Record<string, string>) {
+  if (path !== "/emotions") return;
+  fields(query, ["days"], []);
+  if ("days" in query && !/^(7|30|90)$/.test(query.days)) {
+    throw new HttpError(422, "Periodo inválido.");
+  }
+}
 export function validateMutation(
   method: string,
   path: string,
@@ -33,7 +42,7 @@ export function validateMutation(
   }
   const base = ["requestId"];
   if (
-    path !== "/tests" && path !== "/events" && path !== "/tips" && path !== "/event-types" &&
+    path !== "/tests" && path !== "/events" && path !== "/event-types" &&
     !path.endsWith("/password-reset")
   ) {
     if (
@@ -150,35 +159,6 @@ export function validateMutation(
         !Number.isFinite(Date.parse(p[key]))
       ) throw new HttpError(422, "Fechas inválidas.");
     }
-  } else if (
-    path === "/tips" && method === "POST" ||
-    /^\/tips\/[1-9][0-9]*$/.test(path) && method === "PUT"
-  ) {
-    fields(p, [...base, "title", "content", "rules"]);
-    text(p.title, 160);
-    text(p.content, 5000);
-    if (!Array.isArray(p.rules) || p.rules.length > 100) {
-      throw new HttpError(422, "Reglas inválidas.");
-    }
-    for (const raw of p.rules) {
-      const r = object(raw);
-      if (r.kind === "mood") {
-        fields(r, ["kind", "mood"]);
-        if (
-          !["Muy mal", "Mal", "Neutro", "Bien", "Muy bien"].includes(
-            String(r.mood),
-          )
-        ) throw new HttpError(422, "Ánimo inválido.");
-      } else if (r.kind === "result") {
-        fields(r, ["kind", "catalogId", "versionId", "version", "level"]);
-        if (
-          typeof r.catalogId !== "string" || !uuid.test(r.catalogId) ||
-          typeof r.versionId !== "string" || !decimal(r.versionId)
-        ) throw new HttpError(422, "Identificadores inválidos.");
-        integer(r.version, 1, 2147483647);
-        text(r.level, 80);
-      } else throw new HttpError(422, "Regla inválida.");
-    }
   } else if (path.endsWith("/activation") && method === "POST") {
     fields(p, [...base, "active"]);
     if (typeof p.active !== "boolean") {
@@ -186,7 +166,7 @@ export function validateMutation(
     }
   } else if (
     method === "POST" &&
-    /^\/(tests\/versions\/[1-9][0-9]*\/(clone|publish)|events\/[0-9a-f-]{36}\/(publish|cancel)|tips\/[1-9][0-9]*\/publish|students\/[1-9][0-9]*\/password-reset)$/
+    /^\/(tests\/versions\/[1-9][0-9]*\/(clone|publish)|events\/[0-9a-f-]{36}\/(publish|cancel)|students\/[1-9][0-9]*\/password-reset)$/
       .test(path)
   ) fields(p, base);
   else throw new HttpError(404, "Operación no disponible.");
@@ -196,9 +176,6 @@ function eventTypeId(value: unknown) {
   if (typeof value !== "string" || !/^[1-9][0-9]{0,4}$/.test(value) || Number(value) > 32767) {
     throw new HttpError(422, "Tipo de evento inválido.");
   }
-}
-export function decimal(s: string) {
-  return /^[1-9][0-9]{0,18}$/.test(s) && BigInt(s) <= 9223372036854775807n;
 }
 function text(v: unknown, max: number, optional = false) {
   if (typeof v !== "string" || v.length > max || (!optional && !v.trim())) {

@@ -40,17 +40,23 @@ try {
         p_session: "00000000-0000-0000-0000-000000000001",
       });
       assert(rpc.error);
-      const invalid = await send(token, "/tips", {
+      // Un campo no permitido (actor) en una mutación se rechaza antes de llegar a la base.
+      const invalid = await send(token, "/event-types", {
         method: "POST",
         body: JSON.stringify({
           requestId: crypto.randomUUID(),
-          title: "Fixture",
-          content: "Content",
-          rules: [],
+          code: "fixture_api",
+          name: "Fixture",
+          order: 1,
           actor: f.student.id,
         }),
       });
       assert.equal(invalid.status, 422);
+      const retired = await send(token, "/tips", {
+        method: "POST",
+        body: JSON.stringify({ requestId: crypto.randomUUID(), expectedRevision: 1 }),
+      });
+      assert.equal(retired.status, 404);
       await db.query(
         "update private.admin_staff set enabled=false where auth_user_id=$1",
         [f.staff.id],

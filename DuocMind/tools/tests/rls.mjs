@@ -22,13 +22,20 @@ try {
     "insert into public.test_resultado_nivel(test_id,test_version,nivel_resultado,puntaje_minimo,puntaje_maximo) values($1,1,'fixture',0,1)",
     [t],
   );
-  const tip = (await db.query(
-    "insert into public.material_apoyo(titulo,descripcion) values('Fixture RLS','Borrador') returning id_material",
-  )).rows[0].id_material;
+  // Herramienta inactiva (borrador): no debe ser legible ni ella ni su vínculo de tipo.
+  const tool = (await db.query(
+    "insert into public.herramienta(titulo,imagen_path,activo) values('Fixture RLS','fixtures/rls.png',false) returning id",
+  )).rows[0].id;
+  const kind = (await db.query(
+    "insert into public.tipo_herramienta(nombre) values('Fixture RLS') returning id",
+  )).rows[0].id;
   await db.query(
-    "insert into public.material_emocion(material_apoyo_id_material,emocion_general_id_emocion) select $1,id_emocion from public.emocion_general limit 1",
-    [tip],
+    "insert into public.herramienta_tipoherramienta(herramienta_id,tipo_id) values($1,$2)",
+    [tool, kind],
   );
+  const activeTool = (await db.query(
+    "insert into public.herramienta(titulo,imagen_path) values('Fixture RLS activa','fixtures/rls.png') returning id",
+  )).rows[0].id;
   await db.query(
     "insert into public.evento_institucional(title,location,starts_at,ends_at) values('Fixture RLS','Local',now(),now())",
   );
@@ -48,10 +55,10 @@ try {
           [q],
         ],
         ["select * from public.test_resultado_nivel where test_id=$1", [t]],
-        ["select * from public.material_apoyo where id_material=$1", [tip]],
+        ["select * from public.herramienta where id=$1", [tool]],
         [
-          "select * from public.material_emocion where material_apoyo_id_material=$1",
-          [tip],
+          "select * from public.herramienta_tipoherramienta where herramienta_id=$1",
+          [tool],
         ],
         [
           "select * from public.evento_institucional where title='Fixture RLS'",
@@ -59,6 +66,12 @@ try {
         ],
       ]
     ) assert.equal((await db.query(sql, args)).rowCount, 0);
+    assert.equal(
+      (await db.query("select * from public.herramienta where id=$1", [
+        activeTool,
+      ])).rowCount,
+      1,
+    );
     assert(
       (await db.query(
         "select * from public.test_bienestar where publication_status='published'",

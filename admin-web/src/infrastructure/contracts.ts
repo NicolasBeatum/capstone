@@ -1,4 +1,6 @@
 import type {
+  EmotionDashboard,
+  EmotionPeriod,
   FormOptions,
   EventType,
   InstitutionalEvent,
@@ -6,8 +8,6 @@ import type {
   StudentPage,
   TestCatalog,
   TestVersion,
-  Tip,
-  TipRule,
 } from "../domain/types";
 type Obj = Record<string, unknown>;
 function bad(): never {
@@ -36,8 +36,8 @@ function instant(v: unknown): string {
 function bool(v: unknown): boolean {
   return typeof v === "boolean" ? v : bad();
 }
-function list<T>(v: unknown, parse: (v: unknown) => T): T[] {
-  return Array.isArray(v) ? v.map(parse) : bad();
+function list<T>(v: unknown, parse: (v: unknown, index: number) => T): T[] {
+  return Array.isArray(v) ? v.map((item, index) => parse(item, index)) : bad();
 }
 function id(v: unknown): string {
   const s = str(v);
@@ -77,14 +77,13 @@ export function students(v: unknown): StudentPage {
       const s = obj(v);
       if (
         Object.keys(s).sort().join() !==
-          ["campus", "career", "email", "id", "name"].join()
+          ["career", "email", "id", "name"].join()
       ) bad();
       return {
         id: id(s.id),
         name: str(s.name),
         email: nullable(s.email),
         career: nullable(s.career),
-        campus: nullable(s.campus),
       };
     }),
     total: num(o.total),
@@ -139,35 +138,6 @@ export function version(v: unknown): TestVersion {
     }),
   };
 }
-function rule(v: unknown): TipRule {
-  const r = obj(v);
-  if (r.kind === "mood") return { kind: "mood", mood: str(r.mood) };
-  if (r.kind === "result") {
-    return {
-      kind: "result",
-      catalogId: uuid(r.catalogId),
-      versionId: id(r.versionId),
-      version: positive(r.version),
-      level: str(r.level),
-    };
-  }
-  return bad();
-}
-export function tips(v: unknown): Tip[] {
-  return list(v, (v) => {
-    const o = obj(v);
-    return {
-      id: id(o.id),
-      title: str(o.title),
-      content: str(o.content),
-      rules: list(o.rules, rule),
-      publicationStatus: status(o.publicationStatus),
-      publishedAt: nullable(o.publishedAt),
-      active: bool(o.active),
-      revision: positive(o.revision),
-    };
-  });
-}
 function eventTypeId(v: unknown): string {
   const value = str(v);
   return /^[1-9][0-9]{0,4}$/.test(value) && Number(value) <= 32767 ? value : bad();
@@ -213,10 +183,6 @@ export function options(v: unknown): FormOptions {
   return {
     careers: list(o.careers, (v) => {
       const c = obj(v);
-      return { id: id(c.id), name: str(c.name), campusId: id(c.campusId) };
-    }),
-    campuses: list(o.campuses, (v) => {
-      const c = obj(v);
       return { id: id(c.id), name: str(c.name) };
     }),
     moods: list(o.moods, str),
@@ -258,4 +224,74 @@ export function access(v: unknown) {
 export function accepted(v: unknown) {
   if (obj(v).accepted !== true) bad();
   return true;
+}
+
+// Dashboard emocional: validación estricta. Cualquier clave desconocida (por ejemplo un
+// identificador de estudiante) invalida toda la respuesta para que nunca llegue a la pantalla.
+function exact<T extends Obj>(v: unknown, keys: string[]): T {
+  const o = obj(v);
+  if (Object.keys(o).sort().join() !== [...keys].sort().join()) bad();
+  return o as T;
+}
+function day(v: unknown): string {
+  const s = str(v);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) && Number.isFinite(Date.parse(s + "T00:00:00Z")) ? s : bad();
+}
+function mean(v: unknown): number {
+  return typeof v === "number" && Number.isFinite(v) && v >= 1 && v <= 5 ? v : bad();
+}
+export function emotions(v: unknown): EmotionDashboard {
+  const o = exact(v, [
+    "average", "careers", "checkins", "days", "distribution", "from",
+    "minGroupSize", "participants", "sufficient", "to", "weekly",
+  ]);
+  if (o.days !== 7 && o.days !== 30 && o.days !== 90) bad();
+  const days = o.days as EmotionPeriod;
+  const minGroupSize = positive(o.minGroupSize);
+  const sufficient = bool(o.sufficient);
+  const from = day(o.from), to = day(o.to);
+  if (from > to) bad();
+  if (!sufficient) {
+    if (
+      o.participants !== null || o.checkins !== null || o.average !== null ||
+      !Array.isArray(o.distribution) || o.distribution.length ||
+      !Array.isArray(o.weekly) || o.weekly.length ||
+      !Array.isArray(o.careers) || o.careers.length
+    ) bad();
+    return {
+      days, from, to, minGroupSize, sufficient,
+      participants: null, checkins: null, average: null,
+      distribution: [], weekly: [], careers: [],
+    };
+  }
+  const participants = num(o.participants);
+  const checkins = num(o.checkins);
+  if (participants < minGroupSize || checkins < participants) bad();
+  const distribution = list(o.distribution, (item, index) => {
+    const d = exact<Obj>(item, ["checkins", "label", "value"]);
+    if (d.value !== index + 1) bad();
+    return { value: index + 1, label: str(d.label), checkins: num(d.checkins) };
+  });
+  if (distribution.length !== 5) bad();
+  const weekly = list(o.weekly, (item) => {
+    const w = exact<Obj>(item, ["average", "participants", "weekStart"]);
+    if ((w.participants === null) !== (w.average === null)) bad();
+    if (w.participants === null) {
+      return { weekStart: day(w.weekStart), participants: null, average: null };
+    }
+    const count = num(w.participants);
+    if (count < minGroupSize) bad();
+    return { weekStart: day(w.weekStart), participants: count, average: mean(w.average) };
+  });
+  const careers = list(o.careers, (item) => {
+    const c = exact<Obj>(item, ["average", "name", "participants"]);
+    const count = num(c.participants);
+    if (count < minGroupSize) bad();
+    return { name: str(c.name), participants: count, average: mean(c.average) };
+  });
+  return {
+    days, from, to, minGroupSize, sufficient,
+    participants, checkins, average: mean(o.average),
+    distribution, weekly, careers,
+  };
 }

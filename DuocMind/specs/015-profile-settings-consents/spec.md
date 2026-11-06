@@ -140,3 +140,4 @@ Este documento no autoriza migraciones remotas, despliegues, commits ni push.
 
 - **0.1.0 — 2026-10-30:** borrador inicial.
 - **0.2.0 — 2026-10-30:** aprobada por el usuario con traspaso desde el registro.
+- **Nota — 2026-11-06:** la spec 016 (RF-005 a RF-008) reemplaza el guardado solo local de RF-003 y el aviso de CA-009: cada cambio se registra primero en `estudiante_consentimiento` y el servidor prevalece sobre el dispositivo. Esta spec no se reescribe.

@@ -1,6 +1,6 @@
 import { auth } from "./auth";
 import * as contract from "./contracts";
-import type { EventContent, EventTypeContent, TestContent, TipContent } from "../domain/types";
+import type { EmotionPeriod, EventContent, EventTypeContent, TestContent } from "../domain/types";
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -94,6 +94,8 @@ export const adminGateway = {
   students: (query: URLSearchParams) =>
     request("GET", "/students?" + query, contract.students),
   formOptions: () => request("GET", "/catalogs", contract.options),
+  emotions: (days: EmotionPeriod) =>
+    request("GET", "/emotions?days=" + days, contract.emotions),
   recover: (id: string, requestId: string) =>
     request("POST", "/students/" + id + "/password-reset", contract.accepted, {
       requestId,
@@ -154,29 +156,5 @@ export const adminGateway = {
     change("POST", "/events/" + id + "/" + action, {
       expectedRevision: revision,
       requestId,
-    }),
-  tips: () => request("GET", "/tips", contract.tips),
-  saveTip: (
-    id: string | null,
-    content: TipContent,
-    revision: number,
-    requestId: string,
-  ) =>
-    change(id ? "PUT" : "POST", "/tips" + (id ? "/" + id : ""), {
-      ...content,
-      requestId,
-      ...(id ? { expectedRevision: revision } : {}),
-    }),
-  tipAction: (
-    id: string,
-    action: "publish" | "activation",
-    revision: number,
-    requestId: string,
-    active?: boolean,
-  ) =>
-    change("POST", "/tips/" + id + "/" + action, {
-      expectedRevision: revision,
-      requestId,
-      ...(active !== undefined ? { active } : {}),
     }),
 };

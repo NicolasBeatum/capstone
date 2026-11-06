@@ -3,19 +3,15 @@ import { database } from "../scripts/runtime.mjs";
 const db = await database();
 try {
   await db.query("begin");
-  const t = (await db.query(
-    "insert into public.material_apoyo(titulo,descripcion) values('Tip sintético','Contenido no diagnóstico') returning id_material",
-  )).rows[0].id_material;
-  const level = (await db.query(
-    "select n.* from public.test_resultado_nivel n join public.test_bienestar t on t.id_test=n.test_id limit 1",
-  )).rows[0];
+  const tool = (await db.query(
+    "insert into public.herramienta(titulo,contenido,imagen_path) values('Herramienta sintética','Contenido no diagnóstico','fixtures/sintetica.png') returning id",
+  )).rows[0].id;
+  const kind = (await db.query(
+    "insert into public.tipo_herramienta(nombre) values('Tipo sintético') returning id",
+  )).rows[0].id;
   await db.query(
-    "update public.test_bienestar set is_active=false,revision=revision+1 where id_test=$1",
-    [level.test_id],
-  );
-  await db.query(
-    "insert into public.material_test(material_apoyo_id_material,test_id,test_version,nivel_resultado) values($1,$2,$3,$4)",
-    [t, level.test_id, level.test_version, level.nivel_resultado],
+    "insert into public.herramienta_tipoherramienta(herramienta_id,tipo_id) values($1,$2)",
+    [tool, kind],
   );
   for (
     const [sql, args, code] of [[
@@ -23,9 +19,13 @@ try {
       [],
       "23514",
     ], [
-      "insert into public.material_test(material_apoyo_id_material,test_id,test_version,nivel_resultado) values($1,$2,$3,$4)",
-      [t, level.test_id, level.test_version, level.nivel_resultado],
+      "insert into public.herramienta_tipoherramienta(herramienta_id,tipo_id) values($1,$2)",
+      [tool, kind],
       "23505",
+    ], [
+      "insert into public.herramienta(titulo,imagen_path,video_url) values('Video inseguro','fixtures/sintetica.png','http://ejemplo.test/video')",
+      [],
+      "23514",
     ]]
   ) {
     await db.query("savepoint negative");
@@ -46,15 +46,9 @@ try {
     )).rows[0].published_at,
     e.published_at,
   );
-  assert.equal(
-    (await db.query(
-      "select count(*)::int n from public.material_apoyo where titulo in ('Técnica Pomodoro 25/5','Meditación Guiada (3 min)','Higiene del Sueño')",
-    )).rows[0].n,
-    3,
-  );
   await db.query("rollback");
   console.log(
-    "T007: fechas, unicidad, reglas a versiones históricas y cancelación conservada verificados.",
+    "T007: fechas, unicidad de tipos de herramienta, enlaces https y cancelación conservada verificados.",
   );
 } finally {
   await db.end();

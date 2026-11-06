@@ -308,3 +308,11 @@ Orden de actualización: migración de tipos de Hans, migración
 `20261016015100_admin_event_types.sql`, `admin-api` y panel web. Las suites automatizadas se verifican en Supabase local. El 2026-10-16 se aplicó
 la migración y se actualizó admin-api en el proyecto remoto autorizado, con
 verificación de lectura documentada en la evidencia del incremento 012.
+
+### Dashboard emocional agregado — incremento 016
+
+La API administrativa incorpora `GET /emotions?days=7|30|90` (por defecto 30; cualquier otro valor o parámetro responde 422). La retirada de `/tips` hace que `GET /session` anuncie `students`, `tests`, `events` y `emotions`.
+
+Solo cuentan estudiantes con `analitica_anonima` vigente y otorgada, y registros posteriores al `registrado_en` de ese consentimiento. El mínimo de grupo es 5 estudiantes distintos y se aplica en el servidor. Respuesta:
+`{days,from,to,minGroupSize,sufficient,participants,checkins,average,distribution[{value,label,checkins}],weekly[{weekStart,participants,average}],careers[{name,participants,average}]}`.
+Con datos insuficientes, `sufficient` es `false`, `participants`, `checkins` y `average` son `null` y las listas van vacías. Una semana con menos de 5 estudiantes trae `participants` y `average` en `null`. Las carreras con menos de 5 estudiantes, y quienes no tienen carrera vigente, se agrupan en «Otras carreras». No se devuelven identificadores y la respuesta no se registra en logs. Ver la [spec 016](../specs/016-admin-emotion-dashboard/spec.md).

@@ -39,12 +39,12 @@ test("dashboard refleja registro real sin consultar información emocional", asy
       .getByText(String(data.total), { exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("table")).toBeVisible();
+  await expect(page.getByText("Pendiente de habilitar")).toHaveCount(0);
   await expect(
-    page.getByRole("region", { name: "Compartición voluntaria" }).getByText(
-      "Pendiente de habilitar",
-      { exact: true },
-    ),
-  ).toBeVisible();
+    page.getByRole("region", { name: "Emociones agregadas" }).getByRole("link", {
+      name: "Ver Emociones →",
+    }),
+  ).toHaveAttribute("href", "/emotions");
   expect(requests.every((path) => ["/students", "/catalogs"].includes(path)))
     .toBe(true);
   await page.screenshot({

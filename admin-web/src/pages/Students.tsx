@@ -7,13 +7,11 @@ export function Students() {
   const model = useStudents();
   const [search, setSearch] = useState(""),
     [career, setCareer] = useState(""),
-    [campus, setCampus] = useState(""),
     [selected, setSelected] = useState<Student | null>(null);
   const query = (page: number) =>
     new URLSearchParams({
       search,
       careerId: career,
-      campusId: campus,
       page: String(page),
       pageSize: "25",
     });
@@ -36,28 +34,14 @@ export function Students() {
           />
         </label>
         <label>
-          Sede<select
-            value={campus}
-            onChange={(e) => {
-              setCampus(e.target.value);
-              setCareer("");
-            }}
-          >
-            <option value="">Todas las sedes</option>
-            {model.options?.campuses.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </label>
-        <label>
           Carrera<select
             value={career}
             onChange={(e) => setCareer(e.target.value)}
           >
             <option value="">Todas las carreras</option>
-            {model.options?.careers.filter((c) =>
-              !campus || c.campusId === campus
-            ).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {model.options?.careers.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
           </select>
         </label>
         <button disabled={model.loading}>Buscar</button>
@@ -106,7 +90,6 @@ export function Students() {
                     "Nombre",
                     "Correo de la cuenta",
                     "Carrera",
-                    "Sede",
                     "Acceso",
                   ].map((t) => <th key={t} scope="col">{t}</th>)}
                 </tr>
@@ -117,7 +100,6 @@ export function Students() {
                     <td>{s.name}</td>
                     <td>{s.email ?? "Sin cuenta recuperable"}</td>
                     <td>{s.career ?? "No disponible"}</td>
-                    <td>{s.campus ?? "No disponible"}</td>
                     <td>
                       <button
                         className="secondary"
