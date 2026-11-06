@@ -6,7 +6,7 @@ begin;
 
 -- Lectura mínima explícita para service_role: no se depende de privilegios por defecto.
 grant select on public.registro_emocional, public.emocion_general, public.estudiante_carrera,
-  public.carrera, public.estudiante_consentimiento_actual to service_role;
+  public.carrera, public.consentimiento, public.estudiante_consentimiento_actual to service_role;
 
 create or replace function private.emotion_dashboard(p_days int) returns jsonb
 language plpgsql security invoker set search_path = '' as $fn$
@@ -28,9 +28,11 @@ begin
     from public.registro_emocional re
     join public.estudiante_consentimiento_actual eca
       on eca.estudiante_id_estudiante = re.estudiante_id_estudiante
-     and eca.codigo = 'analitica_anonima'
      and eca.otorgado
      and re.fecha_hora >= eca.registrado_en
+    join public.consentimiento co
+      on co.id_consentimiento = eca.consentimiento_id_consentimiento
+     and co.codigo = 'analitica_anonima'
     join public.emocion_general eg on eg.id_emocion = re.emocion_general_id_emocion
     left join public.estudiante_carrera ec
       on ec.estudiante_id_estudiante = re.estudiante_id_estudiante and ec.fecha_fin is null

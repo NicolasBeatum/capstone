@@ -26,12 +26,17 @@ async function currentStudentId(): Promise<number> {
 export const consentRemoteGateway: RemoteConsentGateway = {
   async fetchCurrent() {
     const studentId = await currentStudentId();
-    const { data, error } = await getSupabaseClient()
-      .from('estudiante_consentimiento_actual')
-      .select('codigo, otorgado')
-      .eq('estudiante_id_estudiante', studentId);
-    if (error) throw error;
-    return parseRemoteConsents(data);
+    const client = getSupabaseClient();
+    const [current, catalog] = await Promise.all([
+      client
+        .from('estudiante_consentimiento_actual')
+        .select('consentimiento_id_consentimiento, otorgado')
+        .eq('estudiante_id_estudiante', studentId),
+      client.from('consentimiento').select('id_consentimiento, codigo'),
+    ]);
+    if (current.error) throw current.error;
+    if (catalog.error) throw catalog.error;
+    return parseRemoteConsents(current.data, catalog.data);
   },
 
   async record(key, granted) {

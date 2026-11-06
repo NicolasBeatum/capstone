@@ -38,3 +38,11 @@
 - Las pantallas de la app no se probaron renderizadas ni en dispositivo; la red caída solo se cubrió con fakes.
 - Nada se aplicó al proyecto remoto. Antes de un `db push` hay que revisar los riesgos de idempotencia del plan, sección 5.
 - `supabase/config.toml` declara los puertos 54321 y 54322, pero el stack local usa 55321 y 55322. Un `supabase db reset` sin `--db-url` falla y elimina contenedores del stack local.
+
+## Alineación con producción (2026-11-06)
+
+Producción es la referencia del esquema. Una comparación de catálogos mostró que `estudiante_consentimiento_actual` no expone `codigo` allá, por lo que el dashboard y la app resuelven el código con `consentimiento`.
+
+`20261106130000_production_alignment.sql` aplica lo que faltaba: `admin_mutate` sin el tipo eliminado `material_apoyo`, borrado de consentimientos en `erase_student_personal_data`, `registro_emocional` en Realtime y permisos `UPDATE`/`DELETE` de agenda y ramos.
+
+El historial de migraciones sigue divergente: hay 2 versiones solo remotas y 8 locales sin registrar, cuya limpieza queda fuera de este incremento.

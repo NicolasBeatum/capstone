@@ -26,7 +26,7 @@ try {
   });
   const current = async () => {
     const { data, error } = await client.from("estudiante_consentimiento_actual")
-      .select("codigo, otorgado").eq("estudiante_id_estudiante", f.student.studentId);
+      .select("consentimiento_id_consentimiento, otorgado").eq("estudiante_id_estudiante", f.student.studentId);
     assert(!error, "lectura de la vista");
     return data;
   };
@@ -35,11 +35,11 @@ try {
 
   // Inserta su propia fila con solo las cuatro columnas permitidas.
   assert(!(await client.from("estudiante_consentimiento").insert(row(f.student.studentId, true))).error, "inserta su fila");
-  assert.deepEqual(await current(), [{ codigo: "analitica_anonima", otorgado: true }]);
+  assert.deepEqual(await current(), [{ consentimiento_id_consentimiento: consentId, otorgado: true }]);
 
   // Revocar agrega otra fila; la vista entrega la última.
   assert(!(await client.from("estudiante_consentimiento").insert(row(f.student.studentId, false))).error);
-  assert.deepEqual(await current(), [{ codigo: "analitica_anonima", otorgado: false }]);
+  assert.deepEqual(await current(), [{ consentimiento_id_consentimiento: consentId, otorgado: false }]);
 
   // No puede insertar para otro estudiante.
   const other = await client.from("estudiante_consentimiento").insert(row(f.dual.studentId, true));

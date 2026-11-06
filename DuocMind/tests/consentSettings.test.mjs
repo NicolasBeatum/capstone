@@ -139,13 +139,23 @@ test('si la reconciliación no pudo registrar lo local, se marca el servidor com
 
 test('las filas remotas se validan: lo desconocido o con tipos erróneos se ignora', () => {
   assert.deepEqual(
-    parseRemoteConsents([
-      { codigo: 'analitica_anonima', otorgado: true },
-      { codigo: 'contacto', otorgado: 'si' },
-      { codigo: 'otro', otorgado: true },
-      null,
-    ]),
+    parseRemoteConsents(
+      [
+        { consentimiento_id_consentimiento: 1, otorgado: true },
+        { consentimiento_id_consentimiento: 2, otorgado: 'si' },
+        { consentimiento_id_consentimiento: 3, otorgado: true },
+        { consentimiento_id_consentimiento: 9, otorgado: true },
+        null,
+      ],
+      [
+        { id_consentimiento: 1, codigo: 'analitica_anonima' },
+        { id_consentimiento: 2, codigo: 'contacto' },
+        { id_consentimiento: 3, codigo: 'otro' },
+        null,
+      ],
+    ),
     { shareAnonymousData: true },
   );
-  assert.throws(() => parseRemoteConsents({}));
+  assert.throws(() => parseRemoteConsents({}, []));
+  assert.throws(() => parseRemoteConsents([], {}));
 });

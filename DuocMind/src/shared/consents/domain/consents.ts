@@ -43,14 +43,26 @@ export function parseConsentChoices(raw: string | null): ConsentChoices {
 /** Estado remoto vigente: solo las claves con fila; sin fila significa no otorgado. */
 export type RemoteConsents = Partial<Record<ConsentKey, boolean>>;
 
-/** Valida las filas de `estudiante_consentimiento_actual`; ignora lo que no reconoce. */
-export function parseRemoteConsents(rows: unknown): RemoteConsents {
-  if (!Array.isArray(rows)) throw new Error('Respuesta de consentimientos no válida.');
+/**
+ * Valida las filas de `estudiante_consentimiento_actual` y las cruza con el catálogo por id,
+ * porque la vista de producción no expone `codigo`. Ignora lo que no reconoce.
+ */
+export function parseRemoteConsents(rows: unknown, catalog: unknown): RemoteConsents {
+  if (!Array.isArray(rows) || !Array.isArray(catalog)) {
+    throw new Error('Respuesta de consentimientos no válida.');
+  }
+  const codes = new Map<unknown, unknown>();
+  for (const entry of catalog) {
+    if (!entry || typeof entry !== 'object') continue;
+    const { id_consentimiento, codigo } = entry as Record<string, unknown>;
+    codes.set(id_consentimiento, codigo);
+  }
   const result: RemoteConsents = {};
   for (const row of rows) {
     if (!row || typeof row !== 'object') continue;
-    const { codigo, otorgado } = row as Record<string, unknown>;
+    const { consentimiento_id_consentimiento, otorgado } = row as Record<string, unknown>;
     if (typeof otorgado !== 'boolean') continue;
+    const codigo = codes.get(consentimiento_id_consentimiento);
     for (const key of Object.keys(CONSENT_CODES) as ConsentKey[]) {
       if (CONSENT_CODES[key] === codigo) result[key] = otorgado;
     }
