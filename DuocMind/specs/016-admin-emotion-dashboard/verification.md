@@ -45,4 +45,4 @@ Producción es la referencia del esquema. Una comparación de catálogos mostró
 
 `20261106130000_production_alignment.sql` aplica lo que faltaba: `admin_mutate` sin el tipo eliminado `material_apoyo`, borrado de consentimientos en `erase_student_personal_data`, `registro_emocional` en Realtime y permisos `UPDATE`/`DELETE` de agenda y ramos.
 
-El historial de migraciones sigue divergente: hay 2 versiones solo remotas y 8 locales sin registrar, cuya limpieza queda fuera de este incremento.
+El historial de migraciones sigue divergente: hay 2 versiones solo remotas y 10 locales sin registrar, cuya limpieza queda fuera de este incremento.
