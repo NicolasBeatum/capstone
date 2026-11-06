@@ -20,21 +20,48 @@ function memoryStorage(overrides = {}) {
   };
 }
 
-test('CA-007: lo elegido en el registro aparece en la cuenta tras completar el perfil', async () => {
+function fakeRemote({ rows = {}, failFetch = false } = {}) {
+  return {
+    recorded: [],
+    async fetchCurrent() {
+      if (failFetch) throw new Error('sin red');
+      return rows;
+    },
+    async record(key, granted) {
+      this.recorded.push([key, granted]);
+    },
+  };
+}
+
+test('CA-013: lo elegido en el registro aparece en la cuenta tras completar el perfil', async () => {
   const store = createConsentStore(memoryStorage());
   await rememberRegistrationConsents(store, CHOICES);
-  await adoptRegistrationConsents({ getCurrentUserId: async () => OWNER }, store);
+  const remote = fakeRemote();
+  await adoptRegistrationConsents({ getCurrentUserId: async () => OWNER }, store, remote);
   assert.deepEqual(await store.read(OWNER), CHOICES);
+  // Solo lo aceptado se envía; lo no aceptado no genera filas.
+  assert.deepEqual(remote.recorded, [['shareAnonymousData', true]]);
 });
 
 test('si no hubo elección en el registro, la cuenta empieza desactivada', async () => {
   const store = createConsentStore(memoryStorage());
-  await adoptRegistrationConsents({ getCurrentUserId: async () => OWNER }, store);
+  const remote = fakeRemote();
+  await adoptRegistrationConsents({ getCurrentUserId: async () => OWNER }, store, remote);
   assert.deepEqual(await store.read(OWNER), NO_CONSENTS);
+  assert.deepEqual(remote.recorded, []);
 });
 
 test('un fallo al guardar o adoptar no lanza', async () => {
   const failing = createConsentStore(memoryStorage({ setItem: async () => { throw new Error('x'); } }));
   await assert.doesNotReject(rememberRegistrationConsents(failing, CHOICES));
-  await assert.doesNotReject(adoptRegistrationConsents({ getCurrentUserId: async () => { throw new Error('x'); } }, failing));
+  await assert.doesNotReject(adoptRegistrationConsents({ getCurrentUserId: async () => { throw new Error('x'); } }, failing, fakeRemote()));
+});
+
+test('un fallo del servidor al adoptar no lanza y lo local se conserva', async () => {
+  const store = createConsentStore(memoryStorage());
+  await rememberRegistrationConsents(store, CHOICES);
+  await assert.doesNotReject(
+    adoptRegistrationConsents({ getCurrentUserId: async () => OWNER }, store, fakeRemote({ failFetch: true })),
+  );
+  assert.deepEqual(await store.read(OWNER), CHOICES);
 });

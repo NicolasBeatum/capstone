@@ -1,3 +1,4 @@
+import { loadConsents, type RemoteConsentGateway } from '../../../shared/consents/application/consentSettings.ts';
 import type { ConsentStore } from '../../../shared/consents/application/consentStore.ts';
 import type { ConsentChoices } from '../../../shared/consents/domain/consents.ts';
 
@@ -14,16 +15,20 @@ export async function rememberRegistrationConsents(store: ConsentStore, choices:
 }
 
 /**
- * Al completar el perfil pasa lo elegido en el registro a la cuenta. Es de mejor
- * esfuerzo: si falla, la configuración queda desactivada y la persona puede cambiarla.
+ * Al completar el perfil pasa lo elegido en el registro a la cuenta y lo envía al servidor
+ * mediante la reconciliación. Es de mejor esfuerzo: si falla, el registro continúa y lo
+ * aceptado se reintenta al volver a entrar a la app.
  */
 export async function adoptRegistrationConsents(
   gateway: { getCurrentUserId(): Promise<string | null> },
   store: ConsentStore,
+  remote: RemoteConsentGateway,
 ): Promise<void> {
   try {
     const ownerId = await gateway.getCurrentUserId();
-    if (ownerId) await store.adoptPending(ownerId);
+    if (!ownerId) return;
+    await store.adoptPending(ownerId);
+    await loadConsents({ owners: { currentOwner: async () => ownerId }, store, remote });
   } catch {
     // Sin registrar el error: contiene el identificador de la cuenta.
   }

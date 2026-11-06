@@ -244,38 +244,38 @@ begin
  perform pg_advisory_xact_lock(hashtextextended(request::text,0));
  select * into cached from private.admin_requests where request_id=request and expires_at>now();
  if found then
-  if cached.actor<>p_actor or cached.action<>p_method or cached.resource<>p_path or cached.payload_hash<>hash then raise exception using errcode='P0409',message='Petici髇 en conflicto';end if;return cached.result;
+  if cached.actor<>p_actor or cached.action<>p_method or cached.resource<>p_path or cached.payload_hash<>hash then raise exception using errcode='P0409',message='Petici贸n en conflicto';end if;return cached.result;
  end if;
  delete from private.admin_requests where request_id=request and expires_at<=now();
  if p_path='/event-types' or p_path~'^/event-types/[1-9][0-9]{0,4}$' then
   if not ((p_path='/event-types' and p_method='POST') or (p_path<>'/event-types' and p_method='PUT')) then
-   raise exception using errcode='P0404',message='Operaci髇 no disponible';
+   raise exception using errcode='P0404',message='Operaci贸n no disponible';
   end if;
   if p_path='/event-types' then
    perform private.check_fields(p_payload,array['requestId','code','name','order']);
    if jsonb_typeof(p_payload->'code') is distinct from 'string' or (p_payload->>'code')!~'^[a-z][a-z0-9_]{1,31}$' then
-    raise exception using errcode='P0422',message='C骴igo inv醠ido';
+    raise exception using errcode='P0422',message='C贸digo inv谩lido';
    end if;
   else
    perform private.check_fields(p_payload,array['requestId','expectedRevision','name','order']);
-   if split_part(p_path,'/',3)::integer>32767 then raise exception using errcode='P0422',message='Tipo inv醠ido';end if;
+   if split_part(p_path,'/',3)::integer>32767 then raise exception using errcode='P0422',message='Tipo inv谩lido';end if;
    type_id:=split_part(p_path,'/',3)::smallint;
    select * into type_row from public.tipo_evento_institucional where id=type_id for update;
    if not found then raise exception using errcode='P0404',message='Tipo no disponible';end if;
    if jsonb_typeof(p_payload->'expectedRevision') is distinct from 'number' or (p_payload->>'expectedRevision')!~'^[1-9][0-9]*$' then
-    raise exception using errcode='P0422',message='Revisi髇 inv醠ida';
+    raise exception using errcode='P0422',message='Revisi贸n inv谩lida';
    end if;
    if (p_payload->>'expectedRevision')::numeric is distinct from type_row.revision::numeric then
-    raise exception using errcode='P0409',message='Revisi髇 en conflicto';
+    raise exception using errcode='P0409',message='Revisi贸n en conflicto';
    end if;
   end if;
   if jsonb_typeof(p_payload->'name') is distinct from 'string' or jsonb_typeof(p_payload->'order') is distinct from 'number' then
-   raise exception using errcode='P0422',message='Tipo inv醠ido';
+   raise exception using errcode='P0422',message='Tipo inv谩lido';
   end if;
   type_name:=btrim(p_payload->>'name');
   perform private.check_text(type_name,40);
   if (p_payload->>'order')!~'^[0-9]+$' or (p_payload->>'order')::numeric not between 0 and 32767 then
-   raise exception using errcode='P0422',message='Orden inv醠ido';
+   raise exception using errcode='P0422',message='Orden inv谩lido';
   end if;
   if p_path='/event-types' then
    insert into public.tipo_evento_institucional(code,nombre,orden) values(p_payload->>'code',type_name,(p_payload->>'order')::smallint) returning id,revision into type_id,rev;
@@ -291,10 +291,10 @@ begin
  elsif p_path~'^/tests/versions/[1-9][0-9]*/(draft|clone|publish|activation)$' then
   tid:=split_part(p_path,'/',4)::bigint;op:=split_part(p_path,'/',5);
   select catalog_id into cat from public.test_bienestar where id_test=tid;
-  if cat is null then raise exception using errcode='P0404',message='Versi髇 no disponible';end if;
+  if cat is null then raise exception using errcode='P0404',message='Versi贸n no disponible';end if;
   perform 1 from public.test_catalogo where catalog_id=cat for update;
   select * into current_test from public.test_bienestar where id_test=tid for update;
-  if (p_payload->>'expectedRevision')::int is distinct from current_test.revision then raise exception using errcode='P0409',message='Revisi髇 en conflicto';end if;
+  if (p_payload->>'expectedRevision')::int is distinct from current_test.revision then raise exception using errcode='P0409',message='Revisi贸n en conflicto';end if;
   if op<>'activation' and exists(select 1 from public.test_catalogo where catalog_id=cat and kind='protected') then raise exception using errcode='P0403',message='Instrumento protegido';end if;
   if op='draft' and p_method='PUT' then
    perform private.check_fields(p_payload,array['requestId','expectedRevision','title','description','questions','levels']);
@@ -307,7 +307,7 @@ begin
    update public.test_bienestar set publication_status='published',published_at=now(),revision=revision+1 where id_test=tid returning revision into rev;
   elsif op='activation' and p_method='POST' then
    perform private.check_fields(p_payload,array['requestId','expectedRevision','active']);
-   if current_test.publication_status<>'published' or jsonb_typeof(p_payload->'active')<>'boolean' then raise exception using errcode='P0422',message='Activaci髇 inv醠ida';end if;
+   if current_test.publication_status<>'published' or jsonb_typeof(p_payload->'active')<>'boolean' then raise exception using errcode='P0422',message='Activaci贸n inv谩lida';end if;
    if(p_payload->>'active')::boolean then update public.test_bienestar set is_active=false,revision=revision+1 where catalog_id=cat and is_active and id_test<>tid;end if;
    update public.test_bienestar set is_active=(p_payload->>'active')::boolean,revision=revision+1 where id_test=tid returning revision into rev;
    update public.test_catalogo set active_version_id=case when(p_payload->>'active')::boolean then tid else null end where catalog_id=cat and((p_payload->>'active')::boolean or active_version_id=tid);
@@ -320,12 +320,12 @@ begin
    end loop;
    insert into public.test_resultado_nivel(test_id,test_version,nivel_resultado,puntaje_minimo,puntaje_maximo,label,interpretation) select newid,(select version from public.test_bienestar where id_test=newid),nivel_resultado,puntaje_minimo,puntaje_maximo,label,interpretation from public.test_resultado_nivel where test_id=tid;
    tid:=newid;rev:=1;
-  else raise exception using errcode='P0404',message='Operaci髇 no disponible';end if;
+  else raise exception using errcode='P0404',message='Operaci贸n no disponible';end if;
   result:=jsonb_build_object('catalogId',cat,'versionId',tid::text,'revision',rev);
  elsif p_path='/events' and p_method='POST' or p_path~'^/events/[0-9a-f-]{36}(/(publish|cancel))?$' then
   if p_path='/events' then op:='create';else eid:=split_part(p_path,'/',3)::uuid;op:=coalesce(nullif(split_part(p_path,'/',4),''),'edit');select * into eventrow from public.evento_institucional where id=eid for update;
    if not found then raise exception using errcode='P0404',message='Evento no disponible';end if;
-   if(p_payload->>'expectedRevision')::int is distinct from eventrow.revision then raise exception using errcode='P0409',message='Revisi髇 en conflicto';end if;
+   if(p_payload->>'expectedRevision')::int is distinct from eventrow.revision then raise exception using errcode='P0409',message='Revisi贸n en conflicto';end if;
   end if;
   if(op='create' and p_method='POST') or(op='edit' and p_method='PUT') then
    perform private.check_fields(p_payload,array['requestId','expectedRevision','title','description','location','startsAt','endsAt','requiresRegistration','registrationUrl','registrationDeadline','registrationClosed','typeId']);perform private.check_text(p_payload->>'title',160);perform private.check_text(coalesce(p_payload->>'description',''),5000,true);perform private.check_text(p_payload->>'location',160);
@@ -337,9 +337,9 @@ begin
    perform private.check_fields(p_payload,array['requestId','expectedRevision']);update public.evento_institucional set status='published',published_at=now(),revision=revision+1 where id=eid returning revision into rev;
   elsif op='cancel' and p_method='POST' and eventrow.status='published' then
    perform private.check_fields(p_payload,array['requestId','expectedRevision']);update public.evento_institucional set status='cancelled',revision=revision+1 where id=eid returning revision into rev;
-  else raise exception using errcode='P0422',message='Transici髇 inv醠ida';end if;
+  else raise exception using errcode='P0422',message='Transici贸n inv谩lida';end if;
   result:=jsonb_build_object('id',eid,'revision',rev);
- else raise exception using errcode='P0404',message='Operaci髇 no disponible';end if;
+ else raise exception using errcode='P0404',message='Operaci贸n no disponible';end if;
  insert into private.admin_requests(request_id,actor,action,resource,payload_hash,status,result) values(request,p_actor,p_method,p_path,hash,'completed',result);
  return result;
 end;$$;
@@ -350,7 +350,7 @@ begin
  if p_path='/students' then
   perform private.check_fields(p_query,array['search','careerId','page','pageSize']);
   page_number:=coalesce((p_query->>'page')::int,1);page_size:=coalesce((p_query->>'pageSize')::int,25);search_term:=lower(coalesce(p_query->>'search',''));career:=nullif(p_query->>'careerId','')::bigint;
-  if page_number not between 1 and 100000 or page_size not between 1 and 100 or length(search_term)>100 then raise exception using errcode='P0422',message='Filtros inv醠idos';end if;
+  if page_number not between 1 and 100000 or page_size not between 1 and 100 or length(search_term)>100 then raise exception using errcode='P0422',message='Filtros inv谩lidos';end if;
   with filtered as(
    select e.id_estudiante::text id,concat_ws(' ',e.primer_nombre,e.segundo_nombre,e.primer_apellido,e.segundo_apellido) name,nullif(trim(u.email),'') email,c.nombre_carrera "career"
    from public.estudiante e left join auth.users u on u.id=e.auth_user_id left join public.estudiante_carrera ec on ec.estudiante_id_estudiante=e.id_estudiante and ec.fecha_fin is null left join public.carrera c on c.id_carrera=ec.carrera_id_carrera

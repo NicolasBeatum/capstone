@@ -4,6 +4,7 @@ import {
   readPayload,
   uuid,
   validateMutation,
+  validateReadQuery,
 } from "./validation.ts";
 import { requestRecovery } from "./recovery.ts";
 const origin = Deno.env.get("ADMIN_WEB_ORIGIN") ?? "http://127.0.0.1:5173";
@@ -120,6 +121,8 @@ Deno.serve(async (request) => {
         if (name in query) throw new HttpError(422, messages[422]);
         query[name] = value;
       }
+      // Nunca se registra la respuesta: /emotions contiene datos emocionales agregados.
+      validateReadQuery(path, query);
       return reply(
         200,
         await rpc("admin_read", { ...identity, p_path: path, p_query: query }),

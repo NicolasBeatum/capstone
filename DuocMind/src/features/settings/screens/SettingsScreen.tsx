@@ -190,11 +190,12 @@ export default function SettingsScreen() {
                   <Switch
                     value={settings.choices[key]}
                     onValueChange={(value) => settings.setConsent(key, value)}
+                    disabled={settings.readOnly}
                     trackColor={{ false: '#d9d2bd', true: '#1a2b44' }}
                     thumbColor="#ffffff"
                     accessibilityRole="switch"
                     accessibilityLabel={CONSENT_TEXT[key]}
-                    accessibilityState={{ checked: settings.choices[key] }}
+                    accessibilityState={{ checked: settings.choices[key], disabled: settings.readOnly }}
                   />
                 </View>
               ))}
@@ -210,7 +211,12 @@ export default function SettingsScreen() {
 
             {settings.saveFailed ? (
               <Text accessibilityLiveRegion="polite" style={styles.error}>
-                No se pudo guardar el cambio. Inténtalo de nuevo.
+                No se pudo registrar el cambio y tu permiso sigue como estaba. Revisa tu conexión e inténtalo de nuevo.
+              </Text>
+            ) : null}
+            {settings.readOnly ? (
+              <Text accessibilityLiveRegion="polite" style={styles.error}>
+                Sin conexión con el servidor: ves el último estado guardado en este dispositivo y por ahora no puedes cambiarlo.
               </Text>
             ) : null}
             {policyFailed ? (
@@ -218,7 +224,7 @@ export default function SettingsScreen() {
                 No pudimos abrir el documento de consentimientos. Inténtalo de nuevo.
               </Text>
             ) : null}
-            <Text style={styles.notice}>Por ahora tu elección se guarda en este dispositivo.</Text>
+            <Text style={styles.notice}>Cada cambio queda registrado en tu cuenta y también se guarda en este dispositivo.</Text>
           </>
         )}
       </ScrollView>

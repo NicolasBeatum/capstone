@@ -50,32 +50,12 @@ export interface Student {
   name: string;
   email: string | null;
   career: string | null;
-  campus: string | null;
 }
 export interface StudentPage {
   items: Student[];
   total: number;
   page: number;
   pageSize: number;
-}
-export type TipRule = { kind: "mood"; mood: string } | {
-  kind: "result";
-  catalogId: string;
-  versionId: string;
-  version: number;
-  level: string;
-};
-export interface TipContent {
-  title: string;
-  content: string;
-  rules: TipRule[];
-}
-export interface Tip extends TipContent {
-  id: string;
-  publicationStatus: PublicationStatus;
-  publishedAt: string | null;
-  active: boolean;
-  revision: number;
 }
 export interface EventTypeContent {
   code: string;
@@ -105,8 +85,7 @@ export interface InstitutionalEvent extends EventContent {
   revision: number;
 }
 export interface FormOptions {
-  careers: { id: string; name: string; campusId: string }[];
-  campuses: { id: string; name: string }[];
+  careers: { id: string; name: string }[];
   moods: string[];
   resultLevels: {
     catalogId: string;
@@ -123,4 +102,34 @@ export interface MutationResult {
   versionId?: string;
   catalogId?: string;
   revision: number;
+}
+export type EmotionPeriod = 7 | 30 | 90;
+export interface EmotionDistribution {
+  value: number;
+  label: string;
+  checkins: number;
+}
+export interface EmotionWeek {
+  weekStart: string;
+  participants: number | null;
+  average: number | null;
+}
+export interface EmotionCareer {
+  name: string;
+  participants: number;
+  average: number;
+}
+/** Agregados anónimos del servidor. Con `sufficient: false` no hay ningún valor. */
+export interface EmotionDashboard {
+  days: EmotionPeriod;
+  from: string;
+  to: string;
+  minGroupSize: number;
+  sufficient: boolean;
+  participants: number | null;
+  checkins: number | null;
+  average: number | null;
+  distribution: EmotionDistribution[];
+  weekly: EmotionWeek[];
+  careers: EmotionCareer[];
 }

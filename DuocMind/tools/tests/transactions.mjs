@@ -133,23 +133,6 @@ try {
       }),
     "P0409",
   );
-  const tip = await call("POST", "/tips", {
-    requestId: crypto.randomUUID(),
-    title: "Tip sintético",
-    content: "Orientación",
-    rules: [{ kind: "mood", mood: "Mal" }, {
-      kind: "result",
-      catalogId: draft.catalogId,
-      versionId: draft.versionId,
-      version: 1,
-      level: "orientacion",
-    }],
-  });
-  assert.equal(typeof tip.id, "string");
-  await call("POST", "/tips/" + tip.id + "/publish", {
-    requestId: crypto.randomUUID(),
-    expectedRevision: 1,
-  });
   const event = await call("POST", "/events", {
     requestId: crypto.randomUUID(),
     title: "Feria sintética",
@@ -166,19 +149,11 @@ try {
     requestId: crypto.randomUUID(),
     expectedRevision: 2,
   });
-  await reject(() =>
-    call("POST", "/tips", {
-      requestId: crypto.randomUUID(),
-      title: "Inválido",
-      content: "Tip",
-      rules: [{
-        kind: "result",
-        catalogId: draft.catalogId,
-        versionId: draft.versionId,
-        version: 2,
-        level: "orientacion",
-      }],
-    }), "P0422");
+  // Tips fue retirado del panel: la ruta ya no existe en el backend.
+  await reject(
+    () => call("POST", "/tips", { requestId: crypto.randomUUID(), title: "Retirado" }),
+    "P0404",
+  );
   await db.query("reset role");
   await db.query(
     "update private.admin_staff set enabled=false where auth_user_id=$1",
@@ -196,7 +171,7 @@ try {
   );
   await db.query("rollback");
   console.log(
-    "T009: publicación, activación, clonación, reglas históricas, revisiones, idempotencia y revocación pasaron.",
+    "T009: publicación, activación, clonación, ruta /tips retirada, revisiones, idempotencia y revocación pasaron.",
   );
 } finally {
   await db.end();

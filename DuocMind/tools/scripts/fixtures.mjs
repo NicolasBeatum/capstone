@@ -30,12 +30,9 @@ try {
     }
     accounts[name] = { id: response.data.user.id, email, password };
   }
-  const campus = (await db.query(
-    "insert into public.sede(nombre_sede) values('Sede sintética') on conflict(nombre_sede) do update set nombre_sede=excluded.nombre_sede returning id_sede",
-  )).rows[0].id_sede;
+  // La sede fue eliminada: nombre_carrera es único por sí solo.
   const career = (await db.query(
-    "insert into public.carrera(nombre_carrera,sede_id_sede) values('Carrera sintética',$1) on conflict(sede_id_sede,nombre_carrera) do update set nombre_carrera=excluded.nombre_carrera returning id_carrera",
-    [campus],
+    "insert into public.carrera(nombre_carrera) values('Carrera sintética') on conflict(nombre_carrera) do update set nombre_carrera=excluded.nombre_carrera returning id_carrera",
   )).rows[0].id_carrera;
   for (const name of ["student", "dual"]) {
     const a = accounts[name];

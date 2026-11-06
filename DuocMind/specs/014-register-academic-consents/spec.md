@@ -157,3 +157,4 @@ Este documento no autoriza migraciones remotas, despliegues, commits ni push.
 - **0.1.0 — 2026-10-30:** borrador inicial.
 - **0.2.0 — 2026-10-30:** aprobada por el usuario; decisión 4 confirmada.
 - **0.3.0 — 2026-11-04:** sede deja de elegirse (sede 1 por defecto) y se rediseña la pantalla; ver decisión 6.
+- **Nota — 2026-11-06:** lo elegido en el registro ya no queda solo en el dispositivo: la spec 016 (RF-005 a RF-008) lo envía a `estudiante_consentimiento` al completar el perfil. Esta spec no se reescribe.

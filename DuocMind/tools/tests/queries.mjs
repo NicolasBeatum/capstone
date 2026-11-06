@@ -21,7 +21,6 @@ try {
   const student = list.items.find((s) => s.id === f.student.studentId);
   assert.equal(student.email, f.student.email);
   assert.deepEqual(Object.keys(student).sort(), [
-    "campus",
     "career",
     "email",
     "id",
@@ -46,7 +45,10 @@ try {
   assert.equal(typeof version.versionId, "string");
   assert.equal(typeof version.version, "number");
   assert.equal(version.questions.length, 5);
-  const chosen = catalogs.find((t) => t.kind === "custom" && t.activeVersionId);
+  // Tras un reset no hay cuestionarios propios: se usa un instrumento activo cualquiera
+  // (la activación es válida también en los protegidos) y el estado se restaura al final.
+  const chosen = catalogs.find((t) => t.kind === "custom" && t.activeVersionId) ??
+    catalogs.find((t) => t.activeVersionId);
   assert(chosen);
   const selected = chosen.versions.find((v) =>
     v.versionId === chosen.activeVersionId
@@ -80,6 +82,15 @@ try {
     ),
   );
   await change(off.revision, true);
+  // Sin sedes: el catálogo expone solo carreras (id y nombre), ánimos y niveles.
+  assert.deepEqual(Object.keys(options).sort(), [
+    "careers",
+    "moods",
+    "resultLevels",
+  ]);
+  assert(options.careers.every((c) =>
+    Object.keys(c).sort().join() === "id,name"
+  ));
   assert.equal(typeof options.resultLevels[0].versionId, "string");
   assert(options.moods.includes("Mal"));
   console.log(
