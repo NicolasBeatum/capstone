@@ -97,37 +97,6 @@ export const styles = StyleSheet.create({
     marginBottom: 14,
   },
 
-  /* ── Herramientas rápidas (grilla 2x2) ── */
-  toolsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: 14,
-    marginBottom: 28,
-  },
-  toolTile: {
-    width: '48%',
-    minHeight: 136,
-    borderRadius: 24,
-    padding: 18,
-  },
-  toolBreathe: { backgroundColor: '#e8e2f4' },
-  toolStudy: { backgroundColor: '#fbe7d4' },
-  toolJournal: { backgroundColor: '#dcefe4' },
-  toolStretch: { backgroundColor: '#e1e7f8' },
-  toolTitle: {
-    fontSize: 16,
-    color: navy,
-    fontFamily: font.extraBold,
-    marginTop: 14,
-  },
-  toolDesc: {
-    fontSize: 12,
-    lineHeight: 17,
-    marginTop: 4,
-    fontFamily: font.semiBold,
-  },
-
   /* ── Ayuda ── */
   helpCard: {
     flexDirection: 'row',
