@@ -8,7 +8,6 @@ import { BottomNav } from '@/shared/components/BottomNav';
 import { type PlannerModel, usePlanner } from '@/shared/planner/application/usePlanner';
 import { ACTIVITY_LABELS, type PersonalActivity } from '@/shared/planner/application/plannerStore';
 import type { ActivityTransfer } from '@/shared/planner/application/personalActivities';
-import type { LegacyCatalog } from '@/shared/planner/application/legacyActivities';
 import { civilNow } from '@/shared/planner/domain/weeklySchedule';
 import { personalActivityEnd } from '@/shared/planner/domain/personalActivityTime';
 import { PlannerButton, PlannerField, PlannerModal } from '../components/PlannerControls';
@@ -25,7 +24,7 @@ export default function PersonalActivitiesScreen() {
   );
 }
 function PersonalActivitiesScreenContent({ planner }: { planner: PlannerModel }) {
-  const router = useRouter(), document = planner.snapshot?.document, doc = document?.working;
+  const router = useRouter(), document = planner.snapshot?.document, doc = document?.schedule;
   const [form, setForm] = useState<{ activity?: PersonalActivity } | null>(null),
     [selected, setSelected] = useState<Record<string, number>>({}),
     [filter, setFilter] = useState<string | null>('all');
@@ -34,9 +33,6 @@ function PersonalActivitiesScreenContent({ planner }: { planner: PlannerModel })
     >(null),
     [deleting, setDeleting] = useState<PersonalActivity | null>(null),
     [error, setError] = useState<string | null>(null);
-  const [legacy, setLegacy] = useState<'warning' | 'catalog' | null>(null),
-    [catalog, setCatalog] = useState<LegacyCatalog | null>(null),
-    [recover, setRecover] = useState<string[]>([]);
   const activities = [...(document?.activities ?? [])].sort((a, b) =>
     a.date.localeCompare(b.date) || a.time.localeCompare(b.time) || a.id.localeCompare(b.id)
   );
@@ -134,7 +130,7 @@ function PersonalActivitiesScreenContent({ planner }: { planner: PlannerModel })
             </View>
           </View>
         )}
-        {error && !transfer && !deleting && !legacy && (
+        {error && !transfer && !deleting && (
           <Text style={s.error} accessibilityRole='alert'>{error}</Text>
         )}
         {!planner.loading &&
@@ -192,16 +188,6 @@ function PersonalActivitiesScreenContent({ planner }: { planner: PlannerModel })
             </View>
           ),
         )}
-        <PlannerButton
-          secondary
-          label='Recuperar actividades anteriores'
-          onPress={() => {
-            setLegacy('warning');
-            setCatalog(null);
-            setRecover([]);
-            setError(null);
-          }}
-        />
       </ScrollView>
       <BottomNav currentTab='pending' />
       {form && (
@@ -299,82 +285,6 @@ function PersonalActivitiesScreenContent({ planner }: { planner: PlannerModel })
                 setError(null);
               }).catch(failure)}
           />
-        </PlannerModal>
-      )}
-      {legacy && (
-        <PlannerModal
-          title='Recuperar actividades anteriores'
-          busy={planner.busy}
-          onClose={() => setLegacy(null)}
-        >
-          {legacy === 'warning'
-            ? (
-              <>
-                <Text style={s.notice}>
-                  El almacenamiento anterior no identifica a su propietario. Puede contener
-                  actividades de otra cuenta que usó este dispositivo. Continúa solo para
-                  identificar y recuperar tus propias actividades; el origen se conservará.
-                </Text>
-                <PlannerButton
-                  label='Entiendo, revisar actividades'
-                  disabled={planner.busy}
-                  onPress={() =>
-                    void planner.listLegacy(true).then((result) => {
-                      setCatalog(result);
-                      setLegacy('catalog');
-                    }).catch(failure)}
-                />
-              </>
-            )
-            : (
-              <>
-                {catalog?.invalidCount !== 0 && (
-                  <Text style={s.notice}>
-                    {catalog?.invalidCount}{' '}
-                    registros no se pueden recuperar porque sus datos no son válidos.
-                  </Text>
-                )}
-                {catalog?.entries.filter((entry) => !document?.imports.includes(entry.fingerprint))
-                  .map((entry) => (
-                    <PlannerButton
-                      key={entry.fingerprint}
-                      label={`${
-                        recover.includes(entry.fingerprint) ? 'Seleccionada' : 'Recuperar'
-                      }: ${entry.activity.title} · ${entry.activity.date}`}
-                      secondary={!recover.includes(entry.fingerprint)}
-                      selected={recover.includes(entry.fingerprint)}
-                      onPress={() =>
-                        setRecover((previous) =>
-                          previous.includes(entry.fingerprint)
-                            ? previous.filter((key) => key !== entry.fingerprint)
-                            : [...previous, entry.fingerprint]
-                        )}
-                    />
-                  ))}
-                {!catalog?.entries.some((entry) =>
-                  !document?.imports.includes(entry.fingerprint)
-                ) && (
-                  <Text style={s.subtitle}>
-                    No hay actividades anteriores pendientes de recuperar.
-                  </Text>
-                )}
-                <PlannerButton
-                  label='Guardar selección en mi cuenta local'
-                  disabled={!recover.length || planner.busy}
-                  onPress={() =>
-                    void planner.importLegacy(
-                      (catalog?.entries ?? []).filter((entry) =>
-                        recover.includes(entry.fingerprint)
-                      ).map((entry) => ({ entry, newId: Crypto.randomUUID() })),
-                    ).then(() => {
-                      setLegacy(null);
-                      setRecover([]);
-                      setError(null);
-                    }).catch(failure)}
-                />
-              </>
-            )}
-          {error && <Text style={s.error} accessibilityRole='alert'>{error}</Text>}
         </PlannerModal>
       )}
     </View>

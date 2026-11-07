@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BottomNav } from '@/shared/components/BottomNav';
 import { LiquidBackground } from '@/shared/components/Glass';
 import { GotaLoader } from '@/shared/components/GotaLoader';
-import { CalendarIcon } from '@/shared/components/Icons';
+import { CalendarIcon, GearIcon } from '@/shared/components/Icons';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { Reveal } from '@/shared/motion/Reveal';
 import { useEvents } from '@/shared/events/application/useEvents';
@@ -32,7 +32,7 @@ import { AgendaTimelineRow } from '../components/AgendaTimelineRow';
 import { AgendaWeekStrip } from '../components/AgendaWeekStrip';
 import { PlannerButton, PlannerField, PlannerModal } from '../components/PlannerControls';
 import { PersonalActivityForm } from '../components/PersonalActivityForm';
-import { PlannerSyncNotice } from '../components/PlannerSyncNotice';
+import { PlannerNotice } from '../components/PlannerNotice';
 import { ClassScheduleForm } from '../components/ClassScheduleForm';
 import { styles } from './AgendaScreen.styles';
 import { scheduleStyles as s } from './ScheduleScreen.styles';
@@ -62,7 +62,7 @@ function AgendaScreenContent({ planner }: { planner: PlannerModel }) {
     if (isDate(params.date)) setSelectedDate(params.date);
   }, [params.date]);
   const document = planner.snapshot?.document,
-    doc = document?.working,
+    doc = document?.schedule,
     activities = document?.activities ?? [],
     catalog = events.snapshot?.document.catalog ?? null,
     interests = events.snapshot?.document.interests ?? [];
@@ -110,34 +110,34 @@ function AgendaScreenContent({ planner }: { planner: PlannerModel }) {
               <Text style={styles.title} accessibilityRole='header'>Mi agenda</Text>
               <Text style={styles.subtitle}>Tus clases, actividades y eventos guardados.</Text>
             </View>
-            <PlannerButton label='Eventos' secondary onPress={() => router.push('/events')} />
+            <View style={s.row}>
+              <ScalePress
+                style={styles.roundButton}
+                onPress={() => router.push('/schedule')}
+                accessibilityRole='button'
+                accessibilityLabel='Editar horario y semestres'
+              >
+                <GearIcon size={22} />
+              </ScalePress>
+              <PlannerButton label='Eventos' secondary onPress={() => router.push('/events')} />
+            </View>
           </View>
         </Reveal>
-        <Reveal index={1}>
-          <View style={styles.scheduleCard}>
-            <View style={styles.scheduleHeading}>
-              <View style={styles.scheduleIcon}>
-                <CalendarIcon size={24} />
+        {!planner.loading && !blockCount && (
+          <Reveal index={1}>
+            <View style={styles.scheduleCard}>
+              <View style={styles.scheduleHeading}>
+                <View style={styles.scheduleIcon}>
+                  <CalendarIcon size={24} />
+                </View>
+                <View style={styles.scheduleText}>
+                  <Text style={styles.scheduleEyebrow}>TU HORARIO DE CLASES</Text>
+                  <Text style={styles.scheduleTitle}>Agrega tus clases a la agenda</Text>
+                </View>
               </View>
-              <View style={styles.scheduleText}>
-                <Text style={styles.scheduleEyebrow}>TU HORARIO DE CLASES</Text>
-                <Text style={styles.scheduleTitle}>
-                  {planner.loading
-                    ? 'Cargando tu horario…'
-                    : blockCount
-                    ? active?.name
-                    : 'Agrega tus clases a la agenda'}
-                </Text>
-              </View>
-            </View>
-            <Text style={styles.scheduleDescription}>
-              {blockCount
-                ? `${subjectIds.size} ${subjectIds.size === 1 ? 'ramo' : 'ramos'} · ${blockCount} ${
-                  blockCount === 1 ? 'bloque semanal' : 'bloques semanales'
-                }`
-                : 'Escribe tus ramos, elige los días y las horas. Tus clases se repetirán cada semana.'}
-            </Text>
-            <View style={styles.scheduleActions}>
+              <Text style={styles.scheduleDescription}>
+                Escribe tus ramos, elige los días y las horas. Tus clases se repetirán cada semana.
+              </Text>
               <ScalePress
                 style={[styles.schedulePrimary, (!doc || planner.busy) && s.disabled]}
                 disabled={!doc || planner.busy}
@@ -145,26 +145,13 @@ function AgendaScreenContent({ planner }: { planner: PlannerModel }) {
                   if (doc) setClassForm(doc);
                 }}
                 accessibilityRole='button'
-                accessibilityLabel={blockCount ? 'Agregar clases' : 'Crear mi horario'}
+                accessibilityLabel='Crear mi horario'
               >
-                <Text style={styles.schedulePrimaryText}>
-                  {blockCount ? '+ Agregar clases' : 'Crear mi horario'}
-                </Text>
+                <Text style={styles.schedulePrimaryText}>Crear mi horario</Text>
               </ScalePress>
-              {active && (
-                <ScalePress
-                  style={styles.scheduleEdit}
-                  onPress={() => router.push('/schedule')}
-                  accessibilityRole='button'
-                  accessibilityLabel='Editar horario y semestres'
-                >
-                  <Text style={styles.scheduleEditText}>Editar horario →</Text>
-                </ScalePress>
-              )}
             </View>
-          </View>
-        </Reveal>
-        <PlannerSyncNotice planner={planner} />
+          </Reveal>
+        )}
         <AgendaWeekStrip
           title={`${format(monday)} – ${format(addDays(monday, 6))}`}
           days={week}
@@ -211,7 +198,9 @@ function AgendaScreenContent({ planner }: { planner: PlannerModel }) {
         >
           <Text style={styles.scheduleEditText}>Ver todas mis actividades →</Text>
         </ScalePress>
-        {events.snapshot?.warning && <Text style={styles.notice}>{events.snapshot.warning}</Text>}
+        {events.snapshot?.warning && items.some((item) => item.kind === 'event') && (
+          <Text style={styles.notice}>{events.snapshot.warning}</Text>
+        )}
         {events.error && (
           <Text style={styles.statusMessage} accessibilityRole='alert'>
             Eventos: {events.error}
@@ -299,6 +288,7 @@ function AgendaScreenContent({ planner }: { planner: PlannerModel }) {
             </Text>
           </View>
         )}
+        <PlannerNotice planner={planner} />
       </ScrollView>
       <BottomNav currentTab='agenda' />
       {classForm && (

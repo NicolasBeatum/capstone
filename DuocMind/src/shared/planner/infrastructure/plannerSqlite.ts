@@ -21,24 +21,29 @@ export async function createPlannerSqlitePersistence(
     `CREATE TABLE IF NOT EXISTS planner_state (id INTEGER PRIMARY KEY CHECK(id=1),content TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS planner_activity (id TEXT PRIMARY KEY,content TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS planner_receipt (id TEXT PRIMARY KEY,content TEXT NOT NULL);
-    CREATE TABLE IF NOT EXISTS planner_import (id TEXT PRIMARY KEY);`,
+    DROP TABLE IF EXISTS planner_import;`,
   );
   async function read(tx: PlannerSqlite): Promise<PlannerDocument> {
     const state = await tx.getFirstAsync<{ content: string }>(
       'SELECT content FROM planner_state WHERE id=1',
     );
-    const contents = async (table: string) =>
-      (await tx.getAllAsync<{ content: string }>(`SELECT content FROM ${table}`)).map((r) =>
-        parsePlannerJson(r.content)
+    const rows = (table: string) =>
+      tx.getAllAsync<{ content: string }>(`SELECT content FROM ${table}`);
+    const activities = await rows('planner_activity'),
+      receipts = await rows('planner_receipt');
+    // Solo el análisis limpia: un fallo de acceso a la base puede ser pasajero.
+    try {
+      return parsePlanner({
+        ...(state ? parsePlannerJson(state.content) as object : emptyPlanner()),
+        activities: activities.map((r) => parsePlannerJson(r.content)),
+        receipts: receipts.map((r) => parsePlannerJson(r.content)),
+      });
+    } catch {
+      await tx.execAsync(
+        'DELETE FROM planner_state; DELETE FROM planner_activity; DELETE FROM planner_receipt;',
       );
-    return parsePlanner({
-      ...(state ? parsePlannerJson(state.content) as object : emptyPlanner()),
-      activities: await contents('planner_activity'),
-      receipts: await contents('planner_receipt'),
-      imports: (await tx.getAllAsync<{ id: string }>('SELECT id FROM planner_import')).map((r) =>
-        r.id
-      ),
-    });
+      return emptyPlanner();
+    }
   }
   return {
     async read() {
@@ -52,14 +57,12 @@ export async function createPlannerSqlitePersistence(
       let result = emptyPlanner();
       await db.withExclusiveTransactionAsync(async (tx) => {
         result = parsePlanner(transform(await read(tx)));
-        const { activities, receipts, imports, ...state } = result;
+        const { activities, receipts, ...state } = result;
         await tx.runAsync(
           'INSERT OR REPLACE INTO planner_state(id,content) VALUES(1,?)',
           JSON.stringify(state),
         );
-        await tx.execAsync(
-          'DELETE FROM planner_activity; DELETE FROM planner_receipt; DELETE FROM planner_import;',
-        );
+        await tx.execAsync('DELETE FROM planner_activity; DELETE FROM planner_receipt;');
         for (const item of activities) {
           await tx.runAsync(
             'INSERT INTO planner_activity(id,content) VALUES(?,?)',
@@ -73,9 +76,6 @@ export async function createPlannerSqlitePersistence(
             item.requestId,
             JSON.stringify(item),
           );
-        }
-        for (const item of imports) {
-          await tx.runAsync('INSERT INTO planner_import(id) VALUES(?)', item);
         }
       });
       return result;

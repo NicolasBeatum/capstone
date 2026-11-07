@@ -33,26 +33,11 @@ Verifica en Supabase que el usuario de prueba solo pueda leer, insertar y borrar
 
 ## Horario personal por semestre
 
-El incremento 013 requiere la migración nueva
-`supabase/migrations/20261018175733_personal_semester_schedule.sql`, después del
-historial existente. Está aplicada en Supabase local y, desde el 2026-10-19, en
-**Duocmind cloud** (`ashgvanzjeaeekpygqgy`), con autorización explícita.
-El historial remoto conserva la versión `20261018175733` del repositorio.
-No ejecutar migraciones ni despliegues remotos adicionales sin autorización específica. Antes de aplicarla, revisar permisos y respaldo; después
-comprobar las RPC `load_personal_schedule` y `save_personal_schedule` con una
-cuenta sintética y perfil estudiante, y verificar RLS con dos cuentas.
+El horario, los semestres y las actividades se guardan solo en el dispositivo y no
+usan Supabase (spec 017).
 
-El cliente envía solo semestres, ramos manuales, bloques y semestre activo.
-Pruebas, tareas, actividades, copias/traslados y recuperaciones heredadas no se
-envían a Supabase. Contratos y concurrencia:
-[ENDPOINTS.md](../supabase/ENDPOINTS.md#horario-personal-por-semestre).
-
-Ante una migración ausente, la app muestra el error y conserva el borrador local.
-No informa «Sincronizado» hasta confirmación. Cerrar sesión conserva los datos
-del planner; eliminar cuenta bloquea su uso y limpia la base/clave del dispositivo,
-y la cascada de Auth elimina el horario remoto. El almacén heredado, sin
-propietario verificable, solo se lee tras aceptar la advertencia y nunca se borra
-ni se importa automáticamente.
+Cerrar sesión conserva los datos del planner; eliminar cuenta bloquea su uso y limpia
+la base y la clave del dispositivo.
 
 Para probar sin acceder a cloud, preparar `tools/.local` con la guía de
 [administración](../../admin-web/README.md), iniciar `local:serve`, verificar

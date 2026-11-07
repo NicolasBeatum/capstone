@@ -20,3 +20,10 @@ export function personalActivityEnd(time: string, endTime?: string): string {
     String(minutes % 60).padStart(2, '0')
   }`;
 }
+/** Reemplaza la hora o los minutos, o devuelve null si el texto aún no es válido. */
+export function changeTimePart(time: string, part: 'hour' | 'minute', text: string): string | null {
+  const value = Number(text);
+  if (!/^\d{1,2}$/.test(text) || value > (part === 'hour' ? 23 : 59)) return null;
+  const digits = String(value).padStart(2, '0');
+  return part === 'hour' ? `${digits}:${time.slice(3, 5)}` : `${time.slice(0, 2)}:${digits}`;
+}

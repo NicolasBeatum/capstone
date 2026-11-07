@@ -19,7 +19,14 @@ export function createWebPlannerStore(
   const key = `duocmind.planner.v1.${identifier(userId)}`;
   const read = () => {
     const raw = storage().getItem(key);
-    return raw === null ? emptyPlanner() : parsePlanner(parsePlannerJson(raw));
+    if (raw === null) return emptyPlanner();
+    // Solo el análisis limpia: un fallo de acceso al almacenamiento puede ser pasajero.
+    try {
+      return parsePlanner(parsePlannerJson(raw));
+    } catch {
+      storage().removeItem(key);
+      return emptyPlanner();
+    }
   };
   return new PlannerStore({
     async read() {

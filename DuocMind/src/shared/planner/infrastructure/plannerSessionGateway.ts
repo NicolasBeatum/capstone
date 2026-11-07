@@ -7,8 +7,11 @@ import {
 import { supabaseAuthStorageKey } from '@/shared/backend/infrastructure/supabaseAuthOptions';
 import { getSupabaseClient } from '@/shared/backend/infrastructure/supabaseClient';
 import { persistedPlannerOwner, PlannerSessionCoordinator } from '../application/plannerSession';
-import { PlannerAuthError, type PlannerSessionGateway } from '../application/plannerContracts';
-import { createScheduleGateway } from './scheduleGateway';
+import {
+  type PlannerAccountGateway,
+  PlannerAuthError,
+  type PlannerSessionGateway,
+} from '../application/plannerContracts';
 import { deletePlannerData } from './plannerStorage';
 const coordinator = new PlannerSessionCoordinator();
 let listening = false, revision = 0;
@@ -70,31 +73,14 @@ export async function blockPlannerAccount(userId: string): Promise<void> {
   await platformSecureKeyValueStorage.setItem(deletionMarker(userId), 'true');
   coordinator.block(userId);
 }
-export const supabaseScheduleGateway = createScheduleGateway(async (name, args, session) => {
-  const client = getSupabaseClient(), { data, error } = await client.auth.getSession();
-  if (
-    error || !data.session || data.session.user.id !== session.userId ||
-    !await plannerSessionGateway.isCurrent(session)
-  ) throw new PlannerAuthError();
-  if (name === 'load_personal_schedule') {
-    const verified = await client.auth.getUser(data.session.access_token);
-    if (verified.error?.code === 'user_not_found') {
-      await blockPlannerAccount(session.userId);
-      await deletePlannerData(session.userId);
-      throw new PlannerAuthError();
-    }
-    if (verified.error) {
-      if (isAuthRetryableFetchError(verified.error)) {
-        throw new Error('No pudimos verificar la conexión. Tus datos locales se conservan.');
-      }
-      throw new PlannerAuthError();
-    }
-    if (!await plannerSessionGateway.isCurrent(session)) throw new PlannerAuthError();
-  }
-  // Fija el token capturado: un cambio de cuenta no puede enviar esta operación con otro JWT.
-  const result = await client.rpc(name, args).setHeader(
-    'Authorization',
-    `Bearer ${data.session.access_token}`,
-  );
-  return { data: result.data as unknown, error: result.error };
-});
+export const plannerAccountGateway: PlannerAccountGateway = {
+  async lookup(session) {
+    const client = getSupabaseClient(), { data, error } = await client.auth.getSession();
+    if (error || data.session?.user.id !== session.userId) return null;
+    return (await client.auth.getUser(data.session.access_token)).error;
+  },
+  async erase(userId) {
+    await blockPlannerAccount(userId);
+    await deletePlannerData(userId);
+  },
+};

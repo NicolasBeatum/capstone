@@ -27,14 +27,17 @@ const newBlock = (weekday: number): BlockDraft => ({
 });
 type Prepared = ReturnType<typeof prepareClassRegistration>;
 
-export function ClassScheduleForm({ planner, base, weekday, onClose, onSaved }: {
+export function ClassScheduleForm({ planner, base, weekday, semesterId: target, onClose, onSaved }: {
   planner: PlannerModel;
   base: ScheduleDocument;
   weekday: number;
+  semesterId?: string;
   onClose: () => void;
   onSaved: (weekday: number) => void;
 }) {
-  const [semesterId] = useState(() => base.activeSemesterId ?? Crypto.randomUUID());
+  const [semesterId] = useState(() =>
+    target ?? base.activeSemesterId ?? Crypto.randomUUID()
+  );
   const [subjectId] = useState(() => Crypto.randomUUID());
   const semester = base.semesters.find((value) => value.id === semesterId);
   const subjects = base.subjects.filter((value) => value.semesterId === semesterId);

@@ -49,8 +49,7 @@ Intereses y catálogo se separan por UUID: SQLCipher/SecureStore en Android,
 eliminar la cuenta limpia su archivo, clave y cachés. La comprobación de cifrado,
 reinicio y eliminación en Android sigue pendiente: se necesita un development
 build con SQLCipher. La web solo se utiliza con datos sintéticos; cerrar la pestaña
-elimina su almacenamiento de sesión. El almacén personal heredado carece de
-propietario verificable; el incremento 013 permite recuperarlo explícitamente.
+elimina su almacenamiento de sesión.
 
 Para el recorrido local, preparar backend y fixtures con la guía de
 [administración](../admin-web/README.md), e iniciar su API. Desde la raíz:
@@ -85,12 +84,10 @@ su propio día, inicio, término, sala y docente; un mismo ramo puede usar salas
 distintas. Las clases usan la hora civil de Santiago y las fechas opcionales del
 semestre. Los cruces requieren confirmación y los duplicados se rechazan.
 
-El horario se guarda primero por cuenta en el dispositivo y se sincroniza con
-Supabase. Ante cambios concurrentes se comparan ambas versiones y se elige
-explícitamente cuál conservar. La migración
-`20261018175733_personal_semester_schedule.sql` está probada y aplicada en local
-y en **Duocmind cloud** desde el 2026-10-19, con autorización explícita. Si falta en otro entorno, la app
-informa la actualización pendiente y conserva los cambios locales.
+El horario y los semestres se guardan **solo en este dispositivo**, por cuenta. No
+se envían a Supabase ni pasan a otro teléfono; reinstalar la app los borra. Si el
+contenido guardado está corrupto, la app lo limpia sola y continúa con un almacén
+vacío.
 
 `/pendientes` gestiona pruebas, tareas y actividades personales **solo en este
 dispositivo**. Las pruebas y tareas nuevas usan el semestre activo y requieren un
@@ -104,12 +101,10 @@ Cambiar el semestre activo, incluso de ida y vuelta, conserva todas las activida
 sus fechas y sus nombres de ramo; tampoco borra eventos institucionales. La agenda y el
 inicio muestran clases y pendientes reales, sin datos académicos de muestra.
 
-«Recuperar actividades anteriores» advierte que el origen no tiene propietario
-verificable antes de permitir seleccionar registros. No hay importación
-automática y el origen permanece intacto. Cerrar sesión conserva los datos
+Cerrar sesión conserva los datos
 propios; otra cuenta usa otro almacén. Eliminar cuenta bloquea reintentos y
-limpia su base/clave; la cascada de Auth elimina horarios y recibos remotos.
-Otro dispositivo desconectado solo detecta la eliminación al reconectar.
+limpia su base/clave. Otro dispositivo desconectado solo detecta la eliminación
+al reconectar.
 
 Android usa SQLCipher/SecureStore; su recorrido real sigue pendiente en T020.
 La web usa `localStorage` por cuenta y Web Locks, sin acreditar cifrado ni

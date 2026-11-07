@@ -73,6 +73,8 @@ tarea abierta con el motivo y el procedimiento pendiente.
 
 - [ ] T020 Validar en un development build Android con SQLCipher: creación de dos semestres, varios bloques con salas diferentes, cambio de activo, reapertura y edición sin conexión, reinicio con cambios pendientes, reconexión y recuperación en segundo cliente. Provocar y resolver un conflicto, copiar/mover actividades, cambiar de cuenta y eliminar una cuenta sintética. Registrar dispositivo/build, comandos, pasos y resultados; si no hay dispositivo o build válido, mantener esta tarea abierta y no declarar cerrada la spec (CA-003, CA-004, CA-005, CA-006, CA-007, CA-008, CA-010, CA-011, CA-013, CA-015).
 
+  Alcance actualizado por la spec 017: ya no aplican reconexión, segundo cliente ni conflictos. La validación Android restante es la tarea T010 de `specs/017-local-schedule/tasks.md`.
+
 ## Cobertura y cierre
 
 | Requisito | Tareas principales |

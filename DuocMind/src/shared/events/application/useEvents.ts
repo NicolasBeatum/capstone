@@ -22,7 +22,7 @@ export function useEvents() {
         setSnapshot(previous => {
           const next = !remote && previous?.session.userId === result.session.userId
             ? { ...result, offline: previous.offline, warning: previous.warning } : result;
-          return connected.current ? next : { ...next, offline: true, warning: 'Sin conexión. Se muestra la última información disponible.' };
+          return connected.current ? next : { ...next, offline: true, warning: 'Sin conexión. Los eventos pueden no estar actualizados.' };
         });
         setError(null); setNow(new Date());
       }
@@ -56,7 +56,7 @@ export function useEvents() {
       const isConnected = state.isConnected === true && state.isInternetReachable !== false;
       connected.current = isConnected;
       if (isConnected && wasConnected === false && AppState.currentState === 'active') void refresh();
-      if (!isConnected) setSnapshot(previous => previous ? { ...previous, offline: true, warning: 'Sin conexión. Se muestra la última información disponible.' } : previous);
+      if (!isConnected) setSnapshot(previous => previous ? { ...previous, offline: true, warning: 'Sin conexión. Los eventos pueden no estar actualizados.' } : previous);
       wasConnected = isConnected;
     });
     return () => { active.current = false; request.current += 1; stopTimers(); appState.remove(); stopNetwork(); };

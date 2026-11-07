@@ -9,7 +9,6 @@ import {
   textField,
   timeMinutes,
 } from '../domain/schedule.ts';
-import type { RemoteSchedule, ScheduleSubmission } from './plannerContracts.ts';
 export type ActivityKind = 'exam' | 'task' | 'personal';
 export const ACTIVITY_LABELS: Record<ActivityKind, string> = {
   exam: 'Prueba',
@@ -33,15 +32,10 @@ export interface LocalReceipt {
   fingerprint: string;
 }
 export interface PlannerDocument {
-  schema: 1;
-  base: RemoteSchedule;
-  working: ScheduleDocument;
-  inFlight: ScheduleSubmission | null;
-  conflict: RemoteSchedule | null;
-  initialized: boolean;
+  schema: 2;
+  schedule: ScheduleDocument;
   activities: PersonalActivity[];
   receipts: LocalReceipt[];
-  imports: string[];
 }
 export interface PlannerPersistence {
   read(): Promise<PlannerDocument>;
@@ -51,31 +45,22 @@ export interface PlannerPersistence {
 }
 export function emptyPlanner(): PlannerDocument {
   return {
-    schema: 1,
-    base: { revision: 0, document: emptySchedule() },
-    working: emptySchedule(),
-    inFlight: null,
-    conflict: null,
-    initialized: false,
+    schema: 2,
+    schedule: emptySchedule(),
     activities: [],
     receipts: [],
-    imports: [],
   };
 }
 export function parsePlannerJson(raw: string): unknown {
   try {
     return JSON.parse(raw) as unknown;
   } catch {
-    throw new Error('No se pudieron leer los datos guardados. La copia existente se conserva.');
+    throw new Error('No se pudieron leer los datos guardados.');
   }
 }
 function revision(v: unknown): number {
   if (!Number.isSafeInteger(v) || Number(v) < 0) invalid();
   return Number(v);
-}
-export function parseRemote(value: unknown): RemoteSchedule {
-  const v = record(value, ['revision', 'document']);
-  return { revision: revision(v.revision), document: parseSchedule(v.document) };
 }
 export function parseActivity(value: unknown): PersonalActivity {
   const v = record(value, [
@@ -111,29 +96,15 @@ export function parseActivity(value: unknown): PersonalActivity {
     version: Number(v.version),
   };
 }
-export function parseSubmission(value: unknown): ScheduleSubmission {
-  const v = record(value, ['requestId', 'expectedRevision', 'document']);
-  return {
-    requestId: identifier(v.requestId),
-    expectedRevision: revision(v.expectedRevision),
-    document: parseSchedule(v.document),
-  };
-}
 export function parsePlanner(value: unknown): PlannerDocument {
   const v = record(value, [
     'schema',
-    'base',
-    'working',
-    'inFlight',
-    'conflict',
-    'initialized',
+    'schedule',
     'activities',
     'receipts',
-    'imports',
   ]);
   if (
-    v.schema !== 1 || typeof v.initialized !== 'boolean' || !Array.isArray(v.activities) ||
-    !Array.isArray(v.receipts) || !Array.isArray(v.imports)
+    v.schema !== 2 || !Array.isArray(v.activities) || !Array.isArray(v.receipts)
   ) invalid('No se pudieron leer tus datos locales.');
   const activities = v.activities.map(parseActivity);
   if (new Set(activities.map((a) => a.id)).size !== activities.length) invalid();
@@ -142,20 +113,12 @@ export function parsePlanner(value: unknown): PlannerDocument {
     if (typeof r.fingerprint !== 'string' || r.fingerprint.length > 100000) invalid();
     return { requestId: identifier(r.requestId), fingerprint: r.fingerprint };
   });
-  if (
-    new Set(receipts.map((r) => r.requestId)).size !== receipts.length ||
-    v.imports.some((i) => typeof i !== 'string' || i.length > 300)
-  ) invalid();
+  if (new Set(receipts.map((r) => r.requestId)).size !== receipts.length) invalid();
   return {
-    schema: 1,
-    base: parseRemote(v.base),
-    working: parseSchedule(v.working),
-    inFlight: v.inFlight === null ? null : parseSubmission(v.inFlight),
-    conflict: v.conflict === null ? null : parseRemote(v.conflict),
-    initialized: v.initialized,
+    schema: 2,
+    schedule: parseSchedule(v.schedule),
     activities,
     receipts,
-    imports: [...v.imports] as string[],
   };
 }
 export class PlannerStore {

@@ -39,13 +39,33 @@ try {
     }),
     page = await context.newPage(),
     errors = [],
-    remoteWrites = [];
-  page.on('pageerror', (e) => errors.push(e.message));
-  page.on('request', (request) => {
-    if (request.url().includes('/rpc/save_personal_schedule')) {
-      remoteWrites.push(request.postDataJSON());
+    scheduleCalls = [];
+  const watchSchedule = (request) => {
+    if (/\/rpc\/(load|save)_personal_schedule/.test(request.url())) {
+      scheduleCalls.push(request.url());
     }
-  });
+  };
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('request', watchSchedule);
+  const viewing = (name) =>
+    page.getByRole('button', { name: `Cambiar semestre, viendo ${name}`, exact: true });
+  const openSemesters = () =>
+    page.getByRole('button', { name: /^Cambiar semestre, viendo/ }).click();
+  const chooseSemester = async (name) => {
+    await openSemesters();
+    await page.getByRole('button', { name, exact: true }).click();
+  };
+  const setActivityTime = async (label, value) => {
+    const [hour, minute] = value.split(':');
+    await page.getByLabel(`${label}, hora`, { exact: true }).fill(hour);
+    await page.getByLabel(`${label}, minutos`, { exact: true }).fill(minute);
+  };
+  const expectActivityTime = async (label, value) => {
+    const [hour, minute] = value.split(':');
+    await expect(page.getByLabel(`${label}, hora`, { exact: true })).toHaveValue(hour);
+    await expect(page.getByLabel(`${label}, minutos`, { exact: true })).toHaveValue(minute);
+  };
+  const openSubjects = () => page.getByRole('button', { name: 'Ramos', exact: true }).click();
   await page.goto(origin + '/login');
   await page.getByPlaceholder('ejemplo@universidad.edu').fill(email);
   await page.getByPlaceholder('••••••••').fill(password);
@@ -157,12 +177,10 @@ try {
     .waitFor();
   await page.getByText('Sala 301', { exact: true }).waitFor();
   await page.reload();
-  await page.getByRole('button', { name: 'Agregar clases', exact: true })
-    .waitFor({
-      timeout: 60000,
-    });
-  await page.getByRole('button', { name: 'Agregar clases', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Editar horario y semestres', exact: true })
+    .click({ timeout: 60000 });
+  assert.equal(await page.getByRole('button', { name: 'Crear mi horario' }).count(), 0);
+  await page.getByRole('button', { name: 'Agregar clase', exact: true }).click();
   await page.getByRole('button', {
     name: 'Usar un ramo que ya agregué',
     exact: true,
@@ -188,23 +206,19 @@ try {
     name: 'Conservar los cruces y guardar',
     exact: true,
   }).click();
-  await page.getByText('3 bloques semanales', { exact: false }).waitFor();
-  await page.getByRole('button', { name: 'Agregar clases', exact: true })
-    .click();
+  await expect(page.getByRole('button', { name: /^Editar clase Clase desde Agenda/ }))
+    .toHaveCount(3);
+  await page.getByRole('button', { name: 'Agregar clase', exact: true }).click();
   await page.getByLabel('Nombre del ramo', { exact: true }).fill('No guardar');
   await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
   assert.equal(await page.getByText('No guardar', { exact: true }).count(), 0);
   await page.screenshot({ path: path.join(output, 'agenda-class-entry.png') });
-  await page.getByRole('button', {
-    name: 'Editar horario y semestres',
-    exact: true,
-  }).click();
-  await page.getByRole('button', { name: 'Editar semestre', exact: true })
-    .click();
+  await chooseSemester('Editar semestre');
   await page.getByLabel('Nombre del semestre', { exact: true }).fill(
     'Semestre 1',
   );
   await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+  await openSubjects();
   await page.getByRole('button', {
     name: 'Eliminar Clase desde Agenda',
     exact: true,
@@ -215,39 +229,25 @@ try {
     'Agenda ofrece alta visible: semestre, ramo y dos salas en un formulario; reuso, duplicados, cruces y cancelación correctos.',
   );
   await page.goto(origin + '/schedule');
-  await page.getByRole('button', { name: 'Nuevo semestre', exact: true })
-    .waitFor({
-      state: 'visible',
-      timeout: 60000,
-    });
-  await page.getByRole('button', { name: 'Semestre 1 · Activo', exact: true })
-    .waitFor({
-      timeout: 60000,
-    });
-  assert.equal(
-    await page.getByRole('button', { name: 'Semestre 1 · Activo', exact: true })
-      .getAttribute(
-        'aria-pressed',
-      ),
-    'true',
-  );
-  await page.getByRole('button', { name: 'Nuevo semestre', exact: true })
-    .click();
+  await viewing('Semestre 1 · Activo').waitFor({ timeout: 60000 });
+  await chooseSemester('Nuevo semestre');
   await page.getByLabel('Nombre del semestre', { exact: true }).fill(
     'Semestre 2',
   );
   await page.getByRole('button', { name: 'Guardar', exact: true }).click();
-  await page.getByRole('button', { name: 'Semestre 2', exact: true }).waitFor();
+  await viewing('Semestre 2').waitFor();
   await page.getByRole('button', { name: 'Usar este horario', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Semestre 2 · Activo', exact: true })
-    .waitFor();
+  await viewing('Semestre 2 · Activo').waitFor();
+  await openSubjects();
   await page.getByRole('button', { name: 'Agregar ramo', exact: true }).click();
   await page.getByLabel('Nombre del ramo', { exact: true }).fill('Ramo manual');
   await page.getByRole('button', { name: 'Guardar', exact: true }).click();
   await page.getByRole('button', { name: 'Editar Ramo manual', exact: true })
     .waitFor();
   await page.reload();
+  await page.getByRole('button', { name: 'Ramos', exact: true }).waitFor({ timeout: 60000 });
+  await openSubjects();
   await page.getByRole('button', { name: 'Editar Ramo manual', exact: true })
     .waitFor({
       timeout: 60000,
@@ -318,7 +318,7 @@ try {
 
   const extra = await page.evaluate(
     (userId) =>
-      JSON.parse(localStorage.getItem(`duocmind.planner.v1.${userId}`)).working
+      JSON.parse(localStorage.getItem(`duocmind.planner.v1.${userId}`)).schedule
         .blocks.find((b) => b.endsAt === '09:30').id,
     user.id,
   );
@@ -340,7 +340,7 @@ try {
     !await page.evaluate(
       ([userId, id]) =>
         JSON.parse(localStorage.getItem(`duocmind.planner.v1.${userId}`))
-          .working.blocks.some((b) => b.id === id),
+          .schedule.blocks.some((b) => b.id === id),
       [user.id, extra],
     ),
   );
@@ -366,7 +366,7 @@ try {
     name: 'Nueva actividad',
     exact: true,
   })
-    .locator('..');
+    .locator('../..');
   assert.equal(
     await personalDialog.getByText('Organización (opcional)', { exact: true })
       .count(),
@@ -389,8 +389,8 @@ try {
   await page.getByLabel('Nombre de la actividad', { exact: true }).fill(
     'Estudiar programación',
   );
-  await page.getByLabel('Hora de inicio de la actividad', { exact: true }).fill('14:15');
-  await page.getByLabel('Hora de término de la actividad', { exact: true }).fill('14:15');
+  await setActivityTime('Hora de inicio de la actividad', '14:15');
+  await setActivityTime('Hora de término de la actividad', '14:15');
   await page.getByRole('button', { name: 'Guardar actividad', exact: true }).click();
   await personalDialog.getByText(
     'La hora de término debe ser posterior al inicio dentro del mismo día.',
@@ -398,7 +398,7 @@ try {
       exact: true,
     },
   ).waitFor();
-  await page.getByLabel('Hora de término de la actividad', { exact: true }).fill('16:45');
+  await setActivityTime('Hora de término de la actividad', '16:47');
   await page.getByText('Ramo (opcional)', { exact: true }).waitFor();
   await page.getByRole('button', { name: 'Ramo manual', exact: true }).click();
   await page.getByRole('button', { name: 'Sin ramo', exact: true }).scrollIntoViewIfNeeded();
@@ -417,7 +417,7 @@ try {
   assert.equal(relatedPersonal.semesterId, null);
   assert.equal(relatedPersonal.subjectName, 'Ramo manual');
   assert.equal(relatedPersonal.time, '14:15');
-  assert.equal(relatedPersonal.endTime, '16:45');
+  assert.equal(relatedPersonal.endTime, '16:47');
   await page.reload();
   await page.getByRole('button', { name: 'Editar actividad Estudiar programación', exact: true })
     .waitFor();
@@ -426,13 +426,9 @@ try {
     exact: true,
   })
     .click();
-  await expect(page.getByLabel('Hora de inicio de la actividad', { exact: true })).toHaveValue(
-    '14:15',
-  );
-  await expect(page.getByLabel('Hora de término de la actividad', { exact: true })).toHaveValue(
-    '16:45',
-  );
-  await page.getByLabel('Hora de término de la actividad', { exact: true }).fill('17:00');
+  await expectActivityTime('Hora de inicio de la actividad', '14:15');
+  await expectActivityTime('Hora de término de la actividad', '16:47');
+  await setActivityTime('Hora de término de la actividad', '17:00');
   await page.getByRole('button', { name: 'Sin ramo', exact: true }).click();
   await page.getByRole('button', { name: 'Guardar actividad', exact: true })
     .click();
@@ -467,7 +463,7 @@ try {
     name: 'Nueva actividad',
     exact: true,
   }).locator(
-    '..',
+    '../..',
   );
   assert.equal(
     await examDialog.getByRole('button', { name: 'Semestre 1', exact: true })
@@ -493,9 +489,14 @@ try {
   await page.screenshot({
     path: path.join(output, 'academic-activity-active-semester.png'),
   });
-  await page.getByLabel('Fecha de la actividad', { exact: true }).fill(
-    '2030-10-12',
-  );
+  await page.getByRole('button', { name: 'Otra fecha', exact: true }).click();
+  await page.screenshot({ path: path.join(output, 'activity-month-calendar.png') });
+  for (let step = 0; step < 240; step += 1) {
+    if (await page.getByRole('heading', { name: 'octubre de 2030', exact: true }).count()) break;
+    await page.getByRole('button', { name: 'Mes siguiente', exact: true }).click();
+  }
+  await page.getByRole('button', { name: '12 de octubre de 2030', exact: true }).click();
+  await page.getByRole('heading', { name: 'octubre de 2030', exact: true }).waitFor();
   await page.getByRole('button', { name: 'Guardar actividad', exact: true })
     .click();
   await page.getByRole('button', {
@@ -560,62 +561,21 @@ try {
     original.date,
   );
   assert.equal((await localActivities()).length, 2);
-  await page.evaluate(() =>
-    localStorage.setItem(
-      'duocmind.agenda.activities.v1',
-      JSON.stringify([{
-        id: 'antigua-sintética',
-        title: 'Antigua local',
-        date: '2030-10-12',
-        time: '11:00',
-        subject: null,
-      }]),
-    )
-  );
-  await page.getByRole('button', {
-    name: 'Recuperar actividades anteriores',
-    exact: true,
-  }).click();
-  assert.equal(
-    await page.getByText('Antigua local', { exact: true }).count(),
-    0,
-  );
-  await page.getByRole('button', {
-    name: 'Entiendo, revisar actividades',
-    exact: true,
-  }).click();
-  await page.getByRole('button', {
-    name: 'Recuperar: Antigua local · 2030-10-12',
-    exact: true,
-  })
-    .click();
-  await page.getByRole('button', {
-    name: 'Guardar selección en mi cuenta local',
-    exact: true,
-  })
-    .click();
-  await page.getByRole('button', {
-    name: 'Editar actividad Antigua local',
-    exact: true,
-  }).waitFor();
-  assert.equal(
-    (await page.evaluate(() => JSON.parse(localStorage.getItem('duocmind.agenda.activities.v1'))))
-      .length,
-    1,
-  );
   await page.reload();
   await page.getByRole('button', {
-    name: 'Editar actividad Antigua local',
+    name: 'Editar actividad Evaluación local',
     exact: true,
-  }).waitFor({
+  }).first().waitFor({
     timeout: 60000,
   });
-  assert.equal((await localActivities()).length, 3);
-  assert(!JSON.stringify(remoteWrites).includes('Evaluación local'));
-  assert(!JSON.stringify(remoteWrites).includes('Antigua local'));
+  assert.equal((await localActivities()).length, 2);
+  assert.equal(
+    await page.getByRole('button', { name: 'Recuperar actividades anteriores' }).count(),
+    0,
+  );
   await page.screenshot({ path: path.join(output, 'activities.png') });
   console.log(
-    'Actividades locales, copia/traslado, recuperación explícita y payload remoto separado: correctos.',
+    'Actividades locales y copia/traslado: correctos.',
   );
   await db.query(
     "insert into public.evento_institucional(id,title,description,location,starts_at,ends_at,status,published_at) values($1,'Evento agenda 013','Sintético','Patio','2030-10-14T12:00:00Z','2030-10-14T13:30:00Z','published',now())",
@@ -684,26 +644,22 @@ try {
   await page.getByText('Laboratorio 402', { exact: true }).waitFor();
   await page.goto(origin + '/schedule');
   const activitiesBeforeSwitch = await localActivities();
-  await page.getByRole('button', { name: 'Semestre 1', exact: true }).click();
+  await chooseSemester('Semestre 1');
   await page.getByRole('button', { name: 'Usar este horario', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Semestre 1 · Activo', exact: true })
-    .waitFor();
+  await viewing('Semestre 1 · Activo').waitFor();
   assert.deepEqual(await localActivities(), activitiesBeforeSwitch);
-  await page.getByRole('button', { name: 'Semestre 2', exact: true }).click();
+  await chooseSemester('Semestre 2');
   await page.getByRole('button', { name: 'Usar este horario', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Semestre 2 · Activo', exact: true })
-    .waitFor();
+  await viewing('Semestre 2 · Activo').waitFor();
   await page.reload();
-  await page.getByRole('button', { name: 'Semestre 2 · Activo', exact: true })
-    .waitFor();
+  await viewing('Semestre 2 · Activo').waitFor();
   assert.deepEqual(await localActivities(), activitiesBeforeSwitch);
-  await page.getByRole('button', { name: 'Semestre 1', exact: true }).click();
+  await chooseSemester('Semestre 1');
   await page.getByRole('button', { name: 'Usar este horario', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Semestre 1 · Activo', exact: true })
-    .waitFor();
+  await viewing('Semestre 1 · Activo').waitFor();
   await page.goto(origin + '/agenda?date=2030-10-14');
   await page.getByRole('button', {
     name: 'Editar actividad Actividad del día',
@@ -753,9 +709,9 @@ try {
   console.log(
     'Inicio muestra estado real y pendientes locales sin datos de muestra: correcto.',
   );
-  // Segundo navegador independiente: el horario se recupera, las actividades no.
+  // Segundo navegador independiente: ni el horario ni las actividades salen del dispositivo.
   await page.goto(origin + '/schedule');
-  await page.getByText('Horario sincronizado', { exact: true }).waitFor({
+  await page.getByText('Esto se guarda en este dispositivo', { exact: true }).waitFor({
     timeout: 60000,
   });
   const second = await browser.newPage({
@@ -763,129 +719,50 @@ try {
     reducedMotion: 'reduce',
   });
   second.on('pageerror', (e) => errors.push(e.message));
+  second.on('request', watchSchedule);
   await second.goto(origin + '/login');
   await second.getByPlaceholder('ejemplo@universidad.edu').fill(email);
   await second.getByPlaceholder('••••••••').fill(password);
   await second.getByRole('button', { name: /Iniciar Sesión/ }).click();
   await second.waitForURL(/dashboard/, { timeout: 60000 });
   await second.goto(origin + '/schedule');
-  await second.getByRole('button', { name: 'Semestre 2', exact: true }).waitFor(
-    { timeout: 60000 },
-  );
-  await second.getByRole('button', { name: 'Semestre 2', exact: true }).click();
-  await second.getByRole('button', {
-    name: 'Bloques de Ramo manual',
-    exact: true,
-  }).click();
-  await second.getByText('Sala 302', { exact: true }).waitFor();
-  await second.getByText('Laboratorio 402', { exact: true }).waitFor();
+  await second.getByText('Esto se guarda en este dispositivo', { exact: true }).waitFor({
+    timeout: 60000,
+  });
+  assert.equal(await second.getByRole('button', { name: /^Semestre/ }).count(), 0);
   await second.goto(origin + '/pendientes');
   await second.getByText('Sin actividades aquí', { exact: true }).waitFor();
-  await second.goto(origin + '/schedule');
-  await second.getByRole('button', { name: 'Semestre 1 · Activo', exact: true })
-    .click();
+  await second.close();
   const backend = runtime().API_URL + '/**';
   await page.context().route(backend, (route) => route.abort());
-  await page.getByRole('button', { name: 'Editar semestre', exact: true })
-    .click();
+  await chooseSemester('Editar semestre');
   await page.getByLabel('Nombre del semestre', { exact: true }).fill(
     'Semestre local',
   );
   await page.getByRole('button', { name: 'Guardar', exact: true }).click();
-  await page.getByRole('button', {
-    name: 'Semestre local · Activo',
-    exact: true,
-  }).waitFor();
-  await page.getByText('Guardado aquí · Pendiente de sincronizar', {
-    exact: true,
-  }).waitFor();
+  await viewing('Semestre local · Activo').waitFor();
   await page.reload();
-  await page.getByRole('button', {
-    name: 'Semestre local · Activo',
-    exact: true,
-  }).waitFor({
-    timeout: 60000,
-  });
-  await page.getByRole('button', { name: 'Reintentar', exact: true }).waitFor();
-  await second.getByRole('button', { name: 'Editar semestre', exact: true })
-    .click();
-  await second.getByLabel('Nombre del semestre', { exact: true }).fill(
-    'Semestre remoto',
-  );
-  await second.getByRole('button', { name: 'Guardar', exact: true }).click();
-  await second.getByRole('button', {
-    name: 'Semestre remoto · Activo',
-    exact: true,
-  }).waitFor();
-  await second.getByText('Horario sincronizado', { exact: true }).waitFor({
-    timeout: 60000,
-  });
+  await viewing('Semestre local · Activo').waitFor({ timeout: 60000 });
+  assert.equal(await page.getByRole('button', { name: 'Reintentar', exact: true }).count(), 0);
   await page.context().unroute(backend);
-  await page.getByRole('button', { name: 'Reintentar', exact: true }).click();
-  await page.getByText('Hay dos versiones del horario', { exact: true })
-    .waitFor({
-      timeout: 60000,
-    });
-  await page.getByRole('button', { name: 'Comparar versiones', exact: true })
-    .click();
-  await page.getByText('Semestre local · Activo', { exact: true }).first()
-    .waitFor();
-  await page.getByText('Semestre remoto · Activo', { exact: true }).waitFor();
-  await page.screenshot({ path: path.join(output, 'conflict.png') });
-  await page.getByRole('button', { name: 'Conservar mis cambios', exact: true })
-    .click();
-  await page.getByRole('button', { name: 'Confirmar elección', exact: true })
-    .click();
-  await page.getByText('Horario sincronizado', { exact: true }).waitFor({
-    timeout: 60000,
-  });
-  await second.reload();
-  await second.getByRole('button', {
-    name: 'Semestre local · Activo',
-    exact: true,
-  }).waitFor({
-    timeout: 60000,
-  });
-  assert.equal((await localActivities()).length, 4);
+  assert.equal((await localActivities()).length, 3);
   console.log(
-    'Segundo cliente recupera salas sin actividades; corte del backend conserva edición tras recarga; conflicto comparado/resuelto sin perder actividades: correcto.',
+    'Segundo navegador sin horario ni actividades; corte del backend conserva edición tras recarga; sin perder actividades: correcto.',
   );
   // Diálogo abierto sobre una versión anterior: no puede eliminar un ramo actualizado.
-  await page.getByRole('button', { name: 'Semestre 2', exact: true }).click();
+  await chooseSemester('Semestre 2');
+  await openSubjects();
   await page.getByRole('button', { name: 'Eliminar Ramo manual', exact: true })
     .click();
-  await second.getByRole('button', { name: 'Semestre 2', exact: true }).click();
-  await second.getByRole('button', { name: 'Editar Ramo manual', exact: true })
-    .click();
-  await second.getByLabel('Nombre del ramo', { exact: true }).fill(
-    'Ramo actualizado',
-  );
-  await second.getByRole('button', { name: 'Guardar', exact: true }).click();
-  await second.getByText('Horario sincronizado', { exact: true }).waitFor({
-    timeout: 60000,
-  });
   // Otro tab del mismo dispositivo actualiza el almacén mientras el diálogo sigue abierto.
-  const updated = await second.evaluate(
-    (userId) => JSON.parse(localStorage.getItem(`duocmind.planner.v1.${userId}`)),
-    user.id,
-  );
   const tab = await page.context().newPage();
   await tab.goto(origin + '/login');
-  await tab.evaluate(([userId, value]) => {
+  await tab.evaluate((userId) => {
     const key = `duocmind.planner.v1.${userId}`,
       own = JSON.parse(localStorage.getItem(key));
-    localStorage.setItem(
-      key,
-      JSON.stringify({
-        ...own,
-        base: value.base,
-        working: value.working,
-        inFlight: null,
-        conflict: null,
-        initialized: true,
-      }),
-    );
-  }, [user.id, updated]);
+    own.schedule.subjects.find((s) => s.name === 'Ramo manual').name = 'Ramo actualizado';
+    localStorage.setItem(key, JSON.stringify(own));
+  }, user.id);
   await page.getByText('Ramo actualizado', { exact: true }).waitFor();
   await page.getByRole('button', { name: 'Confirmar eliminación', exact: true })
     .click();
@@ -901,7 +778,6 @@ try {
     exact: true,
   }).waitFor();
   await tab.close();
-  await second.close();
   await page.setViewportSize({ width: 320, height: 800 });
   await page.evaluate(() => {
     for (const node of document.querySelectorAll('[dir="auto"],input')) {
@@ -974,13 +850,14 @@ try {
   await page.waitForURL(/dashboard/);
   await page.goto(origin + '/pendientes');
   await page.getByRole('button', {
-    name: 'Editar actividad Antigua local',
+    name: 'Editar actividad Evaluación local',
     exact: true,
-  }).waitFor({
+  }).first().waitFor({
     timeout: 60000,
   });
-  assert.equal((await localActivities()).length, 4);
+  assert.equal((await localActivities()).length, 3);
   assert.deepEqual(errors, []);
+  assert.deepEqual(scheduleCalls, []);
   console.log(
     'Cambio de cuenta aísla actividades y volver a la original conserva los datos locales: correcto.',
   );

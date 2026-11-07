@@ -3,6 +3,9 @@ import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Crypto from 'expo-crypto';
 import { LiquidBackground } from '@/shared/components/Glass';
+import { BottomNav } from '@/shared/components/BottomNav';
+import { ScalePress } from '@/shared/components/ScalePress';
+import { Reveal } from '@/shared/motion/Reveal';
 import { type PlannerModel, usePlanner } from '@/shared/planner/application/usePlanner';
 import {
   activateSemester,
@@ -13,8 +16,19 @@ import {
   type ScheduleSubject,
   type Semester,
 } from '@/shared/planner/domain/schedule';
-import { PlannerButton, PlannerField, PlannerModal } from '../components/PlannerControls';
-import { PlannerSyncNotice } from '../components/PlannerSyncNotice';
+import { civilNow, dateWeekday, semesterWeek } from '@/shared/planner/domain/weeklySchedule';
+import {
+  PlannerButton,
+  PlannerField,
+  PlannerModal,
+  PlannerSegmented,
+} from '../components/PlannerControls';
+import { ClassScheduleForm } from '../components/ClassScheduleForm';
+import { PlannerNotice } from '../components/PlannerNotice';
+import { PlannerHeader } from '../components/PlannerHeader';
+import { SubjectCard } from '../components/SubjectCard';
+import { WeekSchedule } from '../components/WeekSchedule';
+import { styles as a } from './AgendaScreen.styles';
 import { scheduleStyles as s } from './ScheduleScreen.styles';
 type Form = {
   kind: 'semester';
@@ -43,17 +57,26 @@ export default function ScheduleScreen() {
   );
 }
 function ScheduleScreenContent({ planner }: { planner: PlannerModel }) {
-  const router = useRouter(), doc = planner.snapshot?.document.working;
+  const router = useRouter(), doc = planner.snapshot?.document.schedule;
   const [selectedId, setSelectedId] = useState<string | null>(null),
     [form, setForm] = useState<Form | null>(null),
+    [tab, setTab] = useState<'week' | 'subjects'>('week'),
+    [picking, setPicking] = useState(false),
+    [classForm, setClassForm] = useState<ScheduleDocument | null>(null),
     [error, setError] = useState<string | null>(null),
     [deleting, setDeleting] = useState<{ base: ScheduleDocument; subject: ScheduleSubject } | null>(
       null,
     );
   const selected = doc?.semesters.find((s) => s.id === (selectedId ?? doc.activeSemesterId)) ??
     doc?.semesters.find((s) => s.id === doc.activeSemesterId);
+  const active = selected?.id === doc?.activeSemesterId,
+    week = doc && selected ? semesterWeek(doc, selected.id) : [],
+    subjects = doc?.subjects.filter((subject) => subject.semesterId === selected?.id).sort((x, y) =>
+      x.name.localeCompare(y.name, 'es')
+    ) ?? [];
   const semesterForm = (value?: Semester) => {
     if (doc) {
+      setPicking(false);
       setError(null);
       setForm({
         kind: 'semester',
@@ -109,128 +132,170 @@ function ScheduleScreenContent({ planner }: { planner: PlannerModel }) {
     }
   };
   return (
-    <View style={s.page}>
+    <View style={a.safeArea}>
       <LiquidBackground />
-      <ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps='handled'>
-        <View style={s.header}>
-          <PlannerButton
-            label='Volver a la agenda'
-            secondary
-            onPress={() => router.replace('/agenda')}
+      <ScrollView
+        contentContainerStyle={a.scrollContent}
+        keyboardShouldPersistTaps='handled'
+        showsVerticalScrollIndicator={false}
+      >
+        <Reveal>
+          <PlannerHeader
+            title='Mis horarios'
+            subtitle='Tus ramos y clases de cada semestre.'
+            backLabel='Volver a la agenda'
+            onBack={() => router.replace('/agenda')}
           />
-          <Text style={s.title} accessibilityRole='header'>Mis horarios</Text>
-        </View>
-        <Text style={s.subtitle}>
-          Organiza tus ramos por semestre. Puedes cambiar el horario activo y conservar los
-          anteriores.
-        </Text>
-        <PlannerSyncNotice planner={planner} />
-        <PlannerButton
-          label='Nuevo semestre'
-          disabled={!doc || planner.busy}
-          onPress={() => semesterForm()}
-        />
-        <View style={s.row}>
-          {doc?.semesters.map((semester) => (
-            <PlannerButton
-              key={semester.id}
-              label={`${semester.name}${doc.activeSemesterId === semester.id ? ' · Activo' : ''}`}
-              secondary={selected?.id !== semester.id}
-              selected={selected?.id === semester.id}
-              onPress={() => setSelectedId(semester.id)}
-            />
-          ))}
-        </View>
+        </Reveal>
         {!planner.loading && !doc?.semesters.length && (
-          <View style={s.card}>
-            <Text style={s.cardTitle}>Tu primer horario</Text>
-            <Text style={s.subtitle}>
+          <View style={a.emptyCard}>
+            <Text style={a.emptyTitle}>Tu primer horario</Text>
+            <Text style={a.emptyText}>
               Crea un semestre y escribe los ramos que estás cursando, sin importar tu malla.
             </Text>
+            <ScalePress
+              style={[a.emptyButton, (!doc || planner.busy) && s.disabled]}
+              disabled={!doc || planner.busy}
+              onPress={() => semesterForm()}
+              accessibilityRole='button'
+              accessibilityLabel='Nuevo semestre'
+            >
+              <Text style={a.emptyButtonText}>Nuevo semestre</Text>
+            </ScalePress>
           </View>
         )}
         {selected && doc && (
-          <>
-            <View style={s.card}>
-              <Text style={s.cardTitle}>{selected.name}</Text>
-              <Text style={s.pill}>
-                {selected.id === doc.activeSemesterId
-                  ? 'Horario activo'
-                  : 'Estás consultando otro semestre'}
-              </Text>
-              <Text style={s.subtitle}>
+          <Reveal index={1}>
+            <View style={s.semesterRow}>
+              <ScalePress
+                style={s.semesterPicker}
+                onPress={() => setPicking(true)}
+                accessibilityRole='button'
+                accessibilityLabel={`Cambiar semestre, viendo ${selected.name}${
+                  active ? ' · Activo' : ''
+                }`}
+              >
+                <Text style={s.semesterPickerText}>{selected.name}</Text>
+                <Text style={s.semesterChevron}>▾</Text>
+              </ScalePress>
+              {active && <Text style={s.pill}>Activo</Text>}
+            </View>
+            {(selected.startsOn || selected.endsOn) && (
+              <Text style={a.dayCount}>
                 {selected.startsOn ?? 'Sin fecha de inicio'} ·{' '}
                 {selected.endsOn ?? 'Sin fecha de término'}
               </Text>
-              <View style={s.row}>
-                <PlannerButton
-                  secondary
-                  label='Editar semestre'
-                  onPress={() => semesterForm(selected)}
-                />
-                {selected.id !== doc.activeSemesterId && (
-                  <PlannerButton
-                    label='Usar este horario'
-                    disabled={planner.busy}
-                    onPress={() =>
-                      void planner.editSchedule(doc, (d) => activateSemester(d, selected.id)).catch(
-                        (e) => setError(e.message),
-                      )}
-                  />
-                )}
-              </View>
-            </View>
-            <View style={s.header}>
-              <Text style={s.cardTitle}>Ramos</Text>
-              <PlannerButton label='Agregar ramo' onPress={() => subjectForm()} />
-            </View>
-            {!doc.subjects.some((subject) => subject.semesterId === selected.id) && (
-              <Text style={s.subtitle}>Todavía no agregas ramos a este semestre.</Text>
             )}
-            {doc.subjects.filter((subject) => subject.semesterId === selected.id).sort((a, b) =>
-              a.name.localeCompare(b.name, 'es')
-            ).map((subject) => (
-              <View key={subject.id} style={s.card}>
-                <Text style={s.cardTitle}>{subject.name}</Text>
-                {(subject.code || subject.section) && (
-                  <Text style={s.subtitle}>
-                    {[subject.code, subject.section ? `Sección ${subject.section}` : null].filter(
-                      Boolean,
-                    ).join(' · ')}
-                  </Text>
+          </Reveal>
+        )}
+        {selected && doc && !active && (
+          <View style={s.card}>
+            <Text style={s.subtitle}>Estás consultando otro semestre.</Text>
+            <PlannerButton
+              label='Usar este horario'
+              disabled={planner.busy}
+              onPress={() =>
+                void planner.editSchedule(doc, (d) => activateSemester(d, selected.id)).catch(
+                  (e) => setError(e.message),
                 )}
-                <Text style={s.subtitle}>
-                  {doc.blocks.filter((block) => block.subjectId === subject.id).length}{' '}
-                  bloques semanales
-                </Text>
-                <View style={s.row}>
-                  <PlannerButton
-                    label={`Bloques de ${subject.name}`}
-                    onPress={() =>
-                      router.push({ pathname: '/schedule-subject', params: { id: subject.id } })}
-                  />
-                  <PlannerButton
-                    secondary
-                    label={`Editar ${subject.name}`}
-                    onPress={() => subjectForm(subject)}
-                  />
-                  <PlannerButton
-                    danger
-                    label={`Eliminar ${subject.name}`}
-                    onPress={() => {
-                      setDeleting({ base: doc, subject });
-                      setError(null);
-                    }}
-                  />
-                </View>
+            />
+          </View>
+        )}
+        <PlannerNotice planner={planner} />
+        {selected && doc && (
+          <>
+            <PlannerSegmented
+              options={[['week', 'Semana'], ['subjects', 'Ramos']]}
+              value={tab}
+              onChange={setTab}
+            />
+            {tab === 'week' && !week.length && (
+              <View style={a.emptyCard}>
+                <Text style={a.emptyTitle}>Sin clases todavía</Text>
+                <Text style={a.emptyText}>Agrega tus ramos con sus días y horas.</Text>
               </View>
+            )}
+            {tab === 'week' && (
+              <WeekSchedule
+                week={week}
+                today={dateWeekday(civilNow(planner.now).date)}
+                onOpen={(id, block) =>
+                  router.push({ pathname: '/schedule-subject', params: { id, block } })}
+              />
+            )}
+            {tab === 'subjects' && !subjects.length && (
+              <View style={a.emptyCard}>
+                <Text style={a.emptyTitle}>Sin ramos todavía</Text>
+                <Text style={a.emptyText}>Agrega los ramos que cursas en este semestre.</Text>
+              </View>
+            )}
+            {tab === 'subjects' && subjects.map((subject, index) => (
+              <SubjectCard
+                key={subject.id}
+                subject={subject}
+                blocks={doc.blocks.filter((block) => block.subjectId === subject.id)}
+                index={index}
+                onBlocks={() =>
+                  router.push({ pathname: '/schedule-subject', params: { id: subject.id } })}
+                onEdit={() => subjectForm(subject)}
+                onRemove={() => {
+                  setDeleting({ base: doc, subject });
+                  setError(null);
+                }}
+              />
             ))}
+            <PlannerButton
+              label={tab === 'week' ? 'Agregar clase' : 'Agregar ramo'}
+              disabled={planner.busy}
+              onPress={() => tab === 'week' ? setClassForm(doc) : subjectForm()}
+            />
           </>
         )}
         {error && !form && !deleting && (
           <Text style={s.error} accessibilityRole='alert'>{error}</Text>
         )}
       </ScrollView>
+      <BottomNav currentTab='agenda' />
+      {picking && doc && (
+        <PlannerModal title='Semestres' busy={planner.busy} onClose={() => setPicking(false)}>
+          {doc.semesters.map((semester) => (
+            <PlannerButton
+              key={semester.id}
+              label={`${semester.name}${doc.activeSemesterId === semester.id ? ' · Activo' : ''}`}
+              secondary={selected?.id !== semester.id}
+              selected={selected?.id === semester.id}
+              onPress={() => {
+                setSelectedId(semester.id);
+                setPicking(false);
+              }}
+            />
+          ))}
+          <View style={s.divider} />
+          <PlannerButton
+            secondary
+            label='Nuevo semestre'
+            disabled={planner.busy}
+            onPress={() => semesterForm()}
+          />
+          {selected && (
+            <PlannerButton
+              secondary
+              label='Editar semestre'
+              onPress={() => semesterForm(selected)}
+            />
+          )}
+        </PlannerModal>
+      )}
+      {classForm && selected && (
+        <ClassScheduleForm
+          planner={planner}
+          base={classForm}
+          weekday={1}
+          semesterId={selected.id}
+          onClose={() => setClassForm(null)}
+          onSaved={() => setClassForm(null)}
+        />
+      )}
       {form && (
         <PlannerModal
           title={form.kind === 'semester' ? 'Guardar semestre' : 'Guardar ramo'}

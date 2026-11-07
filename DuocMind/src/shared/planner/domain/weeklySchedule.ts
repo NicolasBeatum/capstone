@@ -115,3 +115,38 @@ export function classesOnDate(
     ];
   }).sort((a, b) => a.block.startsAt.localeCompare(b.block.startsAt) || a.id.localeCompare(b.id));
 }
+export interface WeekDayClasses {
+  weekday: number;
+  classes: { block: WeeklyBlock; subject: ScheduleSubject }[];
+}
+export function semesterWeek(doc: ScheduleDocument, semesterId: string): WeekDayClasses[] {
+  const classes = doc.blocks.flatMap((block) => {
+    const subject = doc.subjects.find((s) => s.id === block.subjectId);
+    return subject?.semesterId === semesterId ? [{ block, subject }] : [];
+  }).sort((a, b) =>
+    a.block.startsAt.localeCompare(b.block.startsAt) ||
+    a.subject.name.localeCompare(b.subject.name, 'es') || a.block.id.localeCompare(b.block.id)
+  );
+  return [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({
+    weekday,
+    classes: classes.filter(({ block }) => block.weekday === weekday),
+  })).filter((day) => day.classes.length);
+}
+export function addMonths(date: string, months: number): string {
+  const [year, month, day] = date.split('-').map(Number);
+  const target = new Date(Date.UTC(year, month - 1 + months, 1)),
+    lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  target.setUTCDate(Math.min(day, lastDay));
+  return target.toISOString().slice(0, 10);
+}
+/** Días del mes en semanas de lunes a domingo; null marca las celdas fuera del mes. */
+export function monthGrid(date: string): (string | null)[][] {
+  const first = `${date.slice(0, 7)}-01`,
+    days = Number(addDays(addMonths(first, 1), -1).slice(8)),
+    cells = [
+      ...Array<null>(dateWeekday(first) - 1).fill(null),
+      ...Array.from({ length: days }, (_, index) => addDays(first, index)),
+    ];
+  return Array.from({ length: Math.ceil(cells.length / 7) }, (_, week) =>
+    Array.from({ length: 7 }, (_, day) => cells[week * 7 + day] ?? null));
+}

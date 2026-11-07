@@ -3,6 +3,12 @@ import { Text, View } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import { personalActivityEnd } from '@/shared/planner/domain/personalActivityTime';
 import {
+  addDays,
+  civilNow,
+  dateWeekday,
+  WEEKDAYS,
+} from '@/shared/planner/domain/weeklySchedule';
+import {
   activityFormSemester,
   changeActivityType,
   prepareActivityForm,
@@ -13,8 +19,22 @@ import {
   type ActivityKind,
   type PersonalActivity,
 } from '@/shared/planner/application/plannerStore';
-import { PlannerButton, PlannerField, PlannerModal } from './PlannerControls';
+import { ActivityMonthCalendar } from './ActivityMonthCalendar';
+import { ActivityTimeRow } from './ActivityTimeField';
+import { AgendaWeekStrip } from './AgendaWeekStrip';
+import {
+  PlannerButton,
+  PlannerChip,
+  PlannerField,
+  PlannerModal,
+  PlannerSegmented,
+} from './PlannerControls';
 import { scheduleStyles as s } from '../screens/ScheduleScreen.styles';
+const SUBJECTS_SHOWN = 6;
+const monthTitle = (date: string) =>
+  new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
+    new Date(`${date}T12:00:00Z`),
+  );
 export function PersonalActivityForm(
   { planner, date, activity, onClose, onSaved }: {
     planner: PlannerModel;
@@ -40,7 +60,9 @@ export function PersonalActivityForm(
       }
   );
   const [error, setError] = useState<string | null>(null),
-    doc = planner.snapshot?.document.working;
+    [showMonth, setShowMonth] = useState(false),
+    [allSubjects, setAllSubjects] = useState(false),
+    doc = planner.snapshot?.document.schedule;
   const academic = form.kind !== 'personal';
   const semester = doc ? activityFormSemester(doc, academic ? activity : undefined) : null;
   const subjects = doc?.subjects.filter((subject) => subject.semesterId === semester?.id).sort(
@@ -50,6 +72,21 @@ export function PersonalActivityForm(
     setForm({ ...form, ...next });
     setError(null);
   };
+  const endTime = personalActivityEnd(form.time, form.endTime),
+    today = civilNow(planner.now).date,
+    monday = addDays(form.date, 1 - dateWeekday(form.date)),
+    week = WEEKDAYS.map((weekday, index) => {
+      const key = addDays(monday, index);
+      return {
+        key,
+        weekday: weekday.slice(0, 3).toUpperCase(),
+        number: Number(key.slice(8)),
+        busy: false,
+      };
+    }),
+    visibleSubjects = allSubjects ? subjects : subjects.filter((subject, index) =>
+      index < SUBJECTS_SHOWN || subject.name === form.subjectName
+    );
   const save = async () => {
     try {
       if (!doc) throw new Error('Espera a que cargue tu horario.');
@@ -62,6 +99,7 @@ export function PersonalActivityForm(
   };
   return (
     <PlannerModal
+      sheet
       title={activity ? 'Editar actividad' : 'Nueva actividad'}
       busy={planner.busy}
       onClose={onClose}
@@ -76,54 +114,67 @@ export function PersonalActivityForm(
         </View>
       }
     >
-      <Text style={s.notice}>
-        Solo en este dispositivo. Cambiar de semestre no borra esta actividad.
-      </Text>
       <PlannerField
+        prominent
         label='Nombre de la actividad'
+        placeholder='¿Qué tienes que hacer?'
         value={form.title}
         onChangeText={(title) => change({ title })}
       />
-      <Text style={s.label}>Tipo</Text>
-      <View style={s.row}>
-        {(Object.keys(ACTIVITY_LABELS) as ActivityKind[]).map((kind) => (
-          <PlannerButton
-            key={kind}
-            label={ACTIVITY_LABELS[kind]}
-            secondary={form.kind !== kind}
-            selected={form.kind === kind}
-            onPress={() => {
-              if (doc) {
-                setForm(changeActivityType(form, kind, doc, activity));
-                setError(null);
-              }
+      <PlannerSegmented
+        options={(Object.keys(ACTIVITY_LABELS) as ActivityKind[]).map((kind) =>
+          [kind, ACTIVITY_LABELS[kind]] as const
+        )}
+        value={form.kind}
+        onChange={(kind) => {
+          if (doc) {
+            setForm(changeActivityType(form, kind, doc, activity));
+            setError(null);
+          }
+        }}
+      />
+      {showMonth
+        ? (
+          <ActivityMonthCalendar
+            selected={form.date}
+            today={today}
+            onSelect={(key) => {
+              change({ date: key });
+              setShowMonth(false);
             }}
           />
-        ))}
+        )
+        : (
+          <AgendaWeekStrip
+            title={monthTitle(form.date)}
+            days={week}
+            selectedKey={form.date}
+            todayKey={today}
+            onSelect={(key) => change({ date: key })}
+            onPrevious={() => change({ date: addDays(form.date, -7) })}
+            onNext={() => change({ date: addDays(form.date, 7) })}
+          />
+        )}
+      <PlannerChip
+        label={showMonth ? 'Ver semana' : 'Otra fecha'}
+        onPress={() => setShowMonth(!showMonth)}
+      />
+      <View style={s.timeCard}>
+        <ActivityTimeRow
+          title='Inicio'
+          label='Hora de inicio de la actividad'
+          value={form.time}
+          onChange={(time) => change({ time, endTime })}
+        />
+        <View style={s.divider} />
+        <ActivityTimeRow
+          title='Término'
+          label='Hora de término de la actividad'
+          value={endTime}
+          onChange={(value) => change({ endTime: value })}
+        />
       </View>
-      <PlannerField
-        label='Fecha de la actividad'
-        value={form.date}
-        maxLength={10}
-        placeholder='AAAA-MM-DD'
-        onChangeText={(date) => change({ date })}
-      />
-      <PlannerField
-        label='Hora de inicio de la actividad'
-        value={form.time}
-        maxLength={5}
-        placeholder='09:00'
-        onChangeText={(time) =>
-          change({ time, endTime: personalActivityEnd(form.time, form.endTime) })}
-      />
-      <PlannerField
-        label='Hora de término de la actividad'
-        value={personalActivityEnd(form.time, form.endTime)}
-        maxLength={5}
-        placeholder='10:00'
-        onChangeText={(endTime) => change({ endTime })}
-      />
-      <Text style={s.subtitle}>El término debe ser posterior al inicio, en el mismo día.</Text>
+      <Text style={s.label}>Ramo ({academic ? 'obligatorio' : 'opcional'})</Text>
       {academic && semester && (
         <Text style={s.pill}>
           {activity && activity.kind !== 'personal' && activity.semesterId
@@ -131,29 +182,25 @@ export function PersonalActivityForm(
             : 'Semestre activo'}: {semester.name}
         </Text>
       )}
-      <Text style={s.label}>
-        Ramo ({academic ? 'obligatorio' : 'opcional'})
-      </Text>
-      {form.subjectName && <Text style={s.subtitle}>Seleccionado: {form.subjectName}</Text>}
       <View style={s.row}>
         {!academic && (
-          <PlannerButton
+          <PlannerChip
             label='Sin ramo'
-            secondary={form.subjectName !== null}
             selected={form.subjectName === null}
             onPress={() => change({ subjectName: null })}
           />
         )}
-        {subjects.map((subject) => (
-          <PlannerButton
+        {visibleSubjects.map((subject) => (
+          <PlannerChip
             key={subject.id}
-            label={[subject.name, subject.code, subject.section].filter(Boolean)
-              .join(' · ')}
-            secondary={form.subjectName !== subject.name}
+            label={[subject.name, subject.code, subject.section].filter(Boolean).join(' · ')}
             selected={form.subjectName === subject.name}
             onPress={() => change({ subjectName: subject.name })}
           />
         ))}
+        {visibleSubjects.length < subjects.length && (
+          <PlannerChip label='Ver todos' onPress={() => setAllSubjects(true)} />
+        )}
       </View>
       {activity && form.subjectName === activity.subjectName &&
         form.subjectName &&
@@ -165,11 +212,6 @@ export function PersonalActivityForm(
       {academic && !subjects.length && !activity?.subjectName && (
         <Text style={s.notice}>
           Agrega un ramo a tu horario de clases para registrar pruebas y tareas.
-        </Text>
-      )}
-      {!academic && (
-        <Text style={s.subtitle}>
-          Puedes elegir un ramo o dejarla sin ramo para tus actividades personales.
         </Text>
       )}
     </PlannerModal>
