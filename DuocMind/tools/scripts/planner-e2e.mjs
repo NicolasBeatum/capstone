@@ -55,6 +55,16 @@ try {
     await openSemesters();
     await page.getByRole('button', { name, exact: true }).click();
   };
+  const setActivityTime = async (label, value) => {
+    const [hour, minute] = value.split(':');
+    await page.getByLabel(`${label}, hora`, { exact: true }).fill(hour);
+    await page.getByLabel(`${label}, minutos`, { exact: true }).fill(minute);
+  };
+  const expectActivityTime = async (label, value) => {
+    const [hour, minute] = value.split(':');
+    await expect(page.getByLabel(`${label}, hora`, { exact: true })).toHaveValue(hour);
+    await expect(page.getByLabel(`${label}, minutos`, { exact: true })).toHaveValue(minute);
+  };
   const openSubjects = () => page.getByRole('button', { name: 'Ramos', exact: true }).click();
   await page.goto(origin + '/login');
   await page.getByPlaceholder('ejemplo@universidad.edu').fill(email);
@@ -356,7 +366,7 @@ try {
     name: 'Nueva actividad',
     exact: true,
   })
-    .locator('..');
+    .locator('../..');
   assert.equal(
     await personalDialog.getByText('Organización (opcional)', { exact: true })
       .count(),
@@ -379,8 +389,8 @@ try {
   await page.getByLabel('Nombre de la actividad', { exact: true }).fill(
     'Estudiar programación',
   );
-  await page.getByLabel('Hora de inicio de la actividad', { exact: true }).fill('14:15');
-  await page.getByLabel('Hora de término de la actividad', { exact: true }).fill('14:15');
+  await setActivityTime('Hora de inicio de la actividad', '14:15');
+  await setActivityTime('Hora de término de la actividad', '14:15');
   await page.getByRole('button', { name: 'Guardar actividad', exact: true }).click();
   await personalDialog.getByText(
     'La hora de término debe ser posterior al inicio dentro del mismo día.',
@@ -388,7 +398,7 @@ try {
       exact: true,
     },
   ).waitFor();
-  await page.getByLabel('Hora de término de la actividad', { exact: true }).fill('16:45');
+  await setActivityTime('Hora de término de la actividad', '16:47');
   await page.getByText('Ramo (opcional)', { exact: true }).waitFor();
   await page.getByRole('button', { name: 'Ramo manual', exact: true }).click();
   await page.getByRole('button', { name: 'Sin ramo', exact: true }).scrollIntoViewIfNeeded();
@@ -407,7 +417,7 @@ try {
   assert.equal(relatedPersonal.semesterId, null);
   assert.equal(relatedPersonal.subjectName, 'Ramo manual');
   assert.equal(relatedPersonal.time, '14:15');
-  assert.equal(relatedPersonal.endTime, '16:45');
+  assert.equal(relatedPersonal.endTime, '16:47');
   await page.reload();
   await page.getByRole('button', { name: 'Editar actividad Estudiar programación', exact: true })
     .waitFor();
@@ -416,13 +426,9 @@ try {
     exact: true,
   })
     .click();
-  await expect(page.getByLabel('Hora de inicio de la actividad', { exact: true })).toHaveValue(
-    '14:15',
-  );
-  await expect(page.getByLabel('Hora de término de la actividad', { exact: true })).toHaveValue(
-    '16:45',
-  );
-  await page.getByLabel('Hora de término de la actividad', { exact: true }).fill('17:00');
+  await expectActivityTime('Hora de inicio de la actividad', '14:15');
+  await expectActivityTime('Hora de término de la actividad', '16:47');
+  await setActivityTime('Hora de término de la actividad', '17:00');
   await page.getByRole('button', { name: 'Sin ramo', exact: true }).click();
   await page.getByRole('button', { name: 'Guardar actividad', exact: true })
     .click();
@@ -457,7 +463,7 @@ try {
     name: 'Nueva actividad',
     exact: true,
   }).locator(
-    '..',
+    '../..',
   );
   assert.equal(
     await examDialog.getByRole('button', { name: 'Semestre 1', exact: true })
@@ -483,9 +489,14 @@ try {
   await page.screenshot({
     path: path.join(output, 'academic-activity-active-semester.png'),
   });
-  await page.getByLabel('Fecha de la actividad', { exact: true }).fill(
-    '2030-10-12',
-  );
+  await page.getByRole('button', { name: 'Otra fecha', exact: true }).click();
+  await page.screenshot({ path: path.join(output, 'activity-month-calendar.png') });
+  for (let step = 0; step < 240; step += 1) {
+    if (await page.getByRole('heading', { name: 'octubre de 2030', exact: true }).count()) break;
+    await page.getByRole('button', { name: 'Mes siguiente', exact: true }).click();
+  }
+  await page.getByRole('button', { name: '12 de octubre de 2030', exact: true }).click();
+  await page.getByRole('heading', { name: 'octubre de 2030', exact: true }).waitFor();
   await page.getByRole('button', { name: 'Guardar actividad', exact: true })
     .click();
   await page.getByRole('button', {

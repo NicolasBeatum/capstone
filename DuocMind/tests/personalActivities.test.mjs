@@ -10,6 +10,9 @@ import {
   personalActivityState,
 } from '../src/shared/planner/domain/personalActivityTime.ts';
 import {
+  changeTimePart,
+} from '../src/shared/planner/domain/personalActivityTime.ts';
+import {
   savePersonalActivity,
   transferActivities,
 } from '../src/shared/planner/application/personalActivities.ts';
@@ -101,4 +104,13 @@ test('datos anteriores conservan una hora sin reescritura, incluso al cruzar med
   assert.equal(personalActivityEnd(old.time), '00:30');
   assert.equal(personalActivityState(old, new Date('2026-10-20T03:29:00Z')), 'in-progress');
   assert.equal(personalActivityState(old, new Date('2026-10-20T03:30:00Z')), 'ended');
+});
+test('la hora se edita por partes con cualquier minuto y rechaza valores inválidos', () => {
+  assert.equal(changeTimePart('09:07', 'hour', '14'), '14:07');
+  assert.equal(changeTimePart('09:07', 'hour', '0'), '00:07');
+  assert.equal(changeTimePart('09:07', 'minute', '37'), '09:37');
+  assert.equal(changeTimePart('09:07', 'minute', '5'), '09:05');
+  for (const [part, text] of [['hour', '24'], ['minute', '60'], ['hour', ''], ['minute', 'a']]) {
+    assert.equal(changeTimePart('09:07', part, text), null);
+  }
 });

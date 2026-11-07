@@ -77,6 +77,13 @@ Tras sacar la tarjeta de la agenda, agregar la tuerca y cambiar el aviso sin con
 repitieron `typecheck`, `npm test` (317), `test:planner` y `test:student-events`, todos
 correctos, y se revisó la agenda a 412 px. El aviso nuevo sin conexión no se vio en pantalla.
 
+Rediseño del formulario de actividades, con hora de 24 horas: `typecheck`, `npm test` (318), `test:planner` y
+`test:student-events` correctos, y revisión de la hoja a 412 px antes de cambiar las filas de hora. Falta probarla en Android,
+incluido el teclado sobre la hoja.
+
+Calendario mensual: `typecheck`, `npm test` (319) y `test:planner` correctos, con revisión
+de la captura `tools/.local/planner/activity-month-calendar.png`.
+
 ## Pendiente
 
 - T010: validación Android. El usuario informó que hoy no tiene dispositivo ni emulador.

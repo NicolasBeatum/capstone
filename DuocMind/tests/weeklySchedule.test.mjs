@@ -7,6 +7,8 @@ import {
   findBlockOverlaps,
   putBlock,
   semesterWeek,
+  addMonths,
+  monthGrid,
 } from '../src/shared/planner/domain/weeklySchedule.ts';
 const id = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 function setup() {
@@ -94,4 +96,15 @@ test('la semana agrupa por día, ordena por hora y excluye otros semestres', () 
   assert.deepEqual(week.map((day) => day.weekday), [1, 5]);
   assert.deepEqual(week[1].classes.map((c) => c.block.id), [id(6), id(5)]);
   assert.deepEqual(semesterWeek(doc, id(9)), []);
+});
+test('el calendario arma semanas de lunes a domingo y mueve meses sin desbordar', () => {
+  const november = monthGrid('2026-11-15');
+  assert.equal(november[0][6], '2026-11-01');
+  assert.equal(november[0][0], null);
+  assert.equal(november.flat().filter(Boolean).length, 30);
+  assert(november.every((week) => week.length === 7));
+  assert.equal(monthGrid('2028-02-10').flat().filter(Boolean).length, 29);
+  assert.equal(addMonths('2026-01-31', 1), '2026-02-28');
+  assert.equal(addMonths('2026-12-15', 1), '2027-01-15');
+  assert.equal(addMonths('2026-01-15', -1), '2025-12-15');
 });

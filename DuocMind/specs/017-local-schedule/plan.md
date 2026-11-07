@@ -5,7 +5,7 @@
 | Versión | 0.3.0 |
 | Estado | APROBADO |
 | Fecha | 2026-11-06 |
-| Spec | `spec.md` 0.5.0, APROBADA el 2026-11-06 |
+| Spec | `spec.md` 0.6.0, APROBADA el 2026-11-06 |
 | Aprobación | Confirmada explícitamente por el usuario el 2026-11-06: «apruebo», en respuesta a la solicitud de aprobación del plan 0.3.0. |
 | Constitución | 2.0.0 |
 | Rama | `feature/horario-local` |

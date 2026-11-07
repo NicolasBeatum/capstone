@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Versión | 0.5.0 |
+| Versión | 0.6.0 |
 | Estado | APROBADA |
 | Fecha | 2026-11-06 |
 | Constitución | 2.0.0 |
@@ -153,6 +153,14 @@ quitaba protagonismo a la semana. La agenda muestra una tuerca en el encabezado 
 «Mis horarios», y la tarjeta solo aparece mientras no hay clases, para crear el horario.
 El aviso «Esto se guarda en este dispositivo» pasa al final de la agenda. El aviso sin
 conexión habla solo de eventos y en la agenda aparece solo si el día tiene alguno.
+
+## Ajuste solicitado el 2026-11-06: formulario de actividades
+
+El usuario aprobó rediseñar el formulario de nueva actividad para acercarlo a la estética
+de la aplicación. Se presenta como hoja inferior, con selector de tipo, tira de días y
+calendario mensual para otras fechas, y filas compactas de inicio y término. La hora y los minutos se escriben en formato de 24
+horas y admiten cualquier valor válido. No cambian datos, reglas ni validaciones. Los formularios de clases y bloques
+se mantienen por ahora.
 
 ## 7. Aprobación y pasos posteriores
 

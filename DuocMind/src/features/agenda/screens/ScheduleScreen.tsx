@@ -17,7 +17,12 @@ import {
   type Semester,
 } from '@/shared/planner/domain/schedule';
 import { civilNow, dateWeekday, semesterWeek } from '@/shared/planner/domain/weeklySchedule';
-import { PlannerButton, PlannerField, PlannerModal } from '../components/PlannerControls';
+import {
+  PlannerButton,
+  PlannerField,
+  PlannerModal,
+  PlannerSegmented,
+} from '../components/PlannerControls';
 import { ClassScheduleForm } from '../components/ClassScheduleForm';
 import { PlannerNotice } from '../components/PlannerNotice';
 import { PlannerHeader } from '../components/PlannerHeader';
@@ -199,23 +204,11 @@ function ScheduleScreenContent({ planner }: { planner: PlannerModel }) {
         <PlannerNotice planner={planner} />
         {selected && doc && (
           <>
-            <View style={s.segmented}>
-              {([['week', 'Semana'], ['subjects', 'Ramos']] as const).map(([value, label]) => (
-                <ScalePress
-                  key={value}
-                  style={[s.segment, tab === value && s.segmentSelected]}
-                  onPress={() => setTab(value)}
-                  accessibilityRole='button'
-                  accessibilityLabel={label}
-                  aria-pressed={tab === value}
-                  accessibilityState={{ selected: tab === value }}
-                >
-                  <Text style={[s.segmentText, tab === value && s.segmentTextSelected]}>
-                    {label}
-                  </Text>
-                </ScalePress>
-              ))}
-            </View>
+            <PlannerSegmented
+              options={[['week', 'Semana'], ['subjects', 'Ramos']]}
+              value={tab}
+              onChange={setTab}
+            />
             {tab === 'week' && !week.length && (
               <View style={a.emptyCard}>
                 <Text style={a.emptyTitle}>Sin clases todavía</Text>
