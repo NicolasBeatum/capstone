@@ -47,6 +47,15 @@ try {
   };
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('request', watchSchedule);
+  const viewing = (name) =>
+    page.getByRole('button', { name: `Cambiar semestre, viendo ${name}`, exact: true });
+  const openSemesters = () =>
+    page.getByRole('button', { name: /^Cambiar semestre, viendo/ }).click();
+  const chooseSemester = async (name) => {
+    await openSemesters();
+    await page.getByRole('button', { name, exact: true }).click();
+  };
+  const openSubjects = () => page.getByRole('button', { name: 'Ramos', exact: true }).click();
   await page.goto(origin + '/login');
   await page.getByPlaceholder('ejemplo@universidad.edu').fill(email);
   await page.getByPlaceholder('••••••••').fill(password);
@@ -158,12 +167,10 @@ try {
     .waitFor();
   await page.getByText('Sala 301', { exact: true }).waitFor();
   await page.reload();
-  await page.getByRole('button', { name: 'Agregar clases', exact: true })
-    .waitFor({
-      timeout: 60000,
-    });
-  await page.getByRole('button', { name: 'Agregar clases', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Editar horario y semestres', exact: true })
+    .click({ timeout: 60000 });
+  assert.equal(await page.getByRole('button', { name: 'Crear mi horario' }).count(), 0);
+  await page.getByRole('button', { name: 'Agregar clase', exact: true }).click();
   await page.getByRole('button', {
     name: 'Usar un ramo que ya agregué',
     exact: true,
@@ -189,23 +196,19 @@ try {
     name: 'Conservar los cruces y guardar',
     exact: true,
   }).click();
-  await page.getByText('3 bloques semanales', { exact: false }).waitFor();
-  await page.getByRole('button', { name: 'Agregar clases', exact: true })
-    .click();
+  await expect(page.getByRole('button', { name: /^Editar clase Clase desde Agenda/ }))
+    .toHaveCount(3);
+  await page.getByRole('button', { name: 'Agregar clase', exact: true }).click();
   await page.getByLabel('Nombre del ramo', { exact: true }).fill('No guardar');
   await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
   assert.equal(await page.getByText('No guardar', { exact: true }).count(), 0);
   await page.screenshot({ path: path.join(output, 'agenda-class-entry.png') });
-  await page.getByRole('button', {
-    name: 'Editar horario y semestres',
-    exact: true,
-  }).click();
-  await page.getByRole('button', { name: 'Editar semestre', exact: true })
-    .click();
+  await chooseSemester('Editar semestre');
   await page.getByLabel('Nombre del semestre', { exact: true }).fill(
     'Semestre 1',
   );
   await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+  await openSubjects();
   await page.getByRole('button', {
     name: 'Eliminar Clase desde Agenda',
     exact: true,
@@ -216,39 +219,25 @@ try {
     'Agenda ofrece alta visible: semestre, ramo y dos salas en un formulario; reuso, duplicados, cruces y cancelación correctos.',
   );
   await page.goto(origin + '/schedule');
-  await page.getByRole('button', { name: 'Nuevo semestre', exact: true })
-    .waitFor({
-      state: 'visible',
-      timeout: 60000,
-    });
-  await page.getByRole('button', { name: 'Semestre 1 · Activo', exact: true })
-    .waitFor({
-      timeout: 60000,
-    });
-  assert.equal(
-    await page.getByRole('button', { name: 'Semestre 1 · Activo', exact: true })
-      .getAttribute(
-        'aria-pressed',
-      ),
-    'true',
-  );
-  await page.getByRole('button', { name: 'Nuevo semestre', exact: true })
-    .click();
+  await viewing('Semestre 1 · Activo').waitFor({ timeout: 60000 });
+  await chooseSemester('Nuevo semestre');
   await page.getByLabel('Nombre del semestre', { exact: true }).fill(
     'Semestre 2',
   );
   await page.getByRole('button', { name: 'Guardar', exact: true }).click();
-  await page.getByRole('button', { name: 'Semestre 2', exact: true }).waitFor();
+  await viewing('Semestre 2').waitFor();
   await page.getByRole('button', { name: 'Usar este horario', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Semestre 2 · Activo', exact: true })
-    .waitFor();
+  await viewing('Semestre 2 · Activo').waitFor();
+  await openSubjects();
   await page.getByRole('button', { name: 'Agregar ramo', exact: true }).click();
   await page.getByLabel('Nombre del ramo', { exact: true }).fill('Ramo manual');
   await page.getByRole('button', { name: 'Guardar', exact: true }).click();
   await page.getByRole('button', { name: 'Editar Ramo manual', exact: true })
     .waitFor();
   await page.reload();
+  await page.getByRole('button', { name: 'Ramos', exact: true }).waitFor({ timeout: 60000 });
+  await openSubjects();
   await page.getByRole('button', { name: 'Editar Ramo manual', exact: true })
     .waitFor({
       timeout: 60000,
@@ -561,60 +550,21 @@ try {
     original.date,
   );
   assert.equal((await localActivities()).length, 2);
-  await page.evaluate(() =>
-    localStorage.setItem(
-      'duocmind.agenda.activities.v1',
-      JSON.stringify([{
-        id: 'antigua-sintética',
-        title: 'Antigua local',
-        date: '2030-10-12',
-        time: '11:00',
-        subject: null,
-      }]),
-    )
-  );
-  await page.getByRole('button', {
-    name: 'Recuperar actividades anteriores',
-    exact: true,
-  }).click();
-  assert.equal(
-    await page.getByText('Antigua local', { exact: true }).count(),
-    0,
-  );
-  await page.getByRole('button', {
-    name: 'Entiendo, revisar actividades',
-    exact: true,
-  }).click();
-  await page.getByRole('button', {
-    name: 'Recuperar: Antigua local · 2030-10-12',
-    exact: true,
-  })
-    .click();
-  await page.getByRole('button', {
-    name: 'Guardar selección en mi cuenta local',
-    exact: true,
-  })
-    .click();
-  await page.getByRole('button', {
-    name: 'Editar actividad Antigua local',
-    exact: true,
-  }).waitFor();
-  assert.equal(
-    (await page.evaluate(() => JSON.parse(localStorage.getItem('duocmind.agenda.activities.v1'))))
-      .length,
-    1,
-  );
   await page.reload();
   await page.getByRole('button', {
-    name: 'Editar actividad Antigua local',
+    name: 'Editar actividad Evaluación local',
     exact: true,
-  }).waitFor({
+  }).first().waitFor({
     timeout: 60000,
   });
-  assert.equal((await localActivities()).length, 3);
+  assert.equal((await localActivities()).length, 2);
+  assert.equal(
+    await page.getByRole('button', { name: 'Recuperar actividades anteriores' }).count(),
+    0,
+  );
   await page.screenshot({ path: path.join(output, 'activities.png') });
   console.log(
-    'Actividades locales, copia/traslado, y recuperación explícita: correctos.',
+    'Actividades locales y copia/traslado: correctos.',
   );
   await db.query(
     "insert into public.evento_institucional(id,title,description,location,starts_at,ends_at,status,published_at) values($1,'Evento agenda 013','Sintético','Patio','2030-10-14T12:00:00Z','2030-10-14T13:30:00Z','published',now())",
@@ -683,26 +633,22 @@ try {
   await page.getByText('Laboratorio 402', { exact: true }).waitFor();
   await page.goto(origin + '/schedule');
   const activitiesBeforeSwitch = await localActivities();
-  await page.getByRole('button', { name: 'Semestre 1', exact: true }).click();
+  await chooseSemester('Semestre 1');
   await page.getByRole('button', { name: 'Usar este horario', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Semestre 1 · Activo', exact: true })
-    .waitFor();
+  await viewing('Semestre 1 · Activo').waitFor();
   assert.deepEqual(await localActivities(), activitiesBeforeSwitch);
-  await page.getByRole('button', { name: 'Semestre 2', exact: true }).click();
+  await chooseSemester('Semestre 2');
   await page.getByRole('button', { name: 'Usar este horario', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Semestre 2 · Activo', exact: true })
-    .waitFor();
+  await viewing('Semestre 2 · Activo').waitFor();
   await page.reload();
-  await page.getByRole('button', { name: 'Semestre 2 · Activo', exact: true })
-    .waitFor();
+  await viewing('Semestre 2 · Activo').waitFor();
   assert.deepEqual(await localActivities(), activitiesBeforeSwitch);
-  await page.getByRole('button', { name: 'Semestre 1', exact: true }).click();
+  await chooseSemester('Semestre 1');
   await page.getByRole('button', { name: 'Usar este horario', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Semestre 1 · Activo', exact: true })
-    .waitFor();
+  await viewing('Semestre 1 · Activo').waitFor();
   await page.goto(origin + '/agenda?date=2030-10-14');
   await page.getByRole('button', {
     name: 'Editar actividad Actividad del día',
@@ -778,31 +724,23 @@ try {
   await second.close();
   const backend = runtime().API_URL + '/**';
   await page.context().route(backend, (route) => route.abort());
-  await page.getByRole('button', { name: 'Editar semestre', exact: true })
-    .click();
+  await chooseSemester('Editar semestre');
   await page.getByLabel('Nombre del semestre', { exact: true }).fill(
     'Semestre local',
   );
   await page.getByRole('button', { name: 'Guardar', exact: true }).click();
-  await page.getByRole('button', {
-    name: 'Semestre local · Activo',
-    exact: true,
-  }).waitFor();
+  await viewing('Semestre local · Activo').waitFor();
   await page.reload();
-  await page.getByRole('button', {
-    name: 'Semestre local · Activo',
-    exact: true,
-  }).waitFor({
-    timeout: 60000,
-  });
+  await viewing('Semestre local · Activo').waitFor({ timeout: 60000 });
   assert.equal(await page.getByRole('button', { name: 'Reintentar', exact: true }).count(), 0);
   await page.context().unroute(backend);
-  assert.equal((await localActivities()).length, 4);
+  assert.equal((await localActivities()).length, 3);
   console.log(
     'Segundo navegador sin horario ni actividades; corte del backend conserva edición tras recarga; sin perder actividades: correcto.',
   );
   // Diálogo abierto sobre una versión anterior: no puede eliminar un ramo actualizado.
-  await page.getByRole('button', { name: 'Semestre 2', exact: true }).click();
+  await chooseSemester('Semestre 2');
+  await openSubjects();
   await page.getByRole('button', { name: 'Eliminar Ramo manual', exact: true })
     .click();
   // Otro tab del mismo dispositivo actualiza el almacén mientras el diálogo sigue abierto.
@@ -901,12 +839,12 @@ try {
   await page.waitForURL(/dashboard/);
   await page.goto(origin + '/pendientes');
   await page.getByRole('button', {
-    name: 'Editar actividad Antigua local',
+    name: 'Editar actividad Evaluación local',
     exact: true,
-  }).waitFor({
+  }).first().waitFor({
     timeout: 60000,
   });
-  assert.equal((await localActivities()).length, 4);
+  assert.equal((await localActivities()).length, 3);
   assert.deepEqual(errors, []);
   assert.deepEqual(scheduleCalls, []);
   console.log(

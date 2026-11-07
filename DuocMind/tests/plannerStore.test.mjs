@@ -1,6 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { emptyPlanner, PlannerStore } from '../src/shared/planner/application/plannerStore.ts';
+const mark = (d, names) => ({
+  ...d,
+  receipts: names.map((fingerprint) => ({
+    requestId: `00000000-0000-4000-8000-${
+      Buffer.from(fingerprint).toString('hex').padStart(12, '0').slice(-12)
+    }`,
+    fingerprint,
+  })),
+});
+const marks = (d) => d.receipts.map((r) => r.fingerprint);
 test('serializa cambios y no pierde documentos ante fallo de persistencia', async () => {
   let doc = emptyPlanner(), fail = false;
   const store = new PlannerStore({
@@ -14,13 +24,13 @@ test('serializa cambios y no pierde documentos ante fallo de persistencia', asyn
     remove: async () => {},
   });
   await Promise.all([
-    store.update((d) => ({ ...d, imports: [...d.imports, 'a'] })),
-    store.update((d) => ({ ...d, imports: [...d.imports, 'b'] })),
+    store.update((d) => mark(d, [...marks(d), 'a'])),
+    store.update((d) => mark(d, [...marks(d), 'b'])),
   ]);
-  assert.deepEqual((await store.read()).imports, ['a', 'b']);
+  assert.deepEqual(marks(await store.read()), ['a', 'b']);
   fail = true;
-  await assert.rejects(() => store.update((d) => ({ ...d, imports: [] })));
-  assert.deepEqual((await store.read()).imports, ['a', 'b']);
+  await assert.rejects(() => store.update((d) => mark(d, [])));
+  assert.deepEqual(marks(await store.read()), ['a', 'b']);
   await assert.rejects(() => store.update((d) => ({ ...d, schedule: {} })));
   await store.destroy();
   await assert.rejects(() => store.read());
@@ -40,14 +50,14 @@ test('cerrar espera escrituras y conserva datos para reabrir; destruir elimina d
     },
   };
   const first = new PlannerStore(persistence);
-  const pending = first.update((d) => ({ ...d, imports: ['pendiente'] }));
+  const pending = first.update((d) => mark(d, ['pendiente']));
   await first.close();
   await pending;
   assert.equal(closed, 1);
   assert.equal(removed, 0);
   await assert.rejects(() => first.read());
   const reopened = new PlannerStore(persistence);
-  assert.deepEqual((await reopened.read()).imports, ['pendiente']);
+  assert.deepEqual(marks(await reopened.read()), ['pendiente']);
   await reopened.destroy();
   assert.equal(removed, 1);
 });

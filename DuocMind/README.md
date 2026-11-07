@@ -49,8 +49,7 @@ Intereses y catálogo se separan por UUID: SQLCipher/SecureStore en Android,
 eliminar la cuenta limpia su archivo, clave y cachés. La comprobación de cifrado,
 reinicio y eliminación en Android sigue pendiente: se necesita un development
 build con SQLCipher. La web solo se utiliza con datos sintéticos; cerrar la pestaña
-elimina su almacenamiento de sesión. El almacén personal heredado carece de
-propietario verificable; el incremento 013 permite recuperarlo explícitamente.
+elimina su almacenamiento de sesión.
 
 Para el recorrido local, preparar backend y fixtures con la guía de
 [administración](../admin-web/README.md), e iniciar su API. Desde la raíz:
@@ -102,9 +101,7 @@ Cambiar el semestre activo, incluso de ida y vuelta, conserva todas las activida
 sus fechas y sus nombres de ramo; tampoco borra eventos institucionales. La agenda y el
 inicio muestran clases y pendientes reales, sin datos académicos de muestra.
 
-«Recuperar actividades anteriores» advierte que el origen no tiene propietario
-verificable antes de permitir seleccionar registros. No hay importación
-automática y el origen permanece intacto. Cerrar sesión conserva los datos
+Cerrar sesión conserva los datos
 propios; otra cuenta usa otro almacén. Eliminar cuenta bloquea reintentos y
 limpia su base/clave. Otro dispositivo desconectado solo detecta la eliminación
 al reconectar.

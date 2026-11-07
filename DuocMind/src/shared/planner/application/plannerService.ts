@@ -1,11 +1,6 @@
 import { invalid, parseSchedule, sameSchedule, type ScheduleDocument } from '../domain/schedule.ts';
 import { type PersonalActivity, type PlannerDocument, PlannerStore } from './plannerStore.ts';
 import {
-  importLegacyActivities,
-  type LegacyEntry,
-  type LegacyGateway,
-} from './legacyActivities.ts';
-import {
   type ActivityTransfer,
   removePersonalActivity,
   savePersonalActivity,
@@ -24,7 +19,6 @@ interface Services {
   session: PlannerSessionGateway;
   account: PlannerAccountGateway;
   store(userId: string): Promise<PlannerStore>;
-  legacy: LegacyGateway;
 }
 export class PlannerService {
   private services: Services;
@@ -99,21 +93,6 @@ export class PlannerService {
   }
   transfer(session: PlannerSession, request: ActivityTransfer): Promise<void> {
     return this.local(session, (doc) => transferActivities(doc, request));
-  }
-  async listLegacy(session: PlannerSession, acceptedWarning: boolean) {
-    if (!acceptedWarning) {
-      invalid('Confirma la advertencia antes de consultar actividades anteriores.');
-    }
-    await this.scope(session);
-    const result = await this.services.legacy.list();
-    await this.check(session);
-    return result;
-  }
-  importLegacy(
-    session: PlannerSession,
-    entries: { entry: LegacyEntry; newId: string }[],
-  ): Promise<void> {
-    return this.local(session, (doc) => importLegacyActivities(doc, entries));
   }
   async verifyAccount(session: PlannerSession): Promise<void> {
     if (!await this.services.session.isCurrent(session)) return;

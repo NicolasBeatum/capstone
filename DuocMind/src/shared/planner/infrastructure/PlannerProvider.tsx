@@ -4,7 +4,6 @@ import type { ScheduleDocument } from '../domain/schedule';
 import type { PlannerSnapshot } from '../application/plannerService';
 import type { PersonalActivity } from '../application/plannerStore';
 import type { ActivityTransfer } from '../application/personalActivities';
-import type { LegacyCatalog, LegacyEntry } from '../application/legacyActivities';
 import type { PlannerSession } from '../application/plannerContracts';
 import { startPlannerPolling } from '../application/plannerPolling';
 import { PlannerContext, type PlannerModel } from '../application/plannerContext';
@@ -126,8 +125,6 @@ export function PlannerProvider({ children }: PropsWithChildren) {
     removeActivity: (id, version) =>
       run((session) => plannerService.removeActivity(session, id, version)),
     transfer: (request) => run((session) => plannerService.transfer(session, request)),
-    listLegacy: (accepted) => run((session) => plannerService.listLegacy(session, accepted)),
-    importLegacy: (entries) => run((session) => plannerService.importLegacy(session, entries)),
   };
   return <PlannerContext.Provider value={model}>{children}</PlannerContext.Provider>;
 }

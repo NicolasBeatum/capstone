@@ -5,7 +5,7 @@
 | Versión | 0.3.0 |
 | Estado | APROBADO |
 | Fecha | 2026-11-06 |
-| Spec | `spec.md` 0.3.0, APROBADA el 2026-11-06 |
+| Spec | `spec.md` 0.5.0, APROBADA el 2026-11-06 |
 | Aprobación | Confirmada explícitamente por el usuario el 2026-11-06: «apruebo», en respuesta a la solicitud de aprobación del plan 0.3.0. |
 | Constitución | 2.0.0 |
 | Rama | `feature/horario-local` |
@@ -164,6 +164,22 @@ queda abierta y la spec no se cierra.
 - Esquema: se puede recrear con una migración nueva basada en
   `20261018175733_personal_semester_schedule.sql`. Los datos eliminados no se
   recuperan, algo que el usuario aceptó.
+
+## Ajuste solicitado el 2026-11-06: retiro de la recuperación
+
+Se eliminan `legacyActivities.ts`, `legacyStorage.*`, `agendaStorage.*`,
+`agendaActivity.ts` y sus pruebas, además de `listLegacy` e `importLegacy`. El documento
+pierde `imports` y SQLite elimina `planner_import`. El documento sigue en `schema: 2`:
+Android no guarda ese campo en `planner_state`, y en web un documento que lo tenga se
+limpia solo, lo que solo afecta a datos sintéticos. El usuario autorizó este ajuste al
+pedir el cambio concreto. No cambia el esquema remoto ni añade dependencias.
+
+## Ajuste solicitado el 2026-11-06: vista semanal
+
+`semesterWeek` agrupa los bloques en el dominio y `WeekSchedule.tsx` los presenta.
+`ScheduleScreen` suma el selector de semestre y las pestañas. `SubjectScheduleScreen`
+abre un bloque si recibe el parámetro `block`, y `ClassScheduleForm` acepta el semestre
+de destino. El usuario autorizó el ajuste al elegir la propuesta.
 
 ## 10. Aprobación y pasos posteriores
 

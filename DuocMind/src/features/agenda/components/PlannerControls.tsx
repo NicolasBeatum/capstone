@@ -11,8 +11,9 @@ import {
 import { ScalePress } from '@/shared/components/ScalePress';
 import { scheduleStyles as s } from '../screens/ScheduleScreen.styles';
 export function PlannerButton(
-  { label, onPress, secondary = false, danger = false, disabled = false, selected }: {
+  { label, a11yLabel, onPress, secondary = false, danger = false, disabled = false, selected }: {
     label: string;
+    a11yLabel?: string;
     onPress: () => void;
     secondary?: boolean;
     danger?: boolean;
@@ -26,7 +27,7 @@ export function PlannerButton(
       onPress={onPress}
       disabled={disabled}
       accessibilityRole='button'
-      accessibilityLabel={label}
+      accessibilityLabel={a11yLabel ?? label}
       aria-pressed={selected}
       accessibilityState={{ disabled, selected }}
     >

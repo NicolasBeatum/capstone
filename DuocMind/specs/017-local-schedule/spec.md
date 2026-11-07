@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Versión | 0.3.0 |
+| Versión | 0.5.0 |
 | Estado | APROBADA |
 | Fecha | 2026-11-06 |
 | Constitución | 2.0.0 |
@@ -128,6 +128,31 @@ El 2026-11-06 el usuario confirmó:
    Esto retira la conversión de datos locales que pedía la versión 0.1.1.
 5. **Datos corruptos.** La aplicación los limpia sola, sin avisar. Sustituye la regla
    anterior de conservar el almacén ilegible e informar el error.
+
+## Ajuste solicitado el 2026-11-06: retiro de la recuperación
+
+El usuario pidió sacar lo relacionado con la sincronización, como el botón para
+recuperar actividades. Se retira «Recuperar actividades anteriores» y deja de aplicar
+RF-005.9 de la spec 013, porque ya no hay versiones anteriores que mantener. Sale
+también el código sin uso del almacén antiguo. Copiar y mover actividades siguen, y
+las sincronizaciones de check-in y eventos quedan fuera de este ajuste.
+
+## Ajuste solicitado el 2026-11-06: vista semanal de «Mis horarios»
+
+El usuario eligió la propuesta «Semana por días». El semestre pasa a un selector
+compacto. La pestaña Semana agrupa las clases por día con hora, ramo y sala, y tocar una
+abre su edición. La pestaña Ramos conserva la gestión de ramos. «Agregar clase» usa el
+semestre que se está viendo. No cambian datos, reglas ni almacenamiento.
+
+El usuario pidió después acercarla a la estética de la aplicación. «Mis horarios» y los
+bloques del ramo usan el encabezado, la línea de tiempo, los estados vacíos y la barra
+inferior de la agenda. El semestre se mantiene como selector compacto.
+
+El usuario pidió además sacar de la agenda la tarjeta «Tu horario de clases», porque le
+quitaba protagonismo a la semana. La agenda muestra una tuerca en el encabezado para ir a
+«Mis horarios», y la tarjeta solo aparece mientras no hay clases, para crear el horario.
+El aviso «Esto se guarda en este dispositivo» pasa al final de la agenda. El aviso sin
+conexión habla solo de eventos y en la agenda aparece solo si el día tiene alguno.
 
 ## 7. Aprobación y pasos posteriores
 

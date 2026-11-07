@@ -6,6 +6,7 @@ import {
   classesOnDate,
   findBlockOverlaps,
   putBlock,
+  semesterWeek,
 } from '../src/shared/planner/domain/weeklySchedule.ts';
 const id = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 function setup() {
@@ -67,4 +68,30 @@ test('inicio inclusivo, fin exclusivo, vigencia y hora Santiago independiente de
   );
   assert.equal(civilNow(new Date('2026-07-01T12:30:00Z')).minutes, 510);
   assert.equal(civilNow(new Date('2026-10-01T11:30:00Z')).minutes, 510);
+});
+test('la semana agrupa por día, ordena por hora y excluye otros semestres', () => {
+  const block = (n, subjectId, weekday, startsAt, endsAt) => ({
+    id: id(n),
+    subjectId,
+    weekday,
+    startsAt,
+    endsAt,
+    room: null,
+    teacher: null,
+  });
+  let doc = putSemester(
+    putSemester(emptySchedule(), { id: id(1), name: 'Uno', startsOn: null, endsOn: null }),
+    { id: id(2), name: 'Dos', startsOn: null, endsOn: null },
+  );
+  for (const [n, semesterId, name] of [[3, id(1), 'Base'], [4, id(2), 'Otro']]) {
+    doc = putSubject(doc, { id: id(n), semesterId, name, code: null, section: null });
+  }
+  doc = putBlock(doc, block(5, id(3), 5, '11:00', '12:30'));
+  doc = putBlock(doc, block(6, id(3), 5, '08:30', '10:00'));
+  doc = putBlock(doc, block(7, id(3), 1, '09:00', '10:00'));
+  doc = putBlock(doc, block(8, id(4), 2, '09:00', '10:00'));
+  const week = semesterWeek(doc, id(1));
+  assert.deepEqual(week.map((day) => day.weekday), [1, 5]);
+  assert.deepEqual(week[1].classes.map((c) => c.block.id), [id(6), id(5)]);
+  assert.deepEqual(semesterWeek(doc, id(9)), []);
 });

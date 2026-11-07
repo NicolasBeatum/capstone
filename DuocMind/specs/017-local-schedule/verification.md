@@ -55,6 +55,28 @@ El diff restante afecta a la secuencia de `tipo_evento_academico`, a las funcion
 `get_student_events`, `herramientas_home` y `set_updated_at`, y a sus permisos. Esta
 migración no toca esos objetos y el diff no se aplicó. Por eso T011 sigue abierta.
 
+## Ajustes posteriores
+
+Retiro de la recuperación y vista semanal, 2026-11-06:
+
+| Comando | Resultado |
+| --- | --- |
+| `npm run typecheck` | Correcto. |
+| `npm test` | 317 pruebas correctas. Bajan porque se retiran las del almacén antiguo. |
+| `npm --prefix tools run test:planner` | Recorrido completo y correcto. |
+| `npm --prefix tools run test:student-events` | Recorrido completo y correcto. |
+
+Comprobación manual en la previsualización a 412 px: la pestaña Semana agrupa las clases
+por día, y tocar una clase abre el formulario de ese bloque con sus datos.
+
+Tras alinear la estética con la agenda se repitieron `typecheck`, `npm test` (317),
+`test:planner` y `test:student-events`, todos correctos, y se revisaron las pestañas
+Semana y Ramos a 412 px. El recorrido real en Android sigue pendiente.
+
+Tras sacar la tarjeta de la agenda, agregar la tuerca y cambiar el aviso sin conexión se
+repitieron `typecheck`, `npm test` (317), `test:planner` y `test:student-events`, todos
+correctos, y se revisó la agenda a 412 px. El aviso nuevo sin conexión no se vio en pantalla.
+
 ## Pendiente
 
 - T010: validación Android. El usuario informó que hoy no tiene dispositivo ni emulador.

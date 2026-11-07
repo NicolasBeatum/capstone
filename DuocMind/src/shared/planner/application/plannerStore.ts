@@ -36,7 +36,6 @@ export interface PlannerDocument {
   schedule: ScheduleDocument;
   activities: PersonalActivity[];
   receipts: LocalReceipt[];
-  imports: string[];
 }
 export interface PlannerPersistence {
   read(): Promise<PlannerDocument>;
@@ -50,7 +49,6 @@ export function emptyPlanner(): PlannerDocument {
     schedule: emptySchedule(),
     activities: [],
     receipts: [],
-    imports: [],
   };
 }
 export function parsePlannerJson(raw: string): unknown {
@@ -104,11 +102,9 @@ export function parsePlanner(value: unknown): PlannerDocument {
     'schedule',
     'activities',
     'receipts',
-    'imports',
   ]);
   if (
-    v.schema !== 2 || !Array.isArray(v.activities) || !Array.isArray(v.receipts) ||
-    !Array.isArray(v.imports)
+    v.schema !== 2 || !Array.isArray(v.activities) || !Array.isArray(v.receipts)
   ) invalid('No se pudieron leer tus datos locales.');
   const activities = v.activities.map(parseActivity);
   if (new Set(activities.map((a) => a.id)).size !== activities.length) invalid();
@@ -117,16 +113,12 @@ export function parsePlanner(value: unknown): PlannerDocument {
     if (typeof r.fingerprint !== 'string' || r.fingerprint.length > 100000) invalid();
     return { requestId: identifier(r.requestId), fingerprint: r.fingerprint };
   });
-  if (
-    new Set(receipts.map((r) => r.requestId)).size !== receipts.length ||
-    v.imports.some((i) => typeof i !== 'string' || i.length > 300)
-  ) invalid();
+  if (new Set(receipts.map((r) => r.requestId)).size !== receipts.length) invalid();
   return {
     schema: 2,
     schedule: parseSchedule(v.schedule),
     activities,
     receipts,
-    imports: [...v.imports] as string[],
   };
 }
 export class PlannerStore {

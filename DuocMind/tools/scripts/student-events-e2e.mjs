@@ -53,16 +53,11 @@ try {
   await visible(title); await visible('Patio sintético');
   assert.ok(page.url().includes('date=2030-10-12'));
   await page.screenshot({ path: path.join(dir,'agenda.png') });
-  await page.evaluate(() => localStorage.setItem('duocmind.agenda.activities.v1', JSON.stringify([{id:'fixture-personal-009',title:'Actividad personal sintética',date:'2030-10-12',time:'09:00',subject:null}])));
-  await page.reload();
-  assert.equal(await page.getByText('Actividad personal sintética',{exact:true}).count(),0);
-  await page.getByRole('button',{name:'Ver mis actividades',exact:true}).click();
-  await page.getByRole('button',{name:'Recuperar actividades anteriores',exact:true}).click();
-  assert.equal(await page.getByText('Actividad personal sintética',{exact:true}).count(),0);
-  await page.getByRole('button',{name:'Entiendo, revisar actividades',exact:true}).click();
-  await page.getByRole('button',{name:'Recuperar: Actividad personal sintética · 2030-10-12',exact:true}).click();
-  await page.getByRole('button',{name:'Guardar selección en mi cuenta local',exact:true}).click();
-  await page.getByRole('button',{name:'Editar actividad Actividad personal sintética',exact:true}).waitFor();
+  await page.evaluate((key) => {
+    const doc = JSON.parse(localStorage.getItem(key) ?? 'null') ?? { schema: 2, schedule: { schema: 1, activeSemesterId: null, semesters: [], subjects: [], blocks: [] }, activities: [], receipts: [] };
+    doc.activities.push({ id: '00000000-0000-4000-8000-000000000009', kind: 'personal', title: 'Actividad personal sintética', date: '2030-10-12', time: '11:00', subjectName: null, semesterId: null, semesterName: null, version: 1 });
+    localStorage.setItem(key, JSON.stringify(doc));
+  }, `duocmind.planner.v1.${fixtures().student.id}`);
   await page.goto(origin+'/agenda?date=2030-10-12');
   await visible('Actividad personal sintética'); await visible(title);
   await page.getByRole('button', { name: `Quitar ${title} de mi agenda` }).click();

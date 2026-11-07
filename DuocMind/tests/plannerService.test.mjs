@@ -41,11 +41,6 @@ function setup() {
     },
     account,
     store: async () => store,
-    legacy: {
-      list: async () => {
-        throw Error('No debe cargar datos heredados');
-      },
-    },
   });
   return {
     service,
@@ -66,7 +61,6 @@ test('guarda el horario solo en el almacén local y lo conserva al releer', asyn
   assert.equal(document.schedule.activeSemesterId, id(2));
   assert.deepEqual(Object.keys(document).sort(), [
     'activities',
-    'imports',
     'receipts',
     'schedule',
     'schema',

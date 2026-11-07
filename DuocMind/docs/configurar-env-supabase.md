@@ -36,12 +36,8 @@ Verifica en Supabase que el usuario de prueba solo pueda leer, insertar y borrar
 El horario, los semestres y las actividades se guardan solo en el dispositivo y no
 usan Supabase (spec 017).
 
-Ante una migración ausente, la app muestra el error y conserva el borrador local.
-No informa «Sincronizado» hasta confirmación. Cerrar sesión conserva los datos
-del planner; eliminar cuenta bloquea su uso y limpia la base/clave del dispositivo,
-y la cascada de Auth elimina el horario remoto. El almacén heredado, sin
-propietario verificable, solo se lee tras aceptar la advertencia y nunca se borra
-ni se importa automáticamente.
+Cerrar sesión conserva los datos del planner; eliminar cuenta bloquea su uso y limpia
+la base y la clave del dispositivo.
 
 Para probar sin acceder a cloud, preparar `tools/.local` con la guía de
 [administración](../../admin-web/README.md), iniciar `local:serve`, verificar

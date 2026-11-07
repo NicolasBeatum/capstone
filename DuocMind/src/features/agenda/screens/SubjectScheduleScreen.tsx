@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Crypto from 'expo-crypto';
+import { BottomNav } from '@/shared/components/BottomNav';
 import { LiquidBackground } from '@/shared/components/Glass';
+import { Reveal } from '@/shared/motion/Reveal';
 import { type PlannerModel, usePlanner } from '@/shared/planner/application/usePlanner';
 import {
   parseBlock,
@@ -16,7 +18,9 @@ import {
   WEEKDAYS,
 } from '@/shared/planner/domain/weeklySchedule';
 import { PlannerButton, PlannerField, PlannerModal } from '../components/PlannerControls';
+import { PlannerHeader } from '../components/PlannerHeader';
 import { PlannerNotice } from '../components/PlannerNotice';
+import { styles as a } from './AgendaScreen.styles';
 import { scheduleStyles as s } from './ScheduleScreen.styles';
 interface Form {
   base: ScheduleDocument;
@@ -38,7 +42,7 @@ export default function SubjectScheduleScreen() {
   );
 }
 function SubjectScheduleScreenContent({ planner }: { planner: PlannerModel }) {
-  const { id } = useLocalSearchParams<{ id: string }>(),
+  const { id, block: blockId } = useLocalSearchParams<{ id: string; block?: string }>(),
     router = useRouter(),
     doc = planner.snapshot?.document.schedule;
   const subject = doc?.subjects.find((subject) => subject.id === id),
@@ -62,6 +66,14 @@ function SubjectScheduleScreenContent({ planner }: { planner: PlannerModel }) {
       });
     }
   };
+  const opened = useRef(false);
+  useEffect(() => {
+    const block = doc?.blocks.find((value) => value.id === blockId);
+    if (block && !opened.current) {
+      opened.current = true;
+      open(block);
+    }
+  });
   const change = (next: Partial<Form>) => {
     if (form) setForm({ ...form, ...next });
     setOverlaps([]);
@@ -98,18 +110,17 @@ function SubjectScheduleScreenContent({ planner }: { planner: PlannerModel }) {
       a.weekday - b.weekday || a.startsAt.localeCompare(b.startsAt)
     ) ?? [];
   return (
-    <View style={s.page}>
+    <View style={a.safeArea}>
       <LiquidBackground />
-      <ScrollView contentContainerStyle={s.content}>
-        <PlannerButton
-          label='Volver a mis horarios'
-          secondary
-          onPress={() => router.replace('/schedule')}
-        />
-        <Text style={s.title} accessibilityRole='header'>
-          {subject?.name ?? 'Bloques del ramo'}
-        </Text>
-        {semester && <Text style={s.subtitle}>{semester.name}</Text>}
+      <ScrollView contentContainerStyle={a.scrollContent} showsVerticalScrollIndicator={false}>
+        <Reveal>
+          <PlannerHeader
+            title={subject?.name ?? 'Bloques del ramo'}
+            subtitle={semester?.name}
+            backLabel='Volver a mis horarios'
+            onBack={() => router.replace('/schedule')}
+          />
+        </Reveal>
         <PlannerNotice planner={planner} />
         <Text style={s.subtitle}>Cada bloque puede tener su propia sala y docente.</Text>
         {!planner.loading && !subject && (
@@ -161,6 +172,7 @@ function SubjectScheduleScreenContent({ planner }: { planner: PlannerModel }) {
           </View>
         ))}
       </ScrollView>
+      <BottomNav currentTab='agenda' />
       {form && (
         <PlannerModal
           title='Bloque semanal'
