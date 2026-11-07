@@ -1,4 +1,3 @@
-import type { ScheduleDocument } from '../domain/schedule';
 export interface PlannerSession {
   userId: string;
   generation: number;
@@ -8,25 +7,13 @@ export interface PlannerSessionGateway {
   isCurrent(session: PlannerSession): Promise<boolean>;
   subscribe(listener: () => void): () => void;
 }
-export interface RemoteSchedule {
-  revision: number;
-  document: ScheduleDocument;
-}
-export interface ScheduleSubmission {
-  requestId: string;
-  expectedRevision: number;
-  document: ScheduleDocument;
-}
-export type ScheduleResult = { status: 'applied'; revision: number; requestId: string } | {
-  status: 'conflict';
-  remote: RemoteSchedule;
-};
-export interface ScheduleGateway {
-  load(session: PlannerSession): Promise<RemoteSchedule>;
-  save(session: PlannerSession, submission: ScheduleSubmission): Promise<ScheduleResult>;
+export interface PlannerAccountGateway {
+  /** Consulta la cuenta en Auth y devuelve su error, o null si no hubo respuesta negativa. */
+  lookup(session: PlannerSession): Promise<{ code?: string } | null>;
+  erase(userId: string): Promise<void>;
 }
 export class PlannerAuthError extends Error {
   constructor() {
-    super('Renueva tu sesión para sincronizar el horario.');
+    super('Renueva tu sesión para abrir tu agenda.');
   }
 }

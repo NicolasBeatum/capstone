@@ -15,7 +15,7 @@ export function savePersonalActivity(
     invalid('La actividad cambió. Vuelve a abrirla.');
   }
   if (
-    activity.semesterId && !doc.working.semesters.some((s) => s.id === activity.semesterId) &&
+    activity.semesterId && !doc.schedule.semesters.some((s) => s.id === activity.semesterId) &&
     previous?.semesterId !== activity.semesterId
   ) invalid('Ese semestre no está disponible.');
   return parsePlanner({
@@ -61,7 +61,7 @@ export function transferActivities(
   }
   const target = request.targetSemesterId === null
     ? null
-    : doc.working.semesters.find((s) => s.id === request.targetSemesterId);
+    : doc.schedule.semesters.find((s) => s.id === request.targetSemesterId);
   if (target === undefined) invalid('El semestre de destino no está disponible.');
   const copies: PersonalActivity[] = [];
   const changes = new Map<string, PersonalActivity>();

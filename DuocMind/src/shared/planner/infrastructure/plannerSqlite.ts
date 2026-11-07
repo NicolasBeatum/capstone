@@ -27,18 +27,25 @@ export async function createPlannerSqlitePersistence(
     const state = await tx.getFirstAsync<{ content: string }>(
       'SELECT content FROM planner_state WHERE id=1',
     );
-    const contents = async (table: string) =>
-      (await tx.getAllAsync<{ content: string }>(`SELECT content FROM ${table}`)).map((r) =>
-        parsePlannerJson(r.content)
+    const rows = (table: string) =>
+      tx.getAllAsync<{ content: string }>(`SELECT content FROM ${table}`);
+    const activities = await rows('planner_activity'),
+      receipts = await rows('planner_receipt'),
+      imports = await tx.getAllAsync<{ id: string }>('SELECT id FROM planner_import');
+    // Solo el análisis limpia: un fallo de acceso a la base puede ser pasajero.
+    try {
+      return parsePlanner({
+        ...(state ? parsePlannerJson(state.content) as object : emptyPlanner()),
+        activities: activities.map((r) => parsePlannerJson(r.content)),
+        receipts: receipts.map((r) => parsePlannerJson(r.content)),
+        imports: imports.map((r) => r.id),
+      });
+    } catch {
+      await tx.execAsync(
+        'DELETE FROM planner_state; DELETE FROM planner_activity; DELETE FROM planner_receipt; DELETE FROM planner_import;',
       );
-    return parsePlanner({
-      ...(state ? parsePlannerJson(state.content) as object : emptyPlanner()),
-      activities: await contents('planner_activity'),
-      receipts: await contents('planner_receipt'),
-      imports: (await tx.getAllAsync<{ id: string }>('SELECT id FROM planner_import')).map((r) =>
-        r.id
-      ),
-    });
+      return emptyPlanner();
+    }
   }
   return {
     async read() {

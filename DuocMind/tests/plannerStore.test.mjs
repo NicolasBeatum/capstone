@@ -21,7 +21,7 @@ test('serializa cambios y no pierde documentos ante fallo de persistencia', asyn
   fail = true;
   await assert.rejects(() => store.update((d) => ({ ...d, imports: [] })));
   assert.deepEqual((await store.read()).imports, ['a', 'b']);
-  await assert.rejects(() => store.update((d) => ({ ...d, working: {} })));
+  await assert.rejects(() => store.update((d) => ({ ...d, schedule: {} })));
   await store.destroy();
   await assert.rejects(() => store.read());
 });

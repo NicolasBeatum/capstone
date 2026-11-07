@@ -28,7 +28,7 @@ const activity = {
 };
 function setup() {
   const d = emptyPlanner();
-  d.working = putSemester(d.working, { id: id(2), name: 'Semestre', startsOn: null, endsOn: null });
+  d.schedule = putSemester(d.schedule, { id: id(2), name: 'Semestre', startsOn: null, endsOn: null });
   return savePersonalActivity(d, activity);
 }
 const transfer = (mode) => ({

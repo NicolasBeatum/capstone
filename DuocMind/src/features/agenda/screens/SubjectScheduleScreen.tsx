@@ -16,7 +16,7 @@ import {
   WEEKDAYS,
 } from '@/shared/planner/domain/weeklySchedule';
 import { PlannerButton, PlannerField, PlannerModal } from '../components/PlannerControls';
-import { PlannerSyncNotice } from '../components/PlannerSyncNotice';
+import { PlannerNotice } from '../components/PlannerNotice';
 import { scheduleStyles as s } from './ScheduleScreen.styles';
 interface Form {
   base: ScheduleDocument;
@@ -40,7 +40,7 @@ export default function SubjectScheduleScreen() {
 function SubjectScheduleScreenContent({ planner }: { planner: PlannerModel }) {
   const { id } = useLocalSearchParams<{ id: string }>(),
     router = useRouter(),
-    doc = planner.snapshot?.document.working;
+    doc = planner.snapshot?.document.schedule;
   const subject = doc?.subjects.find((subject) => subject.id === id),
     semester = doc?.semesters.find((semester) => semester.id === subject?.semesterId);
   const [form, setForm] = useState<Form | null>(null),
@@ -110,7 +110,7 @@ function SubjectScheduleScreenContent({ planner }: { planner: PlannerModel }) {
           {subject?.name ?? 'Bloques del ramo'}
         </Text>
         {semester && <Text style={s.subtitle}>{semester.name}</Text>}
-        <PlannerSyncNotice planner={planner} />
+        <PlannerNotice planner={planner} />
         <Text style={s.subtitle}>Cada bloque puede tener su propia sala y docente.</Text>
         {!planner.loading && !subject && (
           <Text style={s.notice}>

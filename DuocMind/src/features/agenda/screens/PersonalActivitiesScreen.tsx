@@ -25,7 +25,7 @@ export default function PersonalActivitiesScreen() {
   );
 }
 function PersonalActivitiesScreenContent({ planner }: { planner: PlannerModel }) {
-  const router = useRouter(), document = planner.snapshot?.document, doc = document?.working;
+  const router = useRouter(), document = planner.snapshot?.document, doc = document?.schedule;
   const [form, setForm] = useState<{ activity?: PersonalActivity } | null>(null),
     [selected, setSelected] = useState<Record<string, number>>({}),
     [filter, setFilter] = useState<string | null>('all');

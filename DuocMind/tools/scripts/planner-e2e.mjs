@@ -39,13 +39,14 @@ try {
     }),
     page = await context.newPage(),
     errors = [],
-    remoteWrites = [];
-  page.on('pageerror', (e) => errors.push(e.message));
-  page.on('request', (request) => {
-    if (request.url().includes('/rpc/save_personal_schedule')) {
-      remoteWrites.push(request.postDataJSON());
+    scheduleCalls = [];
+  const watchSchedule = (request) => {
+    if (/\/rpc\/(load|save)_personal_schedule/.test(request.url())) {
+      scheduleCalls.push(request.url());
     }
-  });
+  };
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('request', watchSchedule);
   await page.goto(origin + '/login');
   await page.getByPlaceholder('ejemplo@universidad.edu').fill(email);
   await page.getByPlaceholder('••••••••').fill(password);
@@ -318,7 +319,7 @@ try {
 
   const extra = await page.evaluate(
     (userId) =>
-      JSON.parse(localStorage.getItem(`duocmind.planner.v1.${userId}`)).working
+      JSON.parse(localStorage.getItem(`duocmind.planner.v1.${userId}`)).schedule
         .blocks.find((b) => b.endsAt === '09:30').id,
     user.id,
   );
@@ -340,7 +341,7 @@ try {
     !await page.evaluate(
       ([userId, id]) =>
         JSON.parse(localStorage.getItem(`duocmind.planner.v1.${userId}`))
-          .working.blocks.some((b) => b.id === id),
+          .schedule.blocks.some((b) => b.id === id),
       [user.id, extra],
     ),
   );
@@ -611,11 +612,9 @@ try {
     timeout: 60000,
   });
   assert.equal((await localActivities()).length, 3);
-  assert(!JSON.stringify(remoteWrites).includes('Evaluación local'));
-  assert(!JSON.stringify(remoteWrites).includes('Antigua local'));
   await page.screenshot({ path: path.join(output, 'activities.png') });
   console.log(
-    'Actividades locales, copia/traslado, recuperación explícita y payload remoto separado: correctos.',
+    'Actividades locales, copia/traslado, y recuperación explícita: correctos.',
   );
   await db.query(
     "insert into public.evento_institucional(id,title,description,location,starts_at,ends_at,status,published_at) values($1,'Evento agenda 013','Sintético','Patio','2030-10-14T12:00:00Z','2030-10-14T13:30:00Z','published',now())",
@@ -753,9 +752,9 @@ try {
   console.log(
     'Inicio muestra estado real y pendientes locales sin datos de muestra: correcto.',
   );
-  // Segundo navegador independiente: el horario se recupera, las actividades no.
+  // Segundo navegador independiente: ni el horario ni las actividades salen del dispositivo.
   await page.goto(origin + '/schedule');
-  await page.getByText('Horario sincronizado', { exact: true }).waitFor({
+  await page.getByText('Esto se guarda en este dispositivo', { exact: true }).waitFor({
     timeout: 60000,
   });
   const second = await browser.newPage({
@@ -763,27 +762,20 @@ try {
     reducedMotion: 'reduce',
   });
   second.on('pageerror', (e) => errors.push(e.message));
+  second.on('request', watchSchedule);
   await second.goto(origin + '/login');
   await second.getByPlaceholder('ejemplo@universidad.edu').fill(email);
   await second.getByPlaceholder('••••••••').fill(password);
   await second.getByRole('button', { name: /Iniciar Sesión/ }).click();
   await second.waitForURL(/dashboard/, { timeout: 60000 });
   await second.goto(origin + '/schedule');
-  await second.getByRole('button', { name: 'Semestre 2', exact: true }).waitFor(
-    { timeout: 60000 },
-  );
-  await second.getByRole('button', { name: 'Semestre 2', exact: true }).click();
-  await second.getByRole('button', {
-    name: 'Bloques de Ramo manual',
-    exact: true,
-  }).click();
-  await second.getByText('Sala 302', { exact: true }).waitFor();
-  await second.getByText('Laboratorio 402', { exact: true }).waitFor();
+  await second.getByText('Esto se guarda en este dispositivo', { exact: true }).waitFor({
+    timeout: 60000,
+  });
+  assert.equal(await second.getByRole('button', { name: /^Semestre/ }).count(), 0);
   await second.goto(origin + '/pendientes');
   await second.getByText('Sin actividades aquí', { exact: true }).waitFor();
-  await second.goto(origin + '/schedule');
-  await second.getByRole('button', { name: 'Semestre 1 · Activo', exact: true })
-    .click();
+  await second.close();
   const backend = runtime().API_URL + '/**';
   await page.context().route(backend, (route) => route.abort());
   await page.getByRole('button', { name: 'Editar semestre', exact: true })
@@ -796,9 +788,6 @@ try {
     name: 'Semestre local · Activo',
     exact: true,
   }).waitFor();
-  await page.getByText('Guardado aquí · Pendiente de sincronizar', {
-    exact: true,
-  }).waitFor();
   await page.reload();
   await page.getByRole('button', {
     name: 'Semestre local · Activo',
@@ -806,86 +795,25 @@ try {
   }).waitFor({
     timeout: 60000,
   });
-  await page.getByRole('button', { name: 'Reintentar', exact: true }).waitFor();
-  await second.getByRole('button', { name: 'Editar semestre', exact: true })
-    .click();
-  await second.getByLabel('Nombre del semestre', { exact: true }).fill(
-    'Semestre remoto',
-  );
-  await second.getByRole('button', { name: 'Guardar', exact: true }).click();
-  await second.getByRole('button', {
-    name: 'Semestre remoto · Activo',
-    exact: true,
-  }).waitFor();
-  await second.getByText('Horario sincronizado', { exact: true }).waitFor({
-    timeout: 60000,
-  });
+  assert.equal(await page.getByRole('button', { name: 'Reintentar', exact: true }).count(), 0);
   await page.context().unroute(backend);
-  await page.getByRole('button', { name: 'Reintentar', exact: true }).click();
-  await page.getByText('Hay dos versiones del horario', { exact: true })
-    .waitFor({
-      timeout: 60000,
-    });
-  await page.getByRole('button', { name: 'Comparar versiones', exact: true })
-    .click();
-  await page.getByText('Semestre local · Activo', { exact: true }).first()
-    .waitFor();
-  await page.getByText('Semestre remoto · Activo', { exact: true }).waitFor();
-  await page.screenshot({ path: path.join(output, 'conflict.png') });
-  await page.getByRole('button', { name: 'Conservar mis cambios', exact: true })
-    .click();
-  await page.getByRole('button', { name: 'Confirmar elección', exact: true })
-    .click();
-  await page.getByText('Horario sincronizado', { exact: true }).waitFor({
-    timeout: 60000,
-  });
-  await second.reload();
-  await second.getByRole('button', {
-    name: 'Semestre local · Activo',
-    exact: true,
-  }).waitFor({
-    timeout: 60000,
-  });
   assert.equal((await localActivities()).length, 4);
   console.log(
-    'Segundo cliente recupera salas sin actividades; corte del backend conserva edición tras recarga; conflicto comparado/resuelto sin perder actividades: correcto.',
+    'Segundo navegador sin horario ni actividades; corte del backend conserva edición tras recarga; sin perder actividades: correcto.',
   );
   // Diálogo abierto sobre una versión anterior: no puede eliminar un ramo actualizado.
   await page.getByRole('button', { name: 'Semestre 2', exact: true }).click();
   await page.getByRole('button', { name: 'Eliminar Ramo manual', exact: true })
     .click();
-  await second.getByRole('button', { name: 'Semestre 2', exact: true }).click();
-  await second.getByRole('button', { name: 'Editar Ramo manual', exact: true })
-    .click();
-  await second.getByLabel('Nombre del ramo', { exact: true }).fill(
-    'Ramo actualizado',
-  );
-  await second.getByRole('button', { name: 'Guardar', exact: true }).click();
-  await second.getByText('Horario sincronizado', { exact: true }).waitFor({
-    timeout: 60000,
-  });
   // Otro tab del mismo dispositivo actualiza el almacén mientras el diálogo sigue abierto.
-  const updated = await second.evaluate(
-    (userId) => JSON.parse(localStorage.getItem(`duocmind.planner.v1.${userId}`)),
-    user.id,
-  );
   const tab = await page.context().newPage();
   await tab.goto(origin + '/login');
-  await tab.evaluate(([userId, value]) => {
+  await tab.evaluate((userId) => {
     const key = `duocmind.planner.v1.${userId}`,
       own = JSON.parse(localStorage.getItem(key));
-    localStorage.setItem(
-      key,
-      JSON.stringify({
-        ...own,
-        base: value.base,
-        working: value.working,
-        inFlight: null,
-        conflict: null,
-        initialized: true,
-      }),
-    );
-  }, [user.id, updated]);
+    own.schedule.subjects.find((s) => s.name === 'Ramo manual').name = 'Ramo actualizado';
+    localStorage.setItem(key, JSON.stringify(own));
+  }, user.id);
   await page.getByText('Ramo actualizado', { exact: true }).waitFor();
   await page.getByRole('button', { name: 'Confirmar eliminación', exact: true })
     .click();
@@ -901,7 +829,6 @@ try {
     exact: true,
   }).waitFor();
   await tab.close();
-  await second.close();
   await page.setViewportSize({ width: 320, height: 800 });
   await page.evaluate(() => {
     for (const node of document.querySelectorAll('[dir="auto"],input')) {
@@ -981,6 +908,7 @@ try {
   });
   assert.equal((await localActivities()).length, 4);
   assert.deepEqual(errors, []);
+  assert.deepEqual(scheduleCalls, []);
   console.log(
     'Cambio de cuenta aísla actividades y volver a la original conserva los datos locales: correcto.',
   );

@@ -4,8 +4,6 @@ export interface PlannerTimers {
 }
 export function startPlannerPolling(
   tick: () => void,
-  sync: () => void,
-  connected: () => boolean,
   timers: PlannerTimers = {
     set: (action) => setInterval(action, 60000),
     clear: (handle) => clearInterval(handle as ReturnType<typeof setInterval>),
@@ -13,9 +11,7 @@ export function startPlannerPolling(
 ): () => void {
   let stopped = false;
   const handle = timers.set(() => {
-    if (stopped) return;
-    tick();
-    if (connected()) sync();
+    if (!stopped) tick();
   });
   return () => {
     if (!stopped) {

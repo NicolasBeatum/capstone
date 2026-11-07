@@ -110,7 +110,7 @@ function DashboardScreenContent({planner}: {planner: PlannerModel}) {
   // Los botones bajan a su propia fila solo si el saludo ya no cabe a su lado.
   const compactHeader = width < 340 || fontScale > 1.15;
   const now = planner.now;
-  const plannerView = projectPlannerDashboard(planner.snapshot?.document.working ?? emptySchedule(), planner.snapshot?.document.activities ?? [], now);
+  const plannerView = projectPlannerDashboard(planner.snapshot?.document.schedule ?? emptySchedule(), planner.snapshot?.document.activities ?? [], now);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<MenuAnchor | null>(null);
@@ -377,7 +377,7 @@ function DashboardScreenContent({planner}: {planner: PlannerModel}) {
         </Reveal>
 
         {/* Clases reales del semestre activo; sin clase en curso ni próxima, la tarjeta no aporta y se oculta. */}
-        {(planner.loading || !plannerView.semester || plannerView.current.length > 0 || plannerView.next || planner.error || planner.syncError) && <Reveal index={2}>
+        {(planner.loading || !plannerView.semester || plannerView.current.length > 0 || plannerView.next || planner.error) && <Reveal index={2}>
           <View style={styles.classCard}>
             {planner.loading ? <GotaLoader text="Cargando tu horario…" /> : <>
               <View style={styles.classTopRow}><View style={styles.classBadge}><Text style={styles.classBadgeText}>{plannerView.current.length > 1 ? 'Clases que se cruzan' : plannerView.current.length ? 'En clase ahora' : plannerView.emptyLabel}</Text></View></View>
@@ -390,7 +390,6 @@ function DashboardScreenContent({planner}: {planner: PlannerModel}) {
               {plannerView.next && <><Text style={styles.className}>{plannerView.current.length ? `Luego · ${plannerView.next.subject.name}` : plannerView.next.subject.name}</Text><Text style={styles.classMeta}>{[`${plannerView.next.block.startsAt}–${plannerView.next.block.endsAt}`, plannerView.next.block.room, plannerView.next.block.teacher].filter(Boolean).join(' · ')}</Text></>}
               {!plannerView.current.length && !plannerView.next && <Text style={styles.classMeta}>{plannerView.semester ? `Horario activo: ${plannerView.semester.name}` : 'Agrega tus semestres, ramos y bloques para verlos aquí.'}</Text>}
               {planner.error && <Text style={styles.classMeta}>{planner.error}</Text>}
-              {planner.syncError && <Text style={styles.classMeta}>{planner.syncError}</Text>}
               <View style={styles.classBottomRow}><ScalePress style={{ minHeight: 44, justifyContent: 'center' }} accessibilityRole="button" accessibilityLabel="Ver mi horario" onPress={() => router.push(plannerView.semester ? { pathname: '/agenda', params: { date: plannerView.date } } : '/schedule')}><Text style={styles.classLink}>{plannerView.semester ? 'Ver día' : 'Configurar horario'}</Text></ScalePress></View>
             </>}
           </View>

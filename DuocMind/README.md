@@ -85,12 +85,10 @@ su propio día, inicio, término, sala y docente; un mismo ramo puede usar salas
 distintas. Las clases usan la hora civil de Santiago y las fechas opcionales del
 semestre. Los cruces requieren confirmación y los duplicados se rechazan.
 
-El horario se guarda primero por cuenta en el dispositivo y se sincroniza con
-Supabase. Ante cambios concurrentes se comparan ambas versiones y se elige
-explícitamente cuál conservar. La migración
-`20261018175733_personal_semester_schedule.sql` está probada y aplicada en local
-y en **Duocmind cloud** desde el 2026-10-19, con autorización explícita. Si falta en otro entorno, la app
-informa la actualización pendiente y conserva los cambios locales.
+El horario y los semestres se guardan **solo en este dispositivo**, por cuenta. No
+se envían a Supabase ni pasan a otro teléfono; reinstalar la app los borra. Si el
+contenido guardado está corrupto, la app lo limpia sola y continúa con un almacén
+vacío.
 
 `/pendientes` gestiona pruebas, tareas y actividades personales **solo en este
 dispositivo**. Las pruebas y tareas nuevas usan el semestre activo y requieren un
@@ -108,8 +106,8 @@ inicio muestran clases y pendientes reales, sin datos académicos de muestra.
 verificable antes de permitir seleccionar registros. No hay importación
 automática y el origen permanece intacto. Cerrar sesión conserva los datos
 propios; otra cuenta usa otro almacén. Eliminar cuenta bloquea reintentos y
-limpia su base/clave; la cascada de Auth elimina horarios y recibos remotos.
-Otro dispositivo desconectado solo detecta la eliminación al reconectar.
+limpia su base/clave. Otro dispositivo desconectado solo detecta la eliminación
+al reconectar.
 
 Android usa SQLCipher/SecureStore; su recorrido real sigue pendiente en T020.
 La web usa `localStorage` por cuenta y Web Locks, sin acreditar cifrado ni

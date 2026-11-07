@@ -14,7 +14,7 @@ import {
   type Semester,
 } from '@/shared/planner/domain/schedule';
 import { PlannerButton, PlannerField, PlannerModal } from '../components/PlannerControls';
-import { PlannerSyncNotice } from '../components/PlannerSyncNotice';
+import { PlannerNotice } from '../components/PlannerNotice';
 import { scheduleStyles as s } from './ScheduleScreen.styles';
 type Form = {
   kind: 'semester';
@@ -43,7 +43,7 @@ export default function ScheduleScreen() {
   );
 }
 function ScheduleScreenContent({ planner }: { planner: PlannerModel }) {
-  const router = useRouter(), doc = planner.snapshot?.document.working;
+  const router = useRouter(), doc = planner.snapshot?.document.schedule;
   const [selectedId, setSelectedId] = useState<string | null>(null),
     [form, setForm] = useState<Form | null>(null),
     [error, setError] = useState<string | null>(null),
@@ -124,7 +124,7 @@ function ScheduleScreenContent({ planner }: { planner: PlannerModel }) {
           Organiza tus ramos por semestre. Puedes cambiar el horario activo y conservar los
           anteriores.
         </Text>
-        <PlannerSyncNotice planner={planner} />
+        <PlannerNotice planner={planner} />
         <PlannerButton
           label='Nuevo semestre'
           disabled={!doc || planner.busy}

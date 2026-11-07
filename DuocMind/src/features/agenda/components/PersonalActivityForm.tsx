@@ -40,7 +40,7 @@ export function PersonalActivityForm(
       }
   );
   const [error, setError] = useState<string | null>(null),
-    doc = planner.snapshot?.document.working;
+    doc = planner.snapshot?.document.schedule;
   const academic = form.kind !== 'personal';
   const semester = doc ? activityFormSemester(doc, academic ? activity : undefined) : null;
   const subjects = doc?.subjects.filter((subject) => subject.semesterId === semester?.id).sort(

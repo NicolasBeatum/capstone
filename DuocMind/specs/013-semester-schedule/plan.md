@@ -1,5 +1,10 @@
 # Plan 013 — Horario por semestre y actividades locales
 
+> **Sustituida en parte por la spec 017 (2026-11-06).** El horario y los semestres ya
+> no se sincronizan: se guardan solo en el dispositivo y sus tablas y RPC se retiran.
+> Dejan de aplicar RF-006 y lo que este documento diga sobre Supabase, revisiones y
+> conflictos. El resto se conserva como historia del incremento.
+
 | Campo | Valor |
 | --- | --- |
 | Versión | 0.1.2 |

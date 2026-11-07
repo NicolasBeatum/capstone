@@ -32,7 +32,7 @@ import { AgendaTimelineRow } from '../components/AgendaTimelineRow';
 import { AgendaWeekStrip } from '../components/AgendaWeekStrip';
 import { PlannerButton, PlannerField, PlannerModal } from '../components/PlannerControls';
 import { PersonalActivityForm } from '../components/PersonalActivityForm';
-import { PlannerSyncNotice } from '../components/PlannerSyncNotice';
+import { PlannerNotice } from '../components/PlannerNotice';
 import { ClassScheduleForm } from '../components/ClassScheduleForm';
 import { styles } from './AgendaScreen.styles';
 import { scheduleStyles as s } from './ScheduleScreen.styles';
@@ -62,7 +62,7 @@ function AgendaScreenContent({ planner }: { planner: PlannerModel }) {
     if (isDate(params.date)) setSelectedDate(params.date);
   }, [params.date]);
   const document = planner.snapshot?.document,
-    doc = document?.working,
+    doc = document?.schedule,
     activities = document?.activities ?? [],
     catalog = events.snapshot?.document.catalog ?? null,
     interests = events.snapshot?.document.interests ?? [];
@@ -164,7 +164,7 @@ function AgendaScreenContent({ planner }: { planner: PlannerModel }) {
             </View>
           </View>
         </Reveal>
-        <PlannerSyncNotice planner={planner} />
+        <PlannerNotice planner={planner} />
         <AgendaWeekStrip
           title={`${format(monday)} – ${format(addDays(monday, 6))}`}
           days={week}
