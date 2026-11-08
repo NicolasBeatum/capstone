@@ -488,6 +488,75 @@ artefactos de T003 y T005.
 
 **Entorno que sigue en marcha:** web del 8089, `admin-api` (`supabase.cmd functions serve`) y Supabase local.
 
-## Pendiente
+## T011: recorrido Android (2026-11-08)
 
-T011: sin ejecutar y bloqueada por el entorno (el build nativo de Android no compila en este equipo; ver spec 010). Falta la copia SQLite en dispositivo, las imágenes reales, la apertura nativa del video, TalkBack, texto al 200 % y movimiento reducido. La validación Android sigue pendiente, por lo que la spec no puede cerrarse.
+**Resultado: ejecutado en Android; los puntos no verificados quedan listados abajo como limitaciones.**
+
+### Entorno
+
+- Gradle no corre de forma nativa en este equipo (fallo de Java `Selector.open()`, ver spec 010). El APK se compiló en un contenedor Linux (JDK 21, Node 24, Android SDK 36, NDK 27.1.12297006): `expo prebuild` + `gradlew assembleDebug -PreactNativeArchitectures=x86_64`. El código se copió sin `node_modules`, `.git`, `tools/.local` ni `.env*`: el `.env` remoto no entró al contenedor. Dos intentos fallaron por cortes TLS de Java contra dl.google.com (con `curl` el mismo host respondía bien); el tercero compiló (28 min).
+- APK debug x86_64 (≈ 86 MB), emulador `Medium_Phone_API_35`, Supabase local (Docker), cuenta sintética de estudiante y 6 herramientas sintéticas (una inactiva).
+- Metro corrió en el host (puerto 8090) con `EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321` y la clave local; `adb reverse` de 54321 y 8090, y el host de depuración de la app apuntado a `localhost:8090`.
+- Incidente de entorno: la primera ejecución pidió el bundle a `10.0.2.2:8081`, que es el contenedor Compose del equipo (`/app`, código desactualizado y `.env` remoto). No se usó ni se modificó; se redirigió el APK a Metro propio. Metro escuchaba solo en IPv6 hasta forzar IPv4 (`--dns-result-order=ipv4first`).
+- Para las imágenes se reinició el Supabase local con `storage-api` y se subieron 4 imágenes WebP sintéticas de 8×8 px al bucket `herramientas` (ruta `sinteticos/`), generadas con un canvas del navegador integrado. Las imágenes son mínimas: prueban la carga y el reemplazo del icono, no la calidad visual.
+- Ajustes del emulador cambiados para las pruebas (`font_scale`, escalas de animación, TalkBack) y restaurados al final.
+
+### Resultados por punto
+
+| Punto | Resultado |
+| --- | --- |
+| Lista de Recursos en Android | Correcto: 5 herramientas activas (la inactiva no aparece), chips «Todos», «Estrés», «Ansiedad», «Apoyo al estudio»…, indicador «Video» solo en las que lo tienen y descripción omitida sin hueco. «Para esta semana», «Comenzar test» y «Eventos» se siguen mostrando. |
+| Filtro por chips | Correcto: «Estrés» muestra 2 recursos y «Ansiedad» otros 2; «Pausa consciente», con dos categorías, aparece en ambos. |
+| Copia SQLite nativa | Correcto: se creó `duocmind-wellness-resources.db` tras la primera carga. |
+| Sin conexión (con copia) | Correcto: con el backend inalcanzable (se quitó `adb reverse` de 54321; no es modo avión real) y la app reiniciada, aparece «Sin conexión o sin poder actualizar. Estás viendo la copia del 08/11/2026 01:18; puede no estar al día.» con la misma lista. |
+| Error sin copia y reintento | Correcto: con la copia borrada y el backend inalcanzable aparece «No pudimos cargar los recursos» con «Reintentar»; al restaurar la red y tocarlo, se carga la lista. |
+| Imágenes reales | Correcto: las 4 miniaturas se cargan desde el almacenamiento local en lista. Tras borrar una del bucket (la URL responde 400) y limpiar la caché de imágenes de la app, esa fila vuelve al icono de reserva. Sin limpiar la caché, la imagen borrada seguía mostrándose (caché del dispositivo). |
+| Ruta de imagen insegura | Correcto: el recurso sintético con ruta insegura muestra el icono de reserva en lista y detalle. |
+| Detalle | Correcto: miniatura o icono, categoría, título, descripción, texto, «Ver video», aviso de orientación general y acceso a líneas de ayuda. |
+| Apertura del video | Correcto en lo observable: «Ver video» abrió Chrome (`FirstRunActivity`) como sitio externo. No se interactuó con el asistente de Chrome ni se leyó la URL cargada. |
+| Texto al 200 % | Correcto con observación: la lista y los chips son usables (chips desplazables, tarjetas crecen); los títulos de fila se cortan a 2 líneas con «…» (p. ej. «Bajar los nervios antes d..»), pero el `accessibilityLabel` lleva el título completo y el detalle lo muestra entero. No se revisó el detalle a 200 %. |
+| Movimiento reducido | Correcto con límite: con las tres escalas de animación en 0 la sección se ve completa a 1 s de abrir Bienestar. Una captura fija no demuestra la ausencia de animación. |
+| TalkBack | Parcial: el árbol de accesibilidad real (uiautomator) trae etiquetas como «[Sintético] Pausa consciente de 5 minutos. Estrés. Incluye video»; con TalkBack activo el foco arranca en «Volver» y se mueve entre elementos. No se escuchó el audio ni se recorrió toda la pantalla. |
+| Regresión | Parcial: «Eventos» abre y muestra su pantalla, y el test mensual y «Para esta semana» se siguen mostrando. No se probó su comportamiento completo. |
+
+### Hallazgos fuera del alcance de 018 (no corregidos)
+
+1. Inicio (tarjeta del horario) y Pendientes: «Call to function 'NativeDatabase.prepareAsync' has been rejected. Caused by: Error code : file is not a database». Afecta a las bases del planner y del check-in (archivos `duocmind-planner-*.db` y `duocmind-emotional-checkins-*.db` de 4 KB). La base de Recursos, sin cifrar, funciona. Posible relación con el cifrado (SQLCipher) en este build; debe investigarse en otra tarea.
+2. Inicio («Estado del backend»): muestra «Falta configuración» con el Supabase local porque `probeBackend.ts` solo acepta el host del proyecto remoto. Es el diseño actual, no un fallo de 018.
+3. Login a 200 %: el placeholder del correo y «¿Olvidaste tu contraseña?» se recortan. Pantalla ajena a 018.
+4. La sesión no se restauró tras reiniciar la app en el emulador (hubo que iniciar sesión de nuevo en dos ocasiones). No se investigó.
+
+## Cierre de la spec 018
+
+### Resultado por criterio
+
+| CA | Resultado | Evidencia |
+| --- | --- | --- |
+| CA-001 | Cumple | T009/T010 (web) y T011 (Android): «Recursos» bajo el test, sin «Herramientas rápidas». |
+| CA-002 | Cumple | Pruebas de dominio (T002) y chips en Android con el orden esperado. |
+| CA-003 | Cumple | Pruebas de dominio y Android: «Pausa consciente» aparece en «Estrés» y «Ansiedad». |
+| CA-004 | Cumple | Pruebas de caso de uso y de backend (T003, T006); en Android no aparece la herramienta inactiva. |
+| CA-005 | Cumple | T007/T010 y Android: miniatura, título, descripción de hasta 2 líneas e indicador de video, sin hueco sin descripción. |
+| CA-006 | Cumple | Pruebas de dominio (T002), recorrido web sin red (T010) y Android: ruta insegura e imagen que devuelve 400 muestran el icono. |
+| CA-007 | Cumple, con límite | Pruebas de dominio y T008; Android abre un sitio externo (Chrome). No se leyó la URL cargada. |
+| CA-008 | Cumple | T008/T010 y Android: aviso de orientación general y acceso a líneas de ayuda. |
+| CA-009 | Cumple | Estado vacío en pruebas y web (T010); error y reintento comprobados también en Android. |
+| CA-010 | Cumple | T003/T005 (pruebas) y Android con SQLite nativo: copia con aviso sin conexión; una respuesta malformada no borra la copia (pruebas). |
+| CA-011 | Cumple | T004: copia de más de 2 KB sin pérdida (pruebas con datos sintéticos grandes); en Android se probó con 5 filas pequeñas. |
+| CA-012 | Cumple | T010: solo dos lecturas del catálogo, idénticas para cualquier persona; no se repitió en Android. |
+| CA-013 | Cumple | T006: prueba SQL/HTTP local, anónimo sin escritura y lectura solo de activas. |
+| CA-014 | Cumple parcialmente | Texto al 200 % y movimiento reducido verificados en la lista; TalkBack solo por árbol de accesibilidad y foco, sin audio. |
+| CA-015 | Cumple parcialmente | Typecheck y pruebas (T009/T010) sin fallos nuevos; en Android, «Eventos», test mensual y «Para esta semana» se muestran, pero no se probó su comportamiento completo. |
+
+### Limitaciones
+
+- TalkBack no se escuchó ni se recorrió completo; el detalle no se revisó a 200 %.
+- El video solo se comprobó hasta que Android abre el navegador; no se leyó la URL.
+- «Sin conexión» se simuló quitando la redirección de puertos, no con modo avión del emulador.
+- Las imágenes de prueba son de 8×8 px; no se valoró calidad ni tiempos de carga reales.
+- No se repitieron en Android la revisión de solicitudes de red (CA-012) ni el comportamiento completo de eventos y test mensual.
+- Hallazgos 1 a 4 de esta entrada, ajenos a 018, quedan sin corregir.
+
+### Estado
+
+Implementación de 018 completa (T001 a T011) con las limitaciones anteriores. La spec conserva su estado «APROBADA»; el cierre depende de la decisión del usuario sobre estas limitaciones.
