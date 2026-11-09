@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Text, View, useWindowDimensions } from 'react-native';
+import { Animated, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { useRouter } from 'expo-router';
 import * as Crypto from 'expo-crypto';
@@ -15,11 +15,16 @@ import { LiquidBackground } from '@/shared/components/Glass';
 import { Brote } from '@/shared/components/Brote';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { Reveal } from '@/shared/motion/Reveal';
+import { motionDuration, motionEasing } from '@/shared/motion/motionTokens';
+import { useReducedMotion } from '@/shared/motion/useReducedMotion';
 import { notifyTutorialCheckinSaved } from '@/shared/tutorial/infrastructure/tutorialRuntime';
 import type { CheckinMood } from '../application/localCheckinStore';
 import { MoodLabel } from '../components/MoodLabel';
 import { SaveOverlay } from '../components/SaveOverlay';
 import { MoodSlider } from '../components/MoodSlider';
+import { ReasonBubbles } from '../components/ReasonBubbles';
+import { requiresReason, toggleReason } from '../domain/checkinReasons';
+import { useCheckinReasons } from '../hooks/useCheckinReasons';
 import { MOOD_MAX, clampMoodValue, moodFromValue, valueFromMood } from '../domain/moodScale';
 import { styles } from './CheckinScreen.styles';
 
@@ -30,12 +35,16 @@ const MIN_SAVING_FEEDBACK_MS = 2200;
 // Tiempo que se lee el agradecimiento antes de llevar a la persona al inicio.
 // Mal y Muy mal llevan más texto y es el más importante de leer, así que se quedan un segundo más.
 const THANKS_VISIBLE_MS: Record<CheckinMood, number> = {
-  'Muy mal': 6200,
-  Mal: 6200,
-  Neutro: 5200,
-  Bien: 5200,
-  'Muy bien': 5200,
+  'Muy mal': 7200,
+  Mal: 7200,
+  Neutro: 6200,
+  Bien: 6200,
+  'Muy bien': 6200,
 };
+
+// Proporción del Brote respecto del área de la cara, antes y después de mostrar los motivos.
+const BROTE_RATIO = 0.78;
+const BROTE_RATIO_WITH_REASONS = 0.55;
 
 /** Sube los check-ins que quedaron en la outbox cifrada mientras no había conexión. */
 async function syncPendingInBackground(): Promise<void> {
@@ -56,11 +65,41 @@ export default function CheckinScreen() {
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [feedback, setFeedback] = useState<string | null>(null);
   const redirectTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const reasons = useCheckinReasons();
+  const [selectedReasonIds, setSelectedReasonIds] = useState<number[]>([]);
+  // Las burbujas aparecen la primera vez que la persona deja la barra en una emoción.
+  const [moodChosen, setMoodChosen] = useState(false);
+  const showReasons = moodChosen && reasons.length > 0;
+  const reduceMotion = useReducedMotion();
+  const broteRatioAnim = useRef(new Animated.Value(BROTE_RATIO)).current;
+  const [broteRatio, setBroteRatio] = useState(BROTE_RATIO);
 
   const mood = moodFromValue(moodValue);
-  // El Brote ocupa el centro sin empujar la barra ni el botón fuera de la pantalla.
+  // El Brote ocupa el centro sin empujar la barra ni el botón fuera de la pantalla;
+  // se achica al aparecer los motivos para dejarles espacio.
   const faceSize = Math.min(width * 0.62, height * 0.34, 300);
-  const broteSize = faceSize * 0.78;
+  const broteSize = faceSize * broteRatio;
+
+  useEffect(() => {
+    const target = showReasons ? BROTE_RATIO_WITH_REASONS : BROTE_RATIO;
+    if (reduceMotion) {
+      broteRatioAnim.setValue(target);
+      setBroteRatio(target);
+      return;
+    }
+    const listener = broteRatioAnim.addListener(({ value }) => setBroteRatio(value));
+    const animation = Animated.timing(broteRatioAnim, {
+      toValue: target,
+      duration: motionDuration.screen,
+      easing: motionEasing.calm,
+      useNativeDriver: false,
+    });
+    animation.start();
+    return () => {
+      animation.stop();
+      broteRatioAnim.removeListener(listener);
+    };
+  }, [broteRatioAnim, reduceMotion, showReasons]);
 
   useEffect(() => {
     void syncPendingInBackground();
@@ -78,6 +117,11 @@ export default function CheckinScreen() {
     setFeedback(null);
   };
 
+  const handleReasonToggle = (id: number) => {
+    setSelectedReasonIds((selected) => toggleReason(selected, id));
+    setFeedback(null);
+  };
+
   const goToDashboard = () => {
     clearTimeout(redirectTimer.current);
     router.replace('/dashboard');
@@ -85,6 +129,12 @@ export default function CheckinScreen() {
 
   const handleSave = async () => {
     if (saveState !== 'idle') return;
+    // Si hay motivos disponibles, se exige al menos uno; sin catálogo se registra igual.
+    if (requiresReason(reasons, selectedReasonIds)) {
+      setMoodChosen(true);
+      setFeedback('Elige al menos un motivo para registrar.');
+      return;
+    }
     setFeedback(null);
     setSaveState('saving');
     const startedAt = Date.now();
@@ -109,12 +159,18 @@ export default function CheckinScreen() {
       }
 
       const local = await getLocalCheckinStore(userId);
-      const result = await saveConfirmedCheckin(mood, {
-        local,
-        remote: supabaseCheckinGateway,
-        createRequestId: Crypto.randomUUID,
-        now: () => new Date(),
-      });
+      // Solo se envían motivos que siguen en el catálogo mostrado.
+      const reasonIds = selectedReasonIds.filter((id) => reasons.some((reason) => reason.id === id));
+      const result = await saveConfirmedCheckin(
+        mood,
+        {
+          local,
+          remote: supabaseCheckinGateway,
+          createRequestId: Crypto.randomUUID,
+          now: () => new Date(),
+        },
+        reasonIds,
+      );
       // El tutorial se entera de que el registro quedó guardado; no recibe la emoción.
       notifyTutorialCheckinSaved(userId);
       await keepLoaderVisible();
@@ -134,7 +190,12 @@ export default function CheckinScreen() {
     <View style={styles.safeArea}>
       <LiquidBackground />
 
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <Reveal style={styles.header}>
           <Text style={styles.title}>¿Cómo te sientes hoy?</Text>
           <Text style={styles.subtitle}>Mueve la barra hasta encontrar tu estado</Text>
@@ -146,8 +207,12 @@ export default function CheckinScreen() {
         </Reveal>
 
         <Reveal index={2} style={styles.sliderArea}>
-          <MoodSlider value={moodValue} onChange={handleMoodChange} />
+          <MoodSlider value={moodValue} onChange={handleMoodChange} onCommit={() => setMoodChosen(true)} />
         </Reveal>
+
+        {showReasons ? (
+          <ReasonBubbles reasons={reasons} selectedIds={selectedReasonIds} onToggle={handleReasonToggle} />
+        ) : null}
 
         <Reveal index={3}>
           <ScalePress
@@ -168,7 +233,7 @@ export default function CheckinScreen() {
         >
           {feedback ?? ' '}
         </Text>
-      </View>
+      </ScrollView>
 
       <BottomNav currentTab="checkin" />
 

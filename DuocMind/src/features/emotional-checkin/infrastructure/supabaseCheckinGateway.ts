@@ -4,6 +4,7 @@ import type {
   CheckinRange,
   CheckinRemoteGateway,
 } from '../application/checkinHistory';
+import type { ReasonCatalogGateway } from '../application/checkinReasons';
 import { getSupabaseClient } from '@/shared/backend/infrastructure/supabaseClient';
 
 interface StudentRow {
@@ -12,6 +13,14 @@ interface StudentRow {
 
 interface GeneralEmotionRow {
   id_emocion: number;
+}
+
+interface RecordIdRow {
+  id_registro: number;
+}
+
+interface ReasonIdRow {
+  id_motivo: number;
 }
 
 interface RemoteCheckinRow {
@@ -57,6 +66,39 @@ async function getGeneralEmotionId(mood: CheckinMood): Promise<number> {
   return data.id_emocion;
 }
 
+/**
+ * Asocia los motivos al registro ya subido. Es idempotente: las filas existentes se ignoran.
+ * Solo se insertan motivos que siguen existiendo, para que uno borrado del catálogo no
+ * deje el check-in atascado en la outbox con un error de clave foránea.
+ */
+async function saveReasons(clientRequestId: string, reasonIds: readonly number[]): Promise<void> {
+  if (reasonIds.length === 0) return;
+  const client = getSupabaseClient();
+
+  const [record, existing] = await Promise.all([
+    client
+      .from('registro_emocional')
+      .select('id_registro')
+      .eq('client_request_id', clientRequestId)
+      .single<RecordIdRow>(),
+    client.from('motivo').select('id_motivo').in('id_motivo', [...reasonIds]).returns<ReasonIdRow[]>(),
+  ]);
+  if (record.error) throw record.error;
+  if (existing.error) throw existing.error;
+
+  const rows = existing.data.map((reason) => ({
+    registro_emocional_id_registro: record.data.id_registro,
+    motivo_id_motivo: reason.id_motivo,
+  }));
+  if (rows.length === 0) return;
+
+  const { error } = await client.from('registro_emocional_motivo').upsert(rows, {
+    onConflict: 'registro_emocional_id_registro,motivo_id_motivo',
+    ignoreDuplicates: true,
+  });
+  if (error) throw error;
+}
+
 function mapRemoteRow(row: RemoteCheckinRow): CheckinHistoryEntry | null {
   const mood = row.emocion_general?.nombre_emocion;
   if (!mood || !Object.keys(MOOD_VALUES).includes(mood)) return null;
@@ -85,6 +127,7 @@ export const supabaseCheckinGateway: CheckinRemoteGateway = {
       { onConflict: 'client_request_id', ignoreDuplicates: true },
     );
     if (error) throw error;
+    await saveReasons(checkin.clientRequestId, checkin.reasonIds ?? []);
   },
 
   async list(range?: CheckinRange) {
@@ -115,5 +158,15 @@ export const supabaseCheckinGateway: CheckinRemoteGateway = {
       .eq('client_request_id', clientRequestId)
       .eq('estudiante_id_estudiante', studentId);
     if (error) throw error;
+  },
+};
+export const supabaseReasonCatalogGateway: ReasonCatalogGateway = {
+  async fetchReasonCatalog() {
+    const { data, error } = await getSupabaseClient()
+      .from('motivo')
+      .select('id_motivo, nombre_motivo, orden, activo')
+      .eq('activo', true);
+    if (error) throw error;
+    return data;
   },
 };
