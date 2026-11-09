@@ -28,28 +28,26 @@ import { consentStore } from '@/shared/consents/infrastructure/consentStorage';
 import { Reveal } from '@/shared/motion/Reveal';
 import { TutorialOverlay } from '@/shared/tutorial/components/TutorialOverlay';
 import { useTutorial } from '@/shared/tutorial/infrastructure/useTutorial';
-import { BellIcon, CalendarIcon, ClipboardIcon, MoonIcon, TicketIcon, WindIcon } from '@/shared/components/Icons';
+import { BellIcon, CalendarIcon, ClipboardIcon, TicketIcon } from '@/shared/components/Icons';
 import { usePlanner, type PlannerModel } from '@/shared/planner/application/usePlanner';
 import { projectPlannerDashboard } from '@/shared/planner/application/plannerProjection';
 import { emptySchedule } from '@/shared/planner/domain/schedule';
 import { ACTIVITY_LABELS, type ActivityKind } from '@/shared/planner/application/plannerStore';
+import { ResourceThumb } from '@/features/wellness/components/ResourceThumb';
 import {
-  FEATURED_SLOT_LABELS,
-  FEATURED_TOOLS,
-  type FeaturedToolIcon,
-} from '../domain/featuredTools';
+  categoryIconKey,
+  categoryIndex,
+  categoryTone,
+  primaryCategory,
+} from '@/features/wellness/domain/wellnessResource';
+import { useResourceCatalog } from '@/features/wellness/hooks/useResourceCatalog';
+import { FEATURED_SLOT_LABELS, localDateKey, pickFeaturedTools } from '../domain/featuredTools';
 import { greetingName, studentInitials } from '../domain/studentName';
 import {
   fetchStudentDisplayName,
   type StudentDisplayName,
 } from '../infrastructure/studentProfileRepository';
 import { styles } from './DashboardScreen.styles';
-
-/* Cada herramienta destacada lleva su propio tono; la imagen real llegará con imagen_path. */
-const FEATURED_VISUALS: Record<FeaturedToolIcon, { icon: React.ReactNode; tile: 'featuredTileCalm' | 'featuredTileBreath' }> = {
-  moon: { icon: <MoonIcon size={28} color="#2f4ea3" />, tile: 'featuredTileCalm' },
-  wind: { icon: <WindIcon size={28} color="#6b5aa8" />, tile: 'featuredTileBreath' },
-};
 
 const WEEKDAYS =['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 const MONTHS = [
@@ -110,6 +108,14 @@ function DashboardScreenContent({planner}: {planner: PlannerModel}) {
   // Los botones bajan a su propia fila solo si el saludo ya no cabe a su lado.
   const compactHeader = width < 340 || fontScale > 1.15;
   const now = planner.now;
+  // Mismo catálogo en memoria que Bienestar: el detalle siempre encuentra la herramienta destacada.
+  const resources = useResourceCatalog({ refreshOnFocus: true });
+  const featuredCatalog = resources.result?.status === 'ready' ? resources.result.catalog : null;
+  const featuredDay = localDateKey(now);
+  const featuredTools = useMemo(
+    () => (featuredCatalog ? pickFeaturedTools(featuredCatalog, featuredDay) : []),
+    [featuredCatalog, featuredDay],
+  );
   const plannerView = projectPlannerDashboard(planner.snapshot?.document.schedule ?? emptySchedule(), planner.snapshot?.document.activities ?? [], now);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -447,29 +453,59 @@ function DashboardScreenContent({planner}: {planner: PlannerModel}) {
         {/* ── Para ti hoy ── */}
         <Reveal index={4}>
           <Text style={[styles.sectionTitle, styles.forYouTitle]}>Para ti hoy</Text>
-          {FEATURED_TOOLS.map((tool) => {
-            const visual = FEATURED_VISUALS[tool.icon];
-            const label = FEATURED_SLOT_LABELS[tool.slot];
-            return (
-              <ScalePress
-                key={tool.slot}
-                style={styles.featuredCard}
-                onPress={() => router.push('/wellness')}
-                accessibilityRole="button"
-                accessibilityLabel={`${label}: ${tool.title}. ${tool.description}`}
-              >
-                <View style={[styles.featuredTile, styles[visual.tile]]}>{visual.icon}</View>
+          {featuredCatalog === null ? (
+            <ScalePress
+              style={styles.featuredCard}
+              onPress={() => router.push('/wellness')}
+              accessibilityRole="button"
+              accessibilityLabel="Ver herramientas de Bienestar"
+            >
+              {resources.loading ? (
+                <GotaLoader size="sm" text="Cargando herramientas…" />
+              ) : (
                 <View style={styles.featuredText}>
-                  <Text style={styles.featuredLabel}>{label}</Text>
-                  <Text style={styles.featuredTitle} numberOfLines={2}>{tool.title}</Text>
-                  <Text style={styles.featuredDesc} numberOfLines={2}>{tool.description}</Text>
+                  <Text style={styles.featuredTitle}>Herramientas de Bienestar</Text>
+                  <Text style={styles.featuredDesc}>Toca para ver los recursos disponibles.</Text>
                 </View>
-                <View style={styles.featuredCategory}>
-                  <Text style={styles.featuredCategoryText}>{tool.category}</Text>
-                </View>
-              </ScalePress>
-            );
-          })}
+              )}
+            </ScalePress>
+          ) : (
+            featuredTools.map(({ slot, resource }) => {
+              const label = FEATURED_SLOT_LABELS[slot];
+              const category = primaryCategory(featuredCatalog, resource);
+              return (
+                <ScalePress
+                  key={slot}
+                  style={styles.featuredCard}
+                  onPress={() => router.push(`/wellness/resources/${resource.id}`)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${label}: ${resource.title}${resource.description ? `. ${resource.description}` : ''}`}
+                >
+                  <ResourceThumb
+                    imageUrl={resources.imageUrl(resource.imagePath)}
+                    tone={categoryTone(categoryIndex(featuredCatalog, category?.id ?? null))}
+                    iconKey={categoryIconKey(category?.name ?? '')}
+                    label={resource.title}
+                    size={72}
+                    radius={18}
+                    style={styles.featuredTile}
+                  />
+                  <View style={styles.featuredText}>
+                    <Text style={styles.featuredLabel}>{label}</Text>
+                    <Text style={styles.featuredTitle} numberOfLines={2}>{resource.title}</Text>
+                    {resource.description ? (
+                      <Text style={styles.featuredDesc} numberOfLines={2}>{resource.description}</Text>
+                    ) : null}
+                  </View>
+                  {category ? (
+                    <View style={styles.featuredCategory}>
+                      <Text style={styles.featuredCategoryText}>{category.name}</Text>
+                    </View>
+                  ) : null}
+                </ScalePress>
+              );
+            })
+          )}
         </Reveal>
 
         <Reveal index={5}>

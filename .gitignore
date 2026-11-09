@@ -7,3 +7,6 @@ node_modules/
 .venv/
 __pycache__/
 *.pyc
+
+# Estado local de Expo.
+.expo/

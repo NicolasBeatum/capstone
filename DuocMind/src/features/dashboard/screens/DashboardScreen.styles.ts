@@ -355,17 +355,10 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: glassTokens.border,
   },
-  /* Marcador de imagen: se reemplaza por la imagen de la herramienta cuando venga de la base. */
+  /* Miniatura de la herramienta (tamaño y radio los pone ResourceThumb). */
   featuredTile: {
-    width: 72,
-    height: 72,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginRight: 14,
   },
-  featuredTileCalm: { backgroundColor: '#dfe8f8' },
-  featuredTileBreath: { backgroundColor: '#e6e0f5' },
   featuredText: {
     flex: 1,
   },
