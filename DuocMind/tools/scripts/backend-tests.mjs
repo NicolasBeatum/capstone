@@ -25,6 +25,7 @@ for (
     "queries",
     "emotions",
     "consents",
+    "wellness-resources",
     "protected-api",
     "security",
     "recovery",

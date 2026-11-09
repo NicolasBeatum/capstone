@@ -8,45 +8,11 @@ import {
 } from '@/features/emotional-checkin/domain/stressTestRecency';
 import { useStressTestLauncher, type LastStressTest } from '@/features/emotional-checkin/hooks/useStressTestLauncher';
 import { BottomNav } from '@/shared/components/BottomNav';
-import { JournalIcon, PhoneIcon, StretchIcon, TicketIcon, TimerIcon, WindIcon } from '@/shared/components/Icons';
+import { PhoneIcon, TicketIcon } from '@/shared/components/Icons';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { Reveal } from '@/shared/motion/Reveal';
+import { ResourcesSection } from '../components/ResourcesSection';
 import { styles } from './WellnessScreen.styles';
-
-const tools = [
-  {
-    id: 'breathe',
-    title: 'Respira',
-    desc: 'Ejercicios guiados de 1 a 5 min',
-    icon: <WindIcon size={26} color="#5b4a9e" />,
-    tile: styles.toolBreathe,
-    descColor: '#5f5878',
-  },
-  {
-    id: 'study',
-    title: 'Modo estudio',
-    desc: 'Pomodoro 25/5 sin notificaciones',
-    icon: <TimerIcon size={26} color="#a4511a" />,
-    tile: styles.toolStudy,
-    descColor: '#7a5a3c',
-  },
-  {
-    id: 'journal',
-    title: 'Diario',
-    desc: 'Escribe lo que te da vueltas',
-    icon: <JournalIcon size={26} color="#2f7a55" />,
-    tile: styles.toolJournal,
-    descColor: '#4b6e5c',
-  },
-  {
-    id: 'stretch',
-    title: 'Pausa activa',
-    desc: 'Estírate entre clases, 2 min',
-    icon: <StretchIcon size={26} color="#2f4ea3" />,
-    tile: styles.toolStretch,
-    descColor: '#4a5a86',
-  },
-];
 
 function testSummary(lastStressTest: LastStressTest): { badge: string; detail: string } {
   const base = 'Escala de Estrés Percibido (PSS-10) · 10 preguntas · 3 min.';
@@ -112,22 +78,16 @@ export default function WellnessScreen() {
           </View>
         </Reveal>
 
-        {/* ── Herramientas rápidas ── */}
-        <Reveal index={2}>
-          <Text style={styles.sectionTitle}>Herramientas rápidas</Text>
-        </Reveal>
-        <View style={styles.toolsGrid}>
-          {tools.map((tool, index) => (
-            <Reveal key={tool.id} index={3 + index} style={[styles.toolTile, tool.tile]}>
-              {tool.icon}
-              <Text style={styles.toolTitle}>{tool.title}</Text>
-              <Text style={[styles.toolDesc, { color: tool.descColor }]}>{tool.desc}</Text>
-            </Reveal>
-          ))}
-        </View>
+        {/* ── Recursos por categoría ── */}
+        <ResourcesSection
+          revealIndex={2}
+          onOpenResource={(resourceId) =>
+            router.push({ pathname: '/wellness/resources/[id]', params: { id: String(resourceId) } })
+          }
+        />
 
         {/* ── Para esta semana ── */}
-        <Reveal index={7}>
+        <Reveal index={3}>
           <Text style={styles.sectionTitle}>Para esta semana</Text>
           <ScalePress
             style={styles.helpCard}
