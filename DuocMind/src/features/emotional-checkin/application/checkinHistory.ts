@@ -2,6 +2,7 @@ import type {
   CheckinMood,
   CheckinSyncStatus,
   LocalCheckin,
+  NewLocalCheckin,
 } from './localCheckinStore';
 
 export interface CheckinHistoryEntry {
@@ -23,7 +24,7 @@ export interface CheckinRange {
 }
 
 export interface CheckinLocalRepository {
-  savePending(checkin: Omit<LocalCheckin, 'syncStatus'>): Promise<void>;
+  savePending(checkin: NewLocalCheckin): Promise<void>;
   listAll(): Promise<LocalCheckin[]>;
   listPending(): Promise<LocalCheckin[]>;
   markSynced(clientRequestId: string): Promise<void>;
@@ -31,6 +32,7 @@ export interface CheckinLocalRepository {
 }
 
 export interface CheckinRemoteGateway {
+  /** Sube el registro y sus motivos; termina solo si ambos quedaron guardados. Es idempotente. */
   save(checkin: Omit<LocalCheckin, 'syncStatus'>): Promise<void>;
   list(range?: CheckinRange): Promise<CheckinHistoryEntry[]>;
   remove(clientRequestId: string): Promise<void>;
@@ -65,11 +67,13 @@ export async function saveConfirmedCheckin(
     createRequestId(): string;
     now(): Date;
   },
+  reasonIds: readonly number[] = [],
 ): Promise<SaveCheckinResult> {
-  const checkin = {
+  const checkin: NewLocalCheckin = {
     clientRequestId: dependencies.createRequestId(),
     mood,
     createdAt: dependencies.now().toISOString(),
+    reasonIds: [...reasonIds],
   };
 
   await dependencies.local.savePending(checkin);

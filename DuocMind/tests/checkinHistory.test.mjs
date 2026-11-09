@@ -45,6 +45,44 @@ test('confirmar conserva primero localmente y marca sincronizado tras éxito rem
   assert.equal(deps.remoteRows.length, 1);
 });
 
+test('los motivos elegidos llegan al servidor con el check-in', async () => {
+  const deps = repositories();
+  await saveConfirmedCheckin('Mal', {
+    ...deps,
+    createRequestId: () => 'request-reasons',
+    now: () => new Date('2026-11-09T12:00:00.000Z'),
+  }, [2, 5]);
+
+  assert.deepEqual(deps.entries.get('request-reasons').reasonIds, [2, 5]);
+  assert.deepEqual(deps.remoteRows[0].reasonIds, [2, 5]);
+});
+
+test('si fallan los motivos el check-in sigue pendiente y el reintento los sube una vez', async () => {
+  const deps = repositories();
+  const saved = new Set();
+  let failReasons = true;
+  const remote = {
+    ...deps.remote,
+    save: async (entry) => {
+      if (failReasons) throw new Error('motivos sin red');
+      for (const id of entry.reasonIds) saved.add(`${entry.clientRequestId}:${id}`);
+    },
+  };
+  const result = await saveConfirmedCheckin('Mal', {
+    ...deps,
+    remote,
+    createRequestId: () => 'retry-reasons',
+    now: () => new Date('2026-11-09T12:00:00.000Z'),
+  }, [1]);
+  assert.equal(result.syncStatus, 'pending');
+
+  failReasons = false;
+  await syncPendingCheckins(deps.local, remote);
+  await syncPendingCheckins(deps.local, remote);
+  assert.deepEqual([...saved], ['retry-reasons:1']);
+  assert.equal(deps.entries.get('retry-reasons').syncStatus, 'synced');
+});
+
 test('un error remoto conserva el registro pendiente en el historial local', async () => {
   const deps = repositories();
   const result = await saveConfirmedCheckin('Mal', {

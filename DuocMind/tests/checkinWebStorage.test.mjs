@@ -25,3 +25,18 @@ test('la vista web conserva outbox volátil por usuario mientras la pestaña sig
   assert.equal((await (await getLocalCheckinStore(firstUser)).listAll()).length, 0);
   await deleteLocalCheckinData(secondUser);
 });
+test('la vista web guarda motivos y catálogo en memoria', async () => {
+  const userId = '30000000-0000-0000-0000-000000000003';
+  const store = await getLocalCheckinStore(userId);
+  await store.savePending({
+    clientRequestId: 'web-reasons', mood: 'Mal', createdAt: '2026-11-09T03:00:00.000Z', reasonIds: [3, 1],
+  });
+  assert.deepEqual((await store.listPending())[0].reasonIds, [1, 3]);
+  await store.remove('web-reasons');
+  await store.savePending({ clientRequestId: 'web-reasons', mood: 'Mal', createdAt: '2026-11-09T03:00:00.000Z' });
+  assert.deepEqual((await store.listPending())[0].reasonIds, []);
+
+  await store.saveReasonCatalog([{ id: 2, name: 'Pareja' }, { id: 1, name: 'Familia' }]);
+  assert.deepEqual(await store.listReasonCatalog(), [{ id: 2, name: 'Pareja' }, { id: 1, name: 'Familia' }]);
+  await deleteLocalCheckinData(userId);
+});

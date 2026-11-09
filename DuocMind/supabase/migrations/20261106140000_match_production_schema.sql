@@ -25,8 +25,7 @@ insert into public.motivo (nombre_motivo, orden) values
   ('Académico', 4),
   ('Trabajo', 5),
   ('Económico', 6),
-  ('Salud', 7),
-  ('Otro', 8)
+  ('Salud', 7)
 on conflict (nombre_motivo) do update set orden = excluded.orden
 where public.motivo.orden is distinct from excluded.orden;
 

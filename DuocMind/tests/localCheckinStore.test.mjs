@@ -91,3 +91,53 @@ test('una clave malformada no se persiste', async () => {
   );
   assert.equal(saved, false);
 });
+test('los motivos se guardan con el check-in, se listan y se borran con él', async () => {
+  const { database, store } = memoryStore();
+  await store.initialize();
+  await store.savePending({
+    clientRequestId: 'with-reasons', mood: 'Mal', createdAt: '2026-11-09T10:00:00.000Z', reasonIds: [4, 1, 4],
+  });
+  await store.savePending({ clientRequestId: 'no-reasons', mood: 'Bien', createdAt: '2026-11-09T11:00:00.000Z' });
+
+  const pending = await store.listPending();
+  assert.deepEqual(pending.map((row) => [row.clientRequestId, row.reasonIds]), [
+    ['with-reasons', [1, 4]],
+    ['no-reasons', []],
+  ]);
+
+  await store.remove('with-reasons');
+  assert.equal(database.prepare('SELECT COUNT(*) AS total FROM emotional_checkin_reasons').get().total, 0);
+  database.close();
+});
+
+test('un pendiente creado antes de los motivos se lee sin motivos', async () => {
+  const database = new DatabaseSync(':memory:');
+  database.exec(`
+    CREATE TABLE emotional_checkins (
+      client_request_id TEXT PRIMARY KEY NOT NULL,
+      mood TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      sync_status TEXT NOT NULL
+    );
+    INSERT INTO emotional_checkins VALUES ('legacy', 'Neutro', '2026-11-01T10:00:00.000Z', 'pending');
+  `);
+  const store = new LocalCheckinStore({
+    execAsync: async (sql) => database.exec(sql),
+    runAsync: async (sql, ...params) => database.prepare(sql).run(...params),
+    getAllAsync: async (sql, ...params) => database.prepare(sql).all(...params),
+  });
+  await store.initialize();
+  const [legacy] = await store.listPending();
+  assert.equal(legacy.clientRequestId, 'legacy');
+  assert.deepEqual(legacy.reasonIds, []);
+  database.close();
+});
+
+test('el catálogo local se reemplaza entero y conserva el orden', async () => {
+  const { database, store } = memoryStore();
+  await store.initialize();
+  await store.saveReasonCatalog([{ id: 5, name: 'Trabajo' }, { id: 1, name: 'Familia' }]);
+  await store.saveReasonCatalog([{ id: 2, name: 'Pareja' }, { id: 1, name: 'Familia' }]);
+  assert.deepEqual(await store.listReasonCatalog(), [{ id: 2, name: 'Pareja' }, { id: 1, name: 'Familia' }]);
+  database.close();
+});

@@ -12,12 +12,48 @@ interface MemoryRow {
   sync_status: 'pending' | 'synced';
 }
 
+interface MemoryReason {
+  id: number;
+  name: string;
+  position: number;
+}
+
+/** Base volátil de la previsualización web; entiende solo las sentencias de LocalCheckinStore. */
 class MemoryCheckinDatabase implements CheckinDatabase {
   private readonly rows = new Map<string, MemoryRow>();
+  /** client_request_id → IDs de motivo. */
+  private readonly reasonLinks = new Map<string, Set<number>>();
+  private catalog: MemoryReason[] = [];
 
+  // Sin concurrencia real en memoria, BEGIN/COMMIT/ROLLBACK no necesitan hacer nada.
   async execAsync(): Promise<void> {}
 
   async runAsync(source: string, ...params: (string | number | null)[]): Promise<void> {
+    if (source.includes('INSERT INTO emotional_checkin_reasons')) {
+      const [clientRequestId, reasonId] = params as [string, number];
+      const links = this.reasonLinks.get(clientRequestId) ?? new Set<number>();
+      links.add(reasonId);
+      this.reasonLinks.set(clientRequestId, links);
+      return;
+    }
+
+    if (source.includes('DELETE FROM emotional_checkin_reasons')) {
+      const [clientRequestId] = params as [string];
+      this.reasonLinks.delete(clientRequestId);
+      return;
+    }
+
+    if (source.includes('DELETE FROM reason_catalog')) {
+      this.catalog = [];
+      return;
+    }
+
+    if (source.includes('INSERT INTO reason_catalog')) {
+      const [id, name, position] = params as [number, string, number];
+      this.catalog.push({ id, name, position });
+      return;
+    }
+
     if (source.includes('INSERT INTO emotional_checkins')) {
       const [clientRequestId, mood, createdAt] = params as [string, CheckinMood, string];
       if (!this.rows.has(clientRequestId)) {
@@ -45,6 +81,19 @@ class MemoryCheckinDatabase implements CheckinDatabase {
   }
 
   async getAllAsync<T>(source: string): Promise<T[]> {
+    if (source.includes('FROM emotional_checkin_reasons')) {
+      const links = [...this.reasonLinks.entries()].flatMap(([clientRequestId, ids]) =>
+        [...ids].sort((left, right) => left - right).map((reasonId) => ({ clientRequestId, reasonId })),
+      );
+      return links as T[];
+    }
+
+    if (source.includes('FROM reason_catalog')) {
+      return [...this.catalog]
+        .sort((left, right) => left.position - right.position)
+        .map(({ id, name }) => ({ id, name })) as T[];
+    }
+
     const rows = [...this.rows.values()]
       .filter((row) => !source.includes("WHERE sync_status = 'pending'") || row.sync_status === 'pending')
       .sort((left, right) => source.includes('created_at DESC')
@@ -55,7 +104,7 @@ class MemoryCheckinDatabase implements CheckinDatabase {
         mood: row.mood,
         createdAt: row.created_at,
         syncStatus: row.sync_status,
-      } satisfies Pick<LocalCheckin, 'clientRequestId' | 'mood' | 'createdAt' | 'syncStatus'>));
+      } satisfies Omit<LocalCheckin, 'reasonIds'>));
 
     return rows as T[];
   }

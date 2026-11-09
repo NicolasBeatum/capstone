@@ -12,8 +12,12 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: cream,
   },
-  content: {
+  scroll: {
     flex: 1,
+  },
+  // flexGrow: llena la pantalla y solo desplaza si el texto ampliado no cabe.
+  content: {
+    flexGrow: 1,
     paddingHorizontal: 28,
     paddingTop: 32,
   },

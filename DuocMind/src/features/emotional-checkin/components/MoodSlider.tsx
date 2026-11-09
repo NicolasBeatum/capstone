@@ -22,6 +22,8 @@ import {
 interface MoodSliderProps {
   value: number;
   onChange: (value: number) => void;
+  /** Se llama cuando la persona deja la barra en un estado: al soltar o con un paso de teclado o lector. */
+  onCommit?: (value: number) => void;
 }
 
 const THUMB = 34;
@@ -31,7 +33,7 @@ const TRACK_HEIGHT = 12;
  * Barra de "Muy mal" a "Muy bien". Se arrastra con el dedo o el mouse, o se toca un punto;
  * al soltar se acomoda en el estado más cercano.
  */
-export function MoodSlider({ value, onChange }: MoodSliderProps) {
+export function MoodSlider({ value, onChange, onCommit }: MoodSliderProps) {
   const trackRef = useRef<View>(null);
   const track = useRef({ left: 0, width: 0 });
   const [width, setWidth] = useState(0);
@@ -39,6 +41,8 @@ export function MoodSlider({ value, onChange }: MoodSliderProps) {
   valueRef.current = value;
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const onCommitRef = useRef(onCommit);
+  onCommitRef.current = onCommit;
   const thumbScale = useRef(new Animated.Value(1)).current;
   const snap = useRef(new Animated.Value(0)).current;
 
@@ -98,21 +102,26 @@ export function MoodSlider({ value, onChange }: MoodSliderProps) {
           }).start(() => {
             snap.removeListener(listener);
             onChangeRef.current(to);
+            onCommitRef.current?.(to);
           });
         },
       }),
     [snap, thumbScale],
   );
 
-  const step = (delta: number) => onChange(clampMoodValue(Math.round(value) + delta));
+  const commit = (next: number) => {
+    onChange(next);
+    onCommit?.(next);
+  };
+  const step = (delta: number) => commit(clampMoodValue(Math.round(value) + delta));
   const thumbLeft = (clampMoodValue(value) / MOOD_MAX) * Math.max(0, width - THUMB);
   const currentMood = moodFromValue(value);
 
   // Teclado en web: las flechas mueven entre los cinco estados.
   const handleKeyDown = (event: { key: string; preventDefault: () => void }) => {
     const deltas: Record<string, number> = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 };
-    if (event.key === 'Home') onChange(0);
-    else if (event.key === 'End') onChange(MOOD_MAX);
+    if (event.key === 'Home') commit(0);
+    else if (event.key === 'End') commit(MOOD_MAX);
     else if (event.key in deltas) step(deltas[event.key]);
     else return;
     event.preventDefault();
