@@ -121,6 +121,8 @@ export function PlannerProvider({ children }: PropsWithChildren) {
     refresh: loadLocal,
     editSchedule: (expected, edit) =>
       run((session) => plannerService.editSchedule(session, expected, edit)),
+    applyImport: (expected, transform) =>
+      run((session) => plannerService.applyImport(session, expected, transform)),
     saveActivity: (activity) => run((session) => plannerService.saveActivity(session, activity)),
     removeActivity: (id, version) =>
       run((session) => plannerService.removeActivity(session, id, version)),

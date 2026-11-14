@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 import type { ScheduleDocument } from '../domain/schedule';
 import type { PlannerSnapshot } from './plannerService';
-import type { PersonalActivity } from './plannerStore';
+import type { PersonalActivity, PlannerDocument } from './plannerStore';
 import type { ActivityTransfer } from './personalActivities';
 export interface PlannerModel {
   snapshot: PlannerSnapshot | null;
@@ -13,6 +13,10 @@ export interface PlannerModel {
   editSchedule(
     expected: ScheduleDocument,
     edit: (doc: ScheduleDocument) => ScheduleDocument,
+  ): Promise<void>;
+  applyImport(
+    expected: ScheduleDocument,
+    transform: (doc: PlannerDocument) => PlannerDocument,
   ): Promise<void>;
   saveActivity(activity: PersonalActivity): Promise<void>;
   removeActivity(id: string, version: number): Promise<void>;
