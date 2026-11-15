@@ -26,6 +26,8 @@ export interface PersonalActivity {
   semesterId: string | null;
   semesterName: string | null;
   version: number;
+  /** Instante ISO UTC en que se marcó como hecha; sin el campo, está pendiente. */
+  doneAt?: string;
 }
 export interface LocalReceipt {
   requestId: string;
@@ -58,6 +60,13 @@ export function parsePlannerJson(raw: string): unknown {
     throw new Error('No se pudieron leer los datos guardados.');
   }
 }
+const INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+export function isInstant(value: unknown): value is string {
+  return typeof value === 'string' && INSTANT.test(value) &&
+    new Date(value).toISOString() === value;
+}
+const has = (value: unknown, key: string) =>
+  !!value && typeof value === 'object' && key in value;
 function revision(v: unknown): number {
   if (!Number.isSafeInteger(v) || Number(v) < 0) invalid();
   return Number(v);
@@ -73,7 +82,8 @@ export function parseActivity(value: unknown): PersonalActivity {
     'semesterId',
     'semesterName',
     'version',
-    ...(value && typeof value === 'object' && 'endTime' in value ? ['endTime'] : []),
+    ...(has(value, 'endTime') ? ['endTime'] : []),
+    ...(has(value, 'doneAt') ? ['doneAt'] : []),
   ]);
   if (
     !['exam', 'task', 'personal'].includes(String(v.kind)) || !isDate(v.date) ||
@@ -83,6 +93,7 @@ export function parseActivity(value: unknown): PersonalActivity {
   if (v.endTime !== undefined && timeMinutes(v.endTime) <= timeMinutes(v.time)) {
     invalid('La hora de término debe ser posterior al inicio dentro del mismo día.');
   }
+  if (v.doneAt !== undefined && !isInstant(v.doneAt)) invalid('Revisa la actividad.');
   return {
     id: identifier(v.id),
     kind: v.kind as ActivityKind,
@@ -94,6 +105,7 @@ export function parseActivity(value: unknown): PersonalActivity {
     semesterId: v.semesterId === null ? null : identifier(v.semesterId),
     semesterName: textField(v.semesterName, 80, true),
     version: Number(v.version),
+    ...(v.doneAt === undefined ? {} : { doneAt: v.doneAt }),
   };
 }
 export function parsePlanner(value: unknown): PlannerDocument {

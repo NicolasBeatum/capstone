@@ -193,10 +193,10 @@ function AgendaScreenContent({ planner }: { planner: PlannerModel }) {
         <ScalePress
           style={styles.activitiesLink}
           accessibilityRole='button'
-          accessibilityLabel='Ver mis actividades'
+          accessibilityLabel='Ver pendientes'
           onPress={() => router.push('/pendientes')}
         >
-          <Text style={styles.scheduleEditText}>Ver todas mis actividades →</Text>
+          <Text style={styles.scheduleEditText}>Ver pendientes →</Text>
         </ScalePress>
         {events.snapshot?.warning && items.some((item) => item.kind === 'event') && (
           <Text style={styles.notice}>{events.snapshot.warning}</Text>
@@ -263,7 +263,7 @@ function AgendaScreenContent({ planner }: { planner: PlannerModel }) {
                 <AgendaTimelineRow
                   start={activity.time}
                   end={personalActivityEnd(activity.time, activity.endTime)}
-                  dotColor={inProgress ? '#10a875' : '#f2c14e'}
+                  dotColor={activity.doneAt ? '#b9b2a3' : inProgress ? '#10a875' : '#f2c14e'}
                   isLast={last}
                 >
                   <AgendaActivityCard

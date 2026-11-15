@@ -164,3 +164,31 @@ test('una sesión que cambia durante la consulta no borra datos', async () => {
   await f.service.verifyAccount(f.session);
   assert.equal(consulted, false);
 });
+test('marcar como hecha escribe doneAt, notifica y rechaza una versión vieja', async () => {
+  const f = setup();
+  let notified = 0;
+  f.service.subscribe(() => notified++);
+  await f.service.saveActivity(f.session, {
+    id: id(40),
+    kind: 'task',
+    title: 'Informe',
+    date: '2026-11-16',
+    time: '10:00',
+    subjectName: null,
+    version: 1,
+    semesterId: null,
+    semesterName: null,
+  });
+  const fixed = () => new Date('2026-11-14T18:00:00.000Z');
+  await f.service.setActivityDone(f.session, id(40), 1, true, fixed);
+  let saved = (await f.store.read()).activities[0];
+  assert.equal(saved.doneAt, '2026-11-14T18:00:00.000Z');
+  assert.equal(saved.version, 2);
+  assert.equal(notified, 2);
+  await assert.rejects(() => f.service.setActivityDone(f.session, id(40), 1, false), /cambió/);
+  assert.equal((await f.store.read()).activities[0].doneAt, saved.doneAt);
+  await f.service.setActivityDone(f.session, id(40), 2, false);
+  saved = (await f.store.read()).activities[0];
+  assert.equal('doneAt' in saved, false);
+  assert.equal(saved.version, 3);
+});

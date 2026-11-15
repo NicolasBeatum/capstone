@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { emptyPlanner, PlannerStore } from '../src/shared/planner/application/plannerStore.ts';
+import {
+  emptyPlanner,
+  parseActivity,
+  parsePlanner,
+  PlannerStore,
+} from '../src/shared/planner/application/plannerStore.ts';
 const mark = (d, names) => ({
   ...d,
   receipts: names.map((fingerprint) => ({
@@ -60,4 +65,27 @@ test('cerrar espera escrituras y conserva datos para reabrir; destruir elimina d
   assert.deepEqual(marks(await reopened.read()), ['pendiente']);
   await reopened.destroy();
   assert.equal(removed, 1);
+});
+const activity = {
+  id: '00000000-0000-4000-8000-000000000001',
+  kind: 'task',
+  date: '2026-11-16',
+  time: '10:00',
+  title: 'Informe',
+  subjectName: null,
+  semesterId: null,
+  semesterName: null,
+  version: 1,
+};
+test('doneAt es opcional: sin el campo queda pendiente y con él valida el instante', () => {
+  const legacy = parsePlanner({ ...emptyPlanner(), activities: [activity] });
+  assert.equal('doneAt' in legacy.activities[0], false);
+  const done = parseActivity({ ...activity, doneAt: '2026-11-14T18:04:05.123Z' });
+  assert.equal(done.doneAt, '2026-11-14T18:04:05.123Z');
+  for (const doneAt of ['2026-11-14', '2026-13-14T18:04:05.123Z', '2026-11-14T18:04:05Z', 5, null]) {
+    assert.throws(() => parseActivity({ ...activity, doneAt }));
+  }
+  assert.throws(() =>
+    parsePlanner({ ...emptyPlanner(), activities: [{ ...activity, doneAt: 'ayer' }] })
+  );
 });

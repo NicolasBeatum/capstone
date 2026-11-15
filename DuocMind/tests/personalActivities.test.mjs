@@ -14,6 +14,7 @@ import {
 } from '../src/shared/planner/domain/personalActivityTime.ts';
 import {
   savePersonalActivity,
+  setActivityDone,
   transferActivities,
 } from '../src/shared/planner/application/personalActivities.ts';
 import { putSemester } from '../src/shared/planner/domain/schedule.ts';
@@ -113,4 +114,40 @@ test('la hora se edita por partes con cualquier minuto y rechaza valores inváli
   for (const [part, text] of [['hour', '24'], ['minute', '60'], ['hour', ''], ['minute', 'a']]) {
     assert.equal(changeTimePart('09:07', part, text), null);
   }
+});
+const DONE = '2026-11-14T18:00:00.000Z';
+test('marcar y desmarcar cambia doneAt, sube la versión y rechaza versiones viejas', () => {
+  const doc = setup(), done = setActivityDone(doc, id(1), 1, DONE);
+  assert.equal(done.activities[0].doneAt, DONE);
+  assert.equal(done.activities[0].version, 2);
+  assert.throws(() => setActivityDone(done, id(1), 1, null), /cambió/);
+  assert.throws(() => setActivityDone(doc, id(1), 1, 'hoy'));
+  const back = setActivityDone(done, id(1), 2, null);
+  assert.equal('doneAt' in back.activities[0], false);
+  assert.equal(back.activities[0].version, 3);
+});
+test('editar desde el formulario conserva el estado e ignora el doneAt recibido', () => {
+  const done = setActivityDone(setup(), id(1), 1, DONE);
+  const edited = savePersonalActivity(done, { ...activity, version: 2, title: 'Otra' });
+  assert.equal(edited.activities[0].doneAt, DONE);
+  assert.equal(edited.activities[0].title, 'Otra');
+  const forged = savePersonalActivity(edited, {
+    ...activity,
+    version: 3,
+    doneAt: '2020-01-01T00:00:00.000Z',
+  });
+  assert.equal(forged.activities[0].doneAt, DONE);
+  const fresh = savePersonalActivity(emptyPlanner(), { ...activity, doneAt: DONE });
+  assert.equal('doneAt' in fresh.activities[0], false);
+});
+test('copiar deja pendiente la copia; mover conserva el estado', () => {
+  const done = setActivityDone(setup(), id(1), 1, DONE);
+  const source = (mode) => ({
+    ...transfer(mode),
+    sources: [{ ...transfer(mode).sources[0], version: 2 }],
+  });
+  const copied = transferActivities(done, source('copy'));
+  assert.equal(copied.activities[0].doneAt, DONE);
+  assert.equal('doneAt' in copied.activities[1], false);
+  assert.equal(transferActivities(done, source('move')).activities[0].doneAt, DONE);
 });

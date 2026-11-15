@@ -53,7 +53,7 @@ El proyecto incluye además un **panel web de administración** para el equipo d
 | **Dashboard** | Resumen semanal del ánimo, clases reales del horario activo y próximos pendientes locales. |
 | **Check-in emocional** | Registro diario del ánimo general mediante una escala deslizable, con historial personal. |
 | **Test de estrés (PSS-10)** | Cuestionario de estrés percibido con niveles de resultado y restricción de frecuencia. |
-| **Agenda** | Horarios por semestre con ramos manuales y salas por bloque; pruebas, tareas y actividades locales con copia/traslado opcional. |
+| **Agenda y Pendientes** | Horarios por semestre con ramos manuales y salas por bloque; pruebas, tareas y actividades locales agrupadas por plazo, que se pueden marcar como hechas y copiar o mover entre semestres. |
 | **Bienestar** | Recursos de bienestar incluidos en la app y recursos de crisis disponibles sin conexión. |
 | **Modo offline** | Persistencia SQLCipher por cuenta para check-ins y horarios; la verificación nativa del horario sigue pendiente. |
 | **Eliminación de cuenta** | Borrado de datos locales y remotos mediante una Edge Function dedicada. |

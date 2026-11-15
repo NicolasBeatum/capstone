@@ -124,6 +124,8 @@ export function PlannerProvider({ children }: PropsWithChildren) {
     saveActivity: (activity) => run((session) => plannerService.saveActivity(session, activity)),
     removeActivity: (id, version) =>
       run((session) => plannerService.removeActivity(session, id, version)),
+    setActivityDone: (id, version, done) =>
+      run((session) => plannerService.setActivityDone(session, id, version, done)),
     transfer: (request) => run((session) => plannerService.transfer(session, request)),
   };
   return <PlannerContext.Provider value={model}>{children}</PlannerContext.Provider>;

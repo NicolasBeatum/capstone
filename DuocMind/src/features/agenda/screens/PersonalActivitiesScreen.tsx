@@ -1,195 +1,288 @@
-import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import * as Crypto from 'expo-crypto';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { LayoutAnimation, ScrollView, Text, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { LiquidBackground } from '@/shared/components/Glass';
 import { GotaLoader } from '@/shared/components/GotaLoader';
 import { BottomNav } from '@/shared/components/BottomNav';
+import { ScalePress } from '@/shared/components/ScalePress';
+import { motionDuration } from '@/shared/motion/motionTokens';
+import { useReducedMotion } from '@/shared/motion/useReducedMotion';
 import { type PlannerModel, usePlanner } from '@/shared/planner/application/usePlanner';
-import { ACTIVITY_LABELS, type PersonalActivity } from '@/shared/planner/application/plannerStore';
-import type { ActivityTransfer } from '@/shared/planner/application/personalActivities';
+import type { PersonalActivity } from '@/shared/planner/application/plannerStore';
 import { civilNow } from '@/shared/planner/domain/weeklySchedule';
-import { personalActivityEnd } from '@/shared/planner/domain/personalActivityTime';
-import { PlannerButton, PlannerField, PlannerModal } from '../components/PlannerControls';
+import {
+  type KindFilter as Kind,
+  type PendingItem,
+  projectPending,
+  type SemesterFilter,
+} from '../domain/pendingActivities';
+import { PlannerButton, PlannerModal } from '../components/PlannerControls';
 import { PersonalActivityForm } from '../components/PersonalActivityForm';
-import { scheduleStyles as s } from './ScheduleScreen.styles';
+import {
+  ActivityTransferModal,
+  createTransferDraft,
+  type TransferDraft,
+} from '../components/ActivityTransferModal';
+import { PendingSummary } from '../components/pending/PendingSummary';
+import { KindFilter } from '../components/pending/KindFilter';
+import { PendingGroup } from '../components/pending/PendingGroup';
+import { PendingRow } from '../components/pending/PendingRow';
+import { DoneSection } from '../components/pending/DoneSection';
+import { PendingActionsSheet } from '../components/pending/PendingActionsSheet';
+import {
+  SemesterFilterSheet,
+  semesterFilterLabel,
+} from '../components/pending/SemesterFilterSheet';
+import { SelectionBar } from '../components/pending/SelectionBar';
+import { UndoToast } from '../components/pending/UndoToast';
+import { scheduleStyles } from './ScheduleScreen.styles';
+import { pendingStyles as s } from './PendingScreen.styles';
+
+const ROW_EXIT = LayoutAnimation.create(
+  motionDuration.rowExit,
+  LayoutAnimation.Types.easeInEaseOut,
+  LayoutAnimation.Properties.opacity,
+);
+const message = (e: unknown) => e instanceof Error ? e.message : 'No se pudo guardar.';
+
 export default function PersonalActivitiesScreen() {
   const planner = usePlanner();
   const session = planner.snapshot?.session;
   return (
-    <PersonalActivitiesScreenContent
+    <PendingContent
       key={session ? `${session.userId}:${session.generation}` : 'signed-out'}
       planner={planner}
     />
   );
 }
-function PersonalActivitiesScreenContent({ planner }: { planner: PlannerModel }) {
-  const router = useRouter(), document = planner.snapshot?.document, doc = document?.schedule;
+
+function PendingContent({ planner }: { planner: PlannerModel }) {
+  const router = useRouter(), reduceMotion = useReducedMotion();
+  const document = planner.snapshot?.document, schedule = document?.schedule;
+  const semesters = useMemo(() => schedule?.semesters ?? [], [schedule]);
+  const activities = useMemo(() => document?.activities ?? [], [document]);
+  const [kind, setKind] = useState<Kind>('all'),
+    [semester, setSemester] = useState<SemesterFilter>({ kind: 'all' }),
+    [picker, setPicker] = useState(false);
   const [form, setForm] = useState<{ activity?: PersonalActivity } | null>(null),
-    [selected, setSelected] = useState<Record<string, number>>({}),
-    [filter, setFilter] = useState<string | null>('all');
-  const [transfer, setTransfer] = useState<
-      { request: ActivityTransfer; activities: PersonalActivity[] } | null
-    >(null),
-    [deleting, setDeleting] = useState<PersonalActivity | null>(null),
+    [sheet, setSheet] = useState<string | null>(null),
+    [selection, setSelection] = useState<Record<string, number> | null>(null),
+    [transfer, setTransfer] = useState<TransferDraft | null>(null),
+    [deleting, setDeleting] = useState<PersonalActivity | null>(null);
+  const [undo, setUndo] = useState<{ id: string; done: boolean; key: number } | null>(null),
     [error, setError] = useState<string | null>(null);
-  const activities = [...(document?.activities ?? [])].sort((a, b) =>
-    a.date.localeCompare(b.date) || a.time.localeCompare(b.time) || a.id.localeCompare(b.id)
+
+  // Un semestre que ya no existe vuelve a «todos» en lugar de dejar la lista vacía.
+  const semesterId = semester.kind === 'semester' ? semester.id : null;
+  const filter = useMemo<SemesterFilter>(() =>
+    semester.kind === 'semester' && !semesters.some((x) => x.id === semesterId)
+      ? { kind: 'all' }
+      : semester, [semester, semesterId, semesters]);
+  const view = useMemo(
+    () => projectPending(activities, planner.now, { kind, semester: filter }),
+    [activities, planner.now, kind, filter],
   );
+
+  // La fila que se marca sale con un fundido corto cuando llegan los datos guardados.
+  const animate = useRef(false), seen = useRef(activities);
+  if (seen.current !== activities) {
+    if (animate.current && !reduceMotion) LayoutAnimation.configureNext(ROW_EXIT);
+    animate.current = false;
+    seen.current = activities;
+  }
+
+  useFocusEffect(useCallback(() => () => {
+    setSelection(null);
+    setUndo(null);
+  }, []));
+
+  const setDone = (activity: PersonalActivity, done: boolean) => {
+    setError(null);
+    animate.current = true;
+    return planner.setActivityDone(activity.id, activity.version, done).catch((e: unknown) => {
+      animate.current = false;
+      setError(message(e));
+      throw e;
+    });
+  };
+  const toggle = (activity: PersonalActivity) => {
+    const done = !activity.doneAt;
+    setSheet(null);
+    void setDone(activity, done).then(
+      () => setUndo({ id: activity.id, done, key: Date.now() }),
+      () => undefined,
+    );
+  };
+  const revert = () => {
+    if (!undo) return;
+    const current = activities.find((a) => a.id === undo.id);
+    setUndo(null);
+    if (current && !!current.doneAt === undo.done) {
+      void setDone(current, !undo.done).catch(() => undefined);
+    }
+  };
+  const hideUndo = useCallback(() => setUndo(null), []);
+
   const choose = (activity: PersonalActivity) =>
-    setSelected((previous) => {
+    setSelection((previous) => {
       const next = { ...previous };
       if (activity.id in next) delete next[activity.id];
       else next[activity.id] = activity.version;
       return next;
     });
   const prepare = (mode: 'copy' | 'move') => {
-    try {
-      const values = Object.keys(selected).map((id) => {
-        const activity = activities.find((a) => a.id === id && a.version === selected[id]);
-        if (!activity) throw new Error('Una actividad cambió. Revisa tu selección.');
-        return activity;
-      });
-      if (!values.length) return;
-      setError(null);
-      setTransfer({
-        activities: values,
-        request: {
-          requestId: Crypto.randomUUID(),
-          mode,
-          targetSemesterId: doc?.activeSemesterId ?? null,
-          sources: values.map((activity) => ({
-            id: activity.id,
-            version: activity.version,
-            copyId: mode === 'copy' ? Crypto.randomUUID() : null,
-            date: activity.date,
-          })),
-        },
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Revisa tu selección.');
-    }
+    const ids = Object.keys(selection ?? {});
+    const values = ids.map((id) => activities.find((a) => a.id === id && a.version === selection![id]));
+    if (values.some((a) => !a)) return setError('Una actividad cambió. Revisa tu selección.');
+    if (!values.length) return;
+    setError(null);
+    setTransfer(createTransferDraft(values as PersonalActivity[], mode, schedule?.activeSemesterId ?? null));
   };
-  const failure = (e: unknown) => setError(e instanceof Error ? e.message : 'No se pudo guardar.');
+
+  const items = [...view.groups.flatMap((g) => g.items), ...view.done];
+  const sheetItem = sheet ? items.find((i) => i.activity.id === sheet) ?? null : null;
+  const row = (mode: 'pending' | 'done', late = false) => (item: PendingItem, index: number) => (
+    <PendingRow
+      key={item.activity.id}
+      item={item}
+      mode={selection ? 'select' : mode}
+      late={late}
+      selected={!!selection && item.activity.id in selection}
+      divider={index > 0}
+      disabled={planner.busy}
+      onToggle={() => toggle(item.activity)}
+      onOpen={() => {
+        if (selection) choose(item.activity);
+        else {
+          setError(null);
+          setSheet(item.activity.id);
+        }
+      }}
+    />
+  );
+  const emptyText = kind !== 'all'
+    ? 'No tienes pendientes de este tipo.'
+    : !activities.length
+    ? 'Crea tu primera prueba o tarea con «Nueva».'
+    : 'No tienes pendientes por ahora.';
+
   return (
     <View style={s.page}>
       <LiquidBackground />
       <ScrollView contentContainerStyle={s.content}>
-        <View style={s.header}>
-          <Text style={s.title} accessibilityRole='header'>Mis actividades</Text>
-          <PlannerButton
-            label='Nueva actividad'
-            disabled={!document || planner.busy}
-            onPress={() => setForm({})}
-          />
-        </View>
-        <Text style={s.subtitle}>
-          Pruebas, tareas y actividades personales. Se guardan solo en este dispositivo.
-        </Text>
-        <View style={s.row}>
-          <PlannerButton secondary label='Ver agenda' onPress={() => router.push('/agenda')} />
-          <PlannerButton secondary label='Mis horarios' onPress={() => router.push('/schedule')} />
-        </View>
-        {planner.loading && <GotaLoader text='Cargando tus actividades…' />}
+        <PendingSummary
+          summary={document ? view.summary : null}
+          week={view.week}
+          disabled={!document || planner.busy}
+          onNew={() => setForm({})}
+        />
+        {document && <KindFilter value={kind} counts={view.counts} onChange={setKind} />}
+        {planner.loading && <GotaLoader text='Cargando tus pendientes…' />}
         {planner.error && <Text style={s.error} accessibilityRole='alert'>{planner.error}</Text>}
-        <Text style={s.label}>Organización</Text>
-        <View style={s.row}>
-          <PlannerButton
-            label='Todas'
-            secondary={filter !== 'all'}
-            selected={filter === 'all'}
-            onPress={() => setFilter('all')}
-          />
-          <PlannerButton
-            label='Generales'
-            secondary={filter !== null}
-            selected={filter === null}
-            onPress={() => setFilter(null)}
-          />
-          {doc?.semesters.map((semester) => (
-            <PlannerButton
-              key={semester.id}
-              label={semester.name}
-              secondary={filter !== semester.id}
-              selected={filter === semester.id}
-              onPress={() => setFilter(semester.id)}
-            />
-          ))}
-        </View>
-        {Object.keys(selected).length > 0 && (
-          <View style={s.card}>
-            <Text style={s.cardTitle}>{Object.keys(selected).length} seleccionadas</Text>
-            <View style={s.row}>
-              <PlannerButton label='Copiar a otro semestre' onPress={() => prepare('copy')} />
-              <PlannerButton
-                secondary
-                label='Mover a otro semestre'
-                onPress={() => prepare('move')}
-              />
-              <PlannerButton secondary label='Quitar selección' onPress={() => setSelected({})} />
-            </View>
-          </View>
-        )}
-        {error && !transfer && !deleting && (
+        {error && !sheet && !transfer && !deleting && (
           <Text style={s.error} accessibilityRole='alert'>{error}</Text>
         )}
-        {!planner.loading &&
-          !activities.filter((activity) => filter === 'all' || activity.semesterId === filter)
-            .length &&
-          (
-            <View style={s.card}>
-              <Text style={s.cardTitle}>Sin actividades aquí</Text>
-              <Text style={s.subtitle}>
-                Puedes crear una actividad general o asociarla a un semestre para organizarla.
+        {document && !view.groups.length && (
+          <View style={[s.card, s.empty]}>
+            <Text style={s.emptyTitle}>Todo al día</Text>
+            <Text style={s.emptyText}>{emptyText}</Text>
+          </View>
+        )}
+        {view.groups.map((group, index) => (
+          <PendingGroup
+            key={group.id}
+            group={group}
+            index={index}
+            renderRow={row('pending', group.id === 'late')}
+          />
+        ))}
+        <DoneSection items={view.done} renderRow={row('done')} />
+        {document && (
+          <View>
+            <ScalePress
+              style={s.link}
+              onPress={() => setPicker(true)}
+              accessibilityRole='button'
+              accessibilityHint='Elige qué semestre mostrar'
+            >
+              <Text style={s.linkText}>
+                Mostrando: {semesterFilterLabel(filter, semesters)} · Cambiar
               </Text>
-            </View>
-          )}
-        {activities.filter((activity) => filter === 'all' || activity.semesterId === filter).map(
-          (activity) => (
-            <View key={activity.id} style={[s.card, activity.id in selected && s.selected]}>
-              <Text style={s.pill}>
-                {ACTIVITY_LABELS[activity.kind]} · {activity.semesterName ?? 'General'}
-              </Text>
-              <Text style={s.cardTitle}>{activity.title}</Text>
-              <Text style={s.subtitle}>
-                {activity.date} ·{' '}
-                {activity.time}–{personalActivityEnd(activity.time, activity.endTime)}
-                {activity.subjectName ? ` · ${activity.subjectName}` : ''}
-              </Text>
-              {activity.semesterId && !doc?.semesters.some((semester) =>
-                semester.id === activity.semesterId
-              ) && (
-                <Text style={s.notice}>Semestre no disponible. La actividad sigue guardada.</Text>
-              )}
-              <View style={s.row}>
-                <PlannerButton
-                  secondary
-                  selected={activity.id in selected}
-                  label={`${
-                    activity.id in selected ? 'Quitar selección de' : 'Seleccionar'
-                  } ${activity.title} · ${activity.semesterName ?? 'General'}`}
-                  onPress={() =>
-                    choose(activity)}
-                />
-                <PlannerButton
-                  secondary
-                  label={`Editar actividad ${activity.title}`}
-                  onPress={() => setForm({ activity })}
-                />
-                <PlannerButton
-                  danger
-                  label={`Eliminar actividad ${activity.title}`}
-                  onPress={() => {
-                    setDeleting(activity);
-                    setError(null);
-                  }}
-                />
-              </View>
-            </View>
-          ),
+            </ScalePress>
+            <Text style={s.local}>Se guardan solo en este dispositivo.</Text>
+          </View>
         )}
       </ScrollView>
+      {selection
+        ? (
+          <SelectionBar
+            count={Object.keys(selection).length}
+            onCopy={() => prepare('copy')}
+            onMove={() => prepare('move')}
+            onCancel={() => setSelection(null)}
+          />
+        )
+        : undo && (
+          <UndoToast
+            key={undo.key}
+            message={undo.done ? 'Marcada como hecha' : 'Marcada como pendiente'}
+            disabled={planner.busy}
+            onUndo={revert}
+            onHide={hideUndo}
+          />
+        )}
       <BottomNav currentTab='pending' />
+      {sheetItem && (
+        <PendingActionsSheet
+          item={sheetItem}
+          busy={planner.busy}
+          error={error}
+          semesterMissing={!!sheetItem.activity.semesterId &&
+            !semesters.some((x) => x.id === sheetItem.activity.semesterId)}
+          onClose={() => setSheet(null)}
+          actions={{
+            toggleDone: () => toggle(sheetItem.activity),
+            edit: () => {
+              setSheet(null);
+              setForm({ activity: sheetItem.activity });
+            },
+            openAgenda: () => {
+              setSheet(null);
+              router.push({ pathname: '/agenda', params: { date: sheetItem.activity.date } });
+            },
+            transfer: () => {
+              const { activity } = sheetItem, active = schedule?.activeSemesterId ?? null;
+              setSheet(null);
+              setTransfer(createTransferDraft(
+                [activity],
+                'copy',
+                active !== activity.semesterId ? active : null,
+              ));
+            },
+            selectMany: () => {
+              setSheet(null);
+              setUndo(null);
+              setSelection({ [sheetItem.activity.id]: sheetItem.activity.version });
+            },
+            remove: () => {
+              setSheet(null);
+              setError(null);
+              setDeleting(sheetItem.activity);
+            },
+          }}
+        />
+      )}
+      {picker && (
+        <SemesterFilterSheet
+          value={filter}
+          semesters={semesters}
+          onClose={() => setPicker(false)}
+          onChange={(value) => {
+            setSemester(value);
+            setPicker(false);
+          }}
+        />
+      )}
       {form && (
         <PersonalActivityForm
           planner={planner}
@@ -204,8 +297,10 @@ function PersonalActivitiesScreenContent({ planner }: { planner: PlannerModel })
           busy={planner.busy}
           onClose={() => setDeleting(null)}
         >
-          <Text style={s.subtitle}>Se eliminará {deleting.title} de este dispositivo.</Text>
-          {error && <Text style={s.error}>{error}</Text>}
+          <Text style={scheduleStyles.subtitle}>
+            Se eliminará {deleting.title} de este dispositivo.
+          </Text>
+          {error && <Text style={s.error} accessibilityRole='alert'>{error}</Text>}
           <PlannerButton
             danger
             label='Confirmar eliminación de actividad'
@@ -213,79 +308,23 @@ function PersonalActivitiesScreenContent({ planner }: { planner: PlannerModel })
             onPress={() =>
               void planner.removeActivity(deleting.id, deleting.version).then(() => {
                 setDeleting(null);
-                setSelected({});
-              }).catch(failure)}
+                setSelection(null);
+                setUndo(null);
+              }).catch((e: unknown) => setError(message(e)))}
           />
         </PlannerModal>
       )}
       {transfer && (
-        <PlannerModal
-          title={transfer.request.mode === 'copy' ? 'Copiar actividades' : 'Mover actividades'}
-          busy={planner.busy}
+        <ActivityTransferModal
+          planner={planner}
+          draft={transfer}
           onClose={() => setTransfer(null)}
-        >
-          <Text style={s.notice}>
-            {transfer.request.mode === 'copy'
-              ? 'Se crearán copias y los originales se conservarán.'
-              : 'Se cambiará la organización; las actividades conservarán su identidad.'}{' '}
-            Las fechas se mantienen salvo que las edites aquí.
-          </Text>
-          <Text style={s.label}>Destino</Text>
-          <View style={s.row}>
-            <PlannerButton
-              label='Generales'
-              secondary={transfer.request.targetSemesterId !== null}
-              selected={transfer.request.targetSemesterId === null}
-              onPress={() =>
-                setTransfer({
-                  ...transfer,
-                  request: { ...transfer.request, targetSemesterId: null },
-                })}
-            />
-            {doc?.semesters.map((semester) => (
-              <PlannerButton
-                key={semester.id}
-                label={semester.name}
-                secondary={transfer.request.targetSemesterId !== semester.id}
-                selected={transfer.request.targetSemesterId === semester.id}
-                onPress={() =>
-                  setTransfer({
-                    ...transfer,
-                    request: { ...transfer.request, targetSemesterId: semester.id },
-                  })}
-              />
-            ))}
-          </View>
-          {transfer.request.sources.map((source, index) => (
-            <PlannerField
-              key={source.id}
-              label={`Fecha de ${transfer.activities[index].title}`}
-              maxLength={10}
-              value={source.date}
-              onChangeText={(date) =>
-                setTransfer({
-                  ...transfer,
-                  request: {
-                    ...transfer.request,
-                    sources: transfer.request.sources.map((s) =>
-                      s.id === source.id ? { ...s, date } : s
-                    ),
-                  },
-                })}
-            />
-          ))}
-          {error && <Text style={s.error} accessibilityRole='alert'>{error}</Text>}
-          <PlannerButton
-            label='Confirmar traslado o copia'
-            disabled={planner.busy}
-            onPress={() =>
-              void planner.transfer(transfer.request).then(() => {
-                setTransfer(null);
-                setSelected({});
-                setError(null);
-              }).catch(failure)}
-          />
-        </PlannerModal>
+          onDone={() => {
+            setTransfer(null);
+            setSelection(null);
+            setError(null);
+          }}
+        />
       )}
     </View>
   );

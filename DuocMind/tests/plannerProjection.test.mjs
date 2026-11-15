@@ -72,3 +72,15 @@ test('inicio conserva una actividad hasta su término configurado y muestra su i
     0,
   );
 });
+test('«Se viene» excluye las actividades hechas', () => {
+  const base = { kind: 'task', date: '2026-10-20', time: '09:00', subjectName: null };
+  const result = projectPlannerDashboard(schedule(), [
+    { ...base, id: id(6), title: 'Pendiente' },
+    { ...base, id: id(7), title: 'Hecha', doneAt: '2026-10-19T12:00:00.000Z' },
+  ], new Date('2026-10-19T12:30:00Z'));
+  assert.deepEqual(result.upcoming.map((a) => a.title), ['Pendiente']);
+  assert.equal(
+    projectPlannerDashboard(schedule(), [{ ...base, id: id(7), doneAt: 'x', title: 'Hecha' }], new Date('2026-10-19T12:30:00Z')).upcoming.length,
+    0,
+  );
+});
