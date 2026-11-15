@@ -2,9 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  completeAccountDeletion,
   completeStudentProfile,
-  deleteStudentAccount,
   loginAccount,
   registerAccount,
 } from '../src/features/auth/application/authentication.ts';
@@ -18,17 +16,27 @@ function gateway(overrides = {}) {
     createStudentProfile: async () => {},
     requestPasswordReset: async () => {},
     signOut: async () => {},
-    deleteCurrentAccount: async () => {},
+    pendingAccountDeletion: async () => null,
+    scheduleAccountDeletion: async () => '2026-12-15T12:00:00.000Z',
+    cancelAccountDeletion: async () => {},
     ...overrides,
   };
 }
 
 test('el registro dirige al perfil si hay sesión y a confirmación si no la hay', async () => {
-  assert.equal(await registerAccount(' student@example.test ', 'password', gateway()), 'profile');
+  assert.equal(await registerAccount(' student@example.test ', 'password', 4, gateway()), 'profile');
   assert.equal(
-    await registerAccount('student@example.test', 'password', gateway({ register: async () => false })),
+    await registerAccount('student@example.test', 'password', 4, gateway({ register: async () => false })),
     'confirm-email',
   );
+});
+
+test('el registro envía la carrera elegida junto con la cuenta', async () => {
+  const calls = [];
+  await registerAccount('student@example.test', 'password', 7, gateway({
+    register: async (...args) => { calls.push(args); return true; },
+  }));
+  assert.deepEqual(calls, [['student@example.test', 'password', 7]]);
 });
 
 test('el inicio de sesión exige completar el perfil antes del dashboard', async () => {
@@ -52,22 +60,12 @@ test('el onboarding normaliza campos y rechaza perfiles incompletos', async () =
   );
 });
 
-test('el cierre de cuenta espera confirmación del gateway y propaga fallos', async () => {
-  let deleted = false;
-  await deleteStudentAccount(gateway({ deleteCurrentAccount: async () => { deleted = true; } }));
-  assert.equal(deleted, true);
-  await assert.rejects(
-    deleteStudentAccount(gateway({ deleteCurrentAccount: async () => { throw new Error('fallo'); } })),
-    /fallo/,
+test('con una eliminación de cuenta pendiente el inicio de sesión ofrece cancelarla', async () => {
+  assert.equal(
+    await loginAccount('student@example.test', 'password', gateway({
+      hasStudentProfile: async () => true,
+      pendingAccountDeletion: async () => '2026-12-15T12:00:00.000Z',
+    })),
+    'account-deletion',
   );
-});
-
-test('el borrado confirmado limpia primero el dispositivo y conserva sesión si falla Supabase', async () => {
-  const steps = [];
-  await assert.rejects(completeAccountDeletion({
-    clearLocalData: async () => { steps.push('local'); },
-    deleteRemoteAccount: async () => { steps.push('remote'); throw new Error('offline'); },
-    clearLocalSession: async () => { steps.push('session'); },
-  }), /offline/);
-  assert.deepEqual(steps, ['local', 'remote']);
 });

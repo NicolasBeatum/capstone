@@ -5,6 +5,9 @@ import { BottomNav } from '@/shared/components/BottomNav';
 import { LiquidBackground } from '@/shared/components/Glass';
 import { GotaLoader } from '@/shared/components/GotaLoader';
 import { ScalePress } from '@/shared/components/ScalePress';
+import { consentOwnerGateway } from '@/shared/consents/infrastructure/consentOwnerGateway';
+import { canUploadEmotionalDataNow } from '@/shared/consents/infrastructure/emotionalUploadPolicy';
+import { lastStressTestStore } from '../infrastructure/lastStressTestStorage';
 import { styles } from './DailyTestScreen.styles';
 import { TestOffer } from '../components/TestOffer';
 import { TestRunner } from '../components/TestRunner';
@@ -25,6 +28,8 @@ export default function DailyTestScreen() {
   const [finished, setFinished] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  // Sin consentimientos activos el resultado no se envía; el test no tiene almacenamiento local.
+  const [notSaved, setNotSaved] = useState(false);
 
   const loadTest = async () => {
     setLoading(true);
@@ -43,9 +48,29 @@ export default function DailyTestScreen() {
     void loadTest();
   }, []);
 
+  /** La fecha y el nivel se guardan siempre en el dispositivo para el aviso de 30 días. */
+  const rememberLocally = async (result: TestResult) => {
+    try {
+      const ownerId = await consentOwnerGateway.currentOwner();
+      if (ownerId) {
+        await lastStressTestStore.write(ownerId, {
+          appliedAt: new Date().toISOString(),
+          level: String(result.category),
+        });
+      }
+    } catch {
+      // Solo se pierde el aviso; el test ya terminó.
+    }
+  };
+
   const saveApplication = async (answers: Record<number, number>, result: TestResult) => {
+    await rememberLocally(result);
     if (!instrument?.testId || !instrument.testVersion) {
       setSaveError('No se pudo identificar la versión del test.');
+      return;
+    }
+    if (!(await canUploadEmotionalDataNow())) {
+      setNotSaved(true);
       return;
     }
     try {
@@ -128,7 +153,9 @@ export default function DailyTestScreen() {
           description={
             saveError
               ? `No pudimos guardar tu resultado: ${saveError}`
-              : 'Tomarte un momento para revisar cómo estás es un buen paso. Puedes volver cuando quieras.'
+              : notSaved
+                ? 'Tu resultado no se guardó, porque no tienes consentimientos activos. Tomarte un momento para revisar cómo estás es un buen paso.'
+                : 'Tomarte un momento para revisar cómo estás es un buen paso. Puedes volver cuando quieras.'
           }
           primaryLabel="Volver"
           onPrimary={() => router.back()}

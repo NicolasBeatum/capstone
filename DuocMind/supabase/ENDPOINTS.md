@@ -142,7 +142,7 @@ La migración posterior `20260928010000_grant_checkin_timestamp.sql` concede a `
 
 La migración `20261009120000_registro_emocional_realtime.sql` agrega `registro_emocional` a la publicación `supabase_realtime`. El dashboard se suscribe por WebSocket solo a eventos `INSERT` filtrados por `estudiante_id_estudiante=eq.<id propio>` para refrescar el gráfico semanal; Realtime entrega cada evento únicamente a quien pasa la política RLS de lectura. La app no escucha `DELETE`, porque esos eventos no admiten filtro. El historial semanal se lee con `GET /rest/v1/registro_emocional` acotado por `fecha_hora` (`gte`/`lt`).
 
-Para borrar la cuenta, la app invoca la Edge Function `delete-account` con el JWT de la sesión. La función usa `service_role` solo en el servidor para llamar `erase_student_personal_data` y eliminar el usuario de Auth. No se habilita `DELETE` global ni se expone ese secreto al cliente. El despliegue se hace por separado con `supabase functions deploy delete-account` después de revisar/aplicar la migración.
+Para borrar la cuenta, la app llama a `POST /rest/v1/rpc/request_deletion` con `{"p_tipo": "cuenta"}` y puede cancelarla con `POST /rest/v1/rpc/cancel_deletion`. pg_cron ejecuta las solicitudes vencidas con `private.run_due_deletions()`, que llama a `erase_student_personal_data` y elimina el usuario de Auth en la base. No hay Edge Function para esto, no se habilita `DELETE` global ni se expone `service_role` al cliente.
 
 Solicitud de derivación tras aceptar el consentimiento en la app:
 

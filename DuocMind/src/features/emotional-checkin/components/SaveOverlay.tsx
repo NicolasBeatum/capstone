@@ -22,10 +22,19 @@ interface SaveOverlayProps {
   t: number;
   /** Estado registrado; elige el mensaje de cierre. */
   mood: CheckinMood;
-  /** El registro quedó solo en el dispositivo y se enviará al recuperar conexión. */
-  savedOffline: boolean;
+  /**
+   * Dónde quedó el registro: en el servidor, en el dispositivo a la espera de conexión, o solo
+   * en el dispositivo porque la persona no tiene consentimientos activos.
+   */
+  storage: 'synced' | 'offline' | 'device-only';
   onContinue: () => void;
 }
+
+const STORAGE_MESSAGES: Record<SaveOverlayProps['storage'], string> = {
+  synced: 'Tu registro ya quedó guardado.',
+  offline: 'Quedó guardado en tu dispositivo y se enviará cuando tengas conexión.',
+  'device-only': 'Quedó guardado solo en este dispositivo y no se enviará, porque no tienes consentimientos activos.',
+};
 
 const CREAM = '#f3ecda';
 const NAVY = '#1a2b44';
@@ -36,7 +45,7 @@ const MUTED = '#8a8272';
  * cuando el registro queda guardado, un agradecimiento que explica que ya no hace
  * falta registrar de nuevo antes de llevar a la persona al inicio.
  */
-export function SaveOverlay({ phase, t, mood, savedOffline, onContinue }: SaveOverlayProps) {
+export function SaveOverlay({ phase, t, mood, storage, onContinue }: SaveOverlayProps) {
   const reduceMotion = useReducedMotion();
   const appear = useRef(new Animated.Value(0)).current;
   const swap = useRef(new Animated.Value(0)).current;
@@ -101,9 +110,7 @@ export function SaveOverlay({ phase, t, mood, savedOffline, onContinue }: SaveOv
         </Text>
         <Text style={styles.body}>{thanksMessage(mood)}</Text>
         <Text style={styles.status}>
-          {savedOffline
-            ? 'Quedó guardado en tu dispositivo y se enviará cuando tengas conexión.'
-            : 'Tu registro ya quedó guardado.'}
+          {STORAGE_MESSAGES[storage]}
         </Text>
         <ScalePress
           style={styles.button}

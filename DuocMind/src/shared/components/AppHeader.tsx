@@ -10,7 +10,6 @@ import {
 import { styles } from './AppHeader.styles';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/shared/theme/theme';
-import { deleteStudentAccount, getAuthenticationErrorMessage } from '@/features/auth/application/authentication';
 import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
 
 interface AppHeaderProps {
@@ -36,31 +35,6 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
     } catch {
       Alert.alert('No se pudo cerrar sesión', 'Revisa tu conexión e inténtalo nuevamente.');
     }
-  };
-
-  const handleDeleteAccount = () => {
-    setMenuVisible(false);
-    Alert.alert(
-      'Eliminar cuenta y datos',
-      'Se eliminarán tu historial emocional y los datos personales de la cuenta. Esta acción no se puede deshacer.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar cuenta',
-          style: 'destructive',
-          onPress: () => {
-            void (async () => {
-              try {
-                await deleteStudentAccount(supabaseAuthGateway);
-                router.replace('/login');
-              } catch (error) {
-                Alert.alert('No se pudo eliminar la cuenta', getAuthenticationErrorMessage(error));
-              }
-            })();
-          },
-        },
-      ],
-    );
   };
 
   return (
@@ -151,17 +125,6 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={handleDeleteAccount}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-            >
-              <Text style={styles.menuItemIcon}>⌫</Text>
-              <Text style={[styles.logoutLabel, { color: theme.danger }]}>
-                Eliminar cuenta y datos
-              </Text>
-            </TouchableOpacity>
           </Pressable>
         </Pressable>
       </Modal>

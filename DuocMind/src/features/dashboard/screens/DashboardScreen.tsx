@@ -15,7 +15,7 @@ import {
   dismissNotification,
   getDismissedNotificationIds,
 } from '../infrastructure/dismissedNotificationsStorage';
-import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
+import { purgeExpiredAccountData, supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
 import { BottomNav } from '@/shared/components/BottomNav';
 import { LiquidBackground, LiquidCard } from '@/shared/components/Glass';
 import { GotaLoader } from '@/shared/components/GotaLoader';
@@ -162,6 +162,8 @@ function DashboardScreenContent({planner}: {planner: PlannerModel}) {
   const isFocused = useIsFocused();
 
   useEffect(() => {
+    // En un teléfono compartido, otra cuenta con sesión también limpia las cuentas vencidas.
+    void purgeExpiredAccountData();
     void getDismissedNotificationIds().then(setDismissedIds);
     // Al entrar con sesión se concilian los consentimientos con el servidor (RF-007). No bloquea
     // la pantalla y nunca lanza; si falla, Mi perfil lo vuelve a intentar al abrirse.

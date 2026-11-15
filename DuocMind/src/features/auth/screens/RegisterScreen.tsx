@@ -44,6 +44,8 @@ import {
   passwordStrength,
   registerBlocker,
 } from '../domain/registerForm';
+import { ConsentInfoModal } from '@/shared/components/ConsentInfoModal';
+import type { ConsentKey } from '@/shared/consents/domain/consents';
 import { consentStore } from '@/shared/consents/infrastructure/consentStorage';
 import { openPrivacyPolicy } from '@/shared/consents/infrastructure/privacyPolicyDocument';
 import { rememberRegistrationConsents } from '../application/registrationConsents';
@@ -61,6 +63,7 @@ export default function RegisterScreen() {
   // Consentimientos opcionales: siempre parten desmarcados.
   const [shareAnonymousData, setShareAnonymousData] = useState(false);
   const [allowEmergencyContact, setAllowEmergencyContact] = useState(false);
+  const [infoConsent, setInfoConsent] = useState<ConsentKey | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const catalog = useRegistrationCatalog();
   const [feedback, setFeedback] = useState<{ message: string; tone: 'error' | 'success' } | null>(null);
@@ -99,7 +102,8 @@ export default function RegisterScreen() {
 
     setIsSubmitting(true);
     try {
-      const destination = await registerAccount(email, password, supabaseAuthGateway);
+      // validateAcademicSelection ya comprobó que la carrera existe en el catálogo.
+      const destination = await registerAccount(email, password, Number(careerId), supabaseAuthGateway);
       // Lo elegido se conserva en el dispositivo hasta que la persona complete su perfil.
       await rememberRegistrationConsents(consentStore, { shareAnonymousData, allowEmergencyContact });
       if (destination === 'profile') {
@@ -279,12 +283,14 @@ export default function RegisterScreen() {
                   label={REGISTER_CONSENT_LABELS.shareAnonymousData}
                   checked={shareAnonymousData}
                   onToggle={() => setShareAnonymousData(!shareAnonymousData)}
+                  onInfo={() => setInfoConsent('shareAnonymousData')}
                 />
                 <ConsentCheckbox
                   requirement="Opcional"
                   label={REGISTER_CONSENT_LABELS.allowEmergencyContact}
                   checked={allowEmergencyContact}
                   onToggle={() => setAllowEmergencyContact(!allowEmergencyContact)}
+                  onInfo={() => setInfoConsent('allowEmergencyContact')}
                 />
               </View>
             </RegisterSection>
@@ -346,6 +352,15 @@ export default function RegisterScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <ConsentInfoModal
+        consent={infoConsent}
+        onClose={() => setInfoConsent(null)}
+        onOpenDocument={() => {
+          setInfoConsent(null);
+          void handleOpenPolicy();
+        }}
+      />
     </View>
   );
 }

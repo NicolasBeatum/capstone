@@ -2,6 +2,7 @@ import {
   LocalCheckinStore,
   type CheckinDatabase,
   type CheckinMood,
+  type CheckinSyncStatus,
   type LocalCheckin,
 } from '../application/localCheckinStore.ts';
 
@@ -9,7 +10,7 @@ interface MemoryRow {
   client_request_id: string;
   mood: CheckinMood;
   created_at: string;
-  sync_status: 'pending' | 'synced';
+  sync_status: CheckinSyncStatus;
 }
 
 interface MemoryReason {
@@ -55,13 +56,18 @@ class MemoryCheckinDatabase implements CheckinDatabase {
     }
 
     if (source.includes('INSERT INTO emotional_checkins')) {
-      const [clientRequestId, mood, createdAt] = params as [string, CheckinMood, string];
+      const [clientRequestId, mood, createdAt, status] = params as [
+        string,
+        CheckinMood,
+        string,
+        CheckinSyncStatus,
+      ];
       if (!this.rows.has(clientRequestId)) {
         this.rows.set(clientRequestId, {
           client_request_id: clientRequestId,
           mood,
           created_at: createdAt,
-          sync_status: 'pending',
+          sync_status: status,
         });
       }
       return;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -15,7 +15,7 @@ import { AuthActionButton } from '@/shared/components/AuthActionButton';
 import { GotaLoader } from '@/shared/components/GotaLoader';
 import { Reveal } from '@/shared/motion/Reveal';
 import { getAuthenticationErrorMessage, loginAccount } from '@/features/auth/application/authentication';
-import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
+import { purgeExpiredAccountData, supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
 import {
   EyeIcon,
   EyeOffIcon,
@@ -29,6 +29,11 @@ import { styles } from './authForm.styles';
 
 export default function LoginScreen() {
   const router = useRouter();
+
+  // Tras una eliminación de cuenta vencida, la primera apertura borra lo que quedó en el teléfono.
+  useEffect(() => {
+    void purgeExpiredAccountData();
+  }, []);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -51,6 +56,8 @@ export default function LoginScreen() {
       // La gota sigue visible hasta que la pantalla de destino reemplaza al login.
       if (destination === 'profile') {
         router.replace('/profile');
+      } else if (destination === 'account-deletion') {
+        router.replace('/account-deletion');
       } else {
         router.replace({ pathname: '/dashboard', params: { welcome: '1' } });
       }

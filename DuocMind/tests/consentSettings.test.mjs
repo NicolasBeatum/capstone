@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { changeConsent, loadConsents } from '../src/shared/consents/application/consentSettings.ts';
+import { canUploadEmotionalData, changeConsent, loadConsents } from '../src/shared/consents/application/consentSettings.ts';
 import { createConsentStore } from '../src/shared/consents/application/consentStore.ts';
-import { NO_CONSENTS, parseRemoteConsents } from '../src/shared/consents/domain/consents.ts';
+import { allowsEmotionalUpload, CONSENT_DETAILS, NO_CONSENTS, parseRemoteConsents } from '../src/shared/consents/domain/consents.ts';
 
 const OWNER = '00000000-0000-0000-0000-00000000000a';
 
@@ -158,4 +158,30 @@ test('las filas remotas se validan: lo desconocido o con tipos erróneos se igno
   );
   assert.throws(() => parseRemoteConsents({}, []));
   assert.throws(() => parseRemoteConsents([], {}));
+});
+
+test('los datos emocionales solo se suben con al menos un consentimiento activo', () => {
+  assert.equal(allowsEmotionalUpload(NO_CONSENTS), false);
+  assert.equal(allowsEmotionalUpload({ shareAnonymousData: true, allowEmergencyContact: false }), true);
+  assert.equal(allowsEmotionalUpload({ shareAnonymousData: false, allowEmergencyContact: true }), true);
+});
+
+test('el permiso de subida lee el estado de la cuenta y falla cerrado', async () => {
+  const store = createConsentStore(memoryStorage());
+  assert.equal(await canUploadEmotionalData({ owners, store }), false);
+
+  await store.write(OWNER, { shareAnonymousData: true, allowEmergencyContact: false });
+  assert.equal(await canUploadEmotionalData({ owners, store }), true);
+
+  assert.equal(await canUploadEmotionalData({ owners: { currentOwner: async () => null }, store }), false);
+  const broken = createConsentStore(memoryStorage({ getItem: async () => { throw new Error('bloqueado'); } }));
+  assert.equal(await canUploadEmotionalData({ owners, store: broken }), false);
+});
+
+test('cada consentimiento tiene una explicación de qué se comparte', () => {
+  for (const key of Object.keys(NO_CONSENTS)) {
+    const detail = CONSENT_DETAILS[key];
+    assert.ok(detail.title && detail.summary);
+    assert.ok(detail.sections.some((section) => section.heading === 'Qué se comparte' && section.items.length > 0));
+  }
 });

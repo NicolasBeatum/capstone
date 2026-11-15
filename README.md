@@ -56,7 +56,7 @@ El proyecto incluye además un **panel web de administración** para el equipo d
 | **Agenda** | Horarios por semestre con ramos manuales y salas por bloque; pruebas, tareas y actividades locales con copia/traslado opcional. |
 | **Bienestar** | Recursos de bienestar incluidos en la app y recursos de crisis disponibles sin conexión. |
 | **Modo offline** | Persistencia SQLCipher por cuenta para check-ins y horarios; la verificación nativa del horario sigue pendiente. |
-| **Eliminación de cuenta** | Borrado de datos locales y remotos mediante una Edge Function dedicada. |
+| **Consentimientos y borrado** | Sin consentimiento nada emocional sale del teléfono; desde Mi perfil se puede pedir borrar los datos enviados (7 días) o la cuenta (30 días), con opción de cancelar. |
 
 El [incremento 013](DuocMind/specs/013-semester-schedule/verification.md) está en
 verificación local: horario sincronizado con Supabase y actividades personales

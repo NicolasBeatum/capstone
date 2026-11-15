@@ -1,7 +1,11 @@
 import type { CheckinReason } from '../domain/checkinReasons';
 
 export type CheckinMood = 'Muy mal' | 'Mal' | 'Neutro' | 'Bien' | 'Muy bien';
-export type CheckinSyncStatus = 'pending' | 'synced';
+/**
+ * `pending` espera envío; `synced` ya está en el servidor; `device` se registró sin
+ * consentimientos activos y nunca sale del dispositivo, aunque después se active uno.
+ */
+export type CheckinSyncStatus = 'pending' | 'synced' | 'device';
 
 export interface LocalCheckin {
   clientRequestId: string;
@@ -29,7 +33,7 @@ const CREATE_TABLES = `
     client_request_id TEXT PRIMARY KEY NOT NULL,
     mood TEXT NOT NULL CHECK (mood IN ('Muy mal', 'Mal', 'Neutro', 'Bien', 'Muy bien')),
     created_at TEXT NOT NULL,
-    sync_status TEXT NOT NULL CHECK (sync_status IN ('pending', 'synced'))
+    sync_status TEXT NOT NULL CHECK (sync_status IN ('pending', 'synced', 'device'))
   );
   CREATE INDEX IF NOT EXISTS emotional_checkins_created_at_idx
   ON emotional_checkins(created_at DESC);
@@ -89,17 +93,27 @@ export class LocalCheckinStore {
     return rows.map((row) => ({ ...row, reasonIds: byCheckin.get(row.clientRequestId) ?? [] }));
   }
 
-  /** Guarda el check-in y sus motivos juntos: o quedan los dos o ninguno. */
+  /** Guarda el check-in para enviarlo; él y sus motivos quedan juntos o ninguno. */
   async savePending(checkin: NewLocalCheckin): Promise<void> {
+    await this.insert(checkin, 'pending');
+  }
+
+  /** Guarda el check-in solo en el dispositivo: nunca entra a la cola de envío. */
+  async saveDeviceOnly(checkin: NewLocalCheckin): Promise<void> {
+    await this.insert(checkin, 'device');
+  }
+
+  private async insert(checkin: NewLocalCheckin, status: 'pending' | 'device'): Promise<void> {
     const reasonIds = [...new Set(checkin.reasonIds ?? [])];
     await this.inTransaction(async () => {
       await this.database.runAsync(
         `INSERT INTO emotional_checkins (client_request_id, mood, created_at, sync_status)
-         VALUES (?, ?, ?, 'pending')
+         VALUES (?, ?, ?, ?)
          ON CONFLICT(client_request_id) DO NOTHING`,
         checkin.clientRequestId,
         checkin.mood,
         checkin.createdAt,
+        status,
       );
       for (const reasonId of reasonIds) {
         await this.database.runAsync(

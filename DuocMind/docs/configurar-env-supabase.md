@@ -23,11 +23,7 @@ Antes de probar el envío, aplica en el proyecto de desarrollo, en orden, `supab
 
 Para que el gráfico semanal del dashboard se actualice en tiempo real, aplica también `supabase/migrations/20261009120000_registro_emocional_realtime.sql`. Solo agrega `registro_emocional` a la publicación `supabase_realtime` y es idempotente. Sin ella el gráfico igual muestra los datos reales, pero se actualiza solo al volver al dashboard o a primer plano. Verifica con `select * from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'registro_emocional';`, que debe devolver una fila.
 
-La eliminación de cuenta necesita desplegar `supabase/functions/delete-account` con Supabase CLI. La app borra primero la base emocional local y su clave tras la confirmación explícita; si no hay red, mantiene la sesión para reintentar pero no restaura los datos locales. La función usa los secretos de servidor `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` disponibles en Supabase Edge Functions; nunca copies la clave `service_role` al `.env` ni a la app. La función autentica el JWT, anonimiza el perfil, elimina sus registros emocionales y resultados asociados y después elimina el usuario Auth.
-
-```bash
-supabase functions deploy delete-account
-```
+La eliminación de cuenta no usa Edge Functions. La app llama a la RPC `public.request_deletion('cuenta')` y pg_cron ejecuta la solicitud a los 30 días con `private.run_due_deletions()`, que llama a `erase_student_personal_data` y borra el usuario de Auth dentro de la base de datos (migración `20261115140000_scheduled_deletion.sql`). Ningún cliente recibe la clave `service_role`.
 
 Verifica en Supabase que el usuario de prueba solo pueda leer, insertar y borrar su propio historial. El smoke test PostgreSQL sintético está en `tests/sql/checkin-migration-smoke.sql`; ejecutarlo no despliega cambios remotos.
 
