@@ -3,14 +3,18 @@ import { MISSING } from "../../domain/wellbeing";
 
 const ARROW = { up: "▲", down: "▼", flat: "=" } as const;
 
-/** Métrica principal: valor, detalle y variación respecto al periodo anterior. */
+/**
+ * Métrica principal: valor, detalle y variación respecto al periodo anterior. `hint` acompaña a
+ * la variación (solo aparece con ella); `note` se muestra siempre.
+ */
 export function KpiTile(
-  { label, value, detail, change, hint }: {
+  { label, value, detail, change, hint, note }: {
     label: string;
     value: string | null;
     detail?: string;
     change?: Delta | null;
     hint?: string;
+    note?: string;
   },
 ) {
   return (
@@ -37,7 +41,8 @@ export function KpiTile(
             {hint && <span className="kpi-hint"> {hint}</span>}
           </p>
         )
-        : hint && <p className="kpi-delta neutral"><span className="kpi-hint">{hint}</span></p>}
+        : null}
+      {note && <p className="kpi-note">{note}</p>}
     </section>
   );
 }

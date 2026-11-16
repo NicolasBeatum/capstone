@@ -5,6 +5,7 @@ import { ChartDefs } from "../components/charts/Chart";
 import { useWellbeing } from "../application/useWellbeing";
 import { shortDate, slugOf, TABS, tabFromSlug } from "../domain/wellbeing";
 import type { WellbeingPeriod, WellbeingTab, WellbeingTabData } from "../domain/types";
+import { SummaryTab } from "./wellbeing/SummaryTab";
 
 const PERIODS: WellbeingPeriod[] = [7, 30, 90];
 
@@ -92,7 +93,7 @@ export function Wellbeing() {
 }
 
 function TabView({ tab, data }: { tab: WellbeingTab; data: WellbeingTabData[WellbeingTab] }) {
-  void data;
+  if (tab === "summary") return <SummaryTab data={data as WellbeingTabData["summary"]} />;
   return (
     <section className="card" aria-label={slugOf(tab)}>
       <p className="field-help">Esta pestaña se completa en las tareas siguientes.</p>

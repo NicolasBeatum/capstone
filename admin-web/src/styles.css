@@ -1726,3 +1726,46 @@ summary {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+.wb-top {
+  list-style: none;
+  margin: 0 0 .5rem;
+  padding: 0;
+}
+.wb-top li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .6rem;
+  padding: .55rem 0;
+  border-top: 1px solid var(--wb-grid);
+}
+.wb-top li:first-child {
+  border-top: 0;
+}
+.wb-top strong {
+  font-variant-numeric: tabular-nums;
+}
+.wb-rank {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--yellow-light);
+  color: var(--yellow-dark);
+  font-size: .75rem;
+  font-weight: 800;
+}
+.wellbeing .card {
+  margin: 0;
+  padding: 1.1rem 1.25rem;
+}
+.wellbeing .wb-privacy p,
+.wellbeing .chart-sub {
+  max-width: none;
+}
+.kpi-note {
+  margin: .15rem 0 0;
+  font-size: .78rem;
+  color: var(--text-muted);
+}
