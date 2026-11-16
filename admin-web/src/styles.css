@@ -1769,3 +1769,6 @@ summary {
   font-size: .78rem;
   color: var(--text-muted);
 }
+.wb-narrow {
+  max-width: 600px;
+}

@@ -7,6 +7,7 @@ import { shortDate, slugOf, TABS, tabFromSlug } from "../domain/wellbeing";
 import type { WellbeingPeriod, WellbeingTab, WellbeingTabData } from "../domain/types";
 import { SummaryTab } from "./wellbeing/SummaryTab";
 import { ReasonsTab } from "./wellbeing/ReasonsTab";
+import { StressTab } from "./wellbeing/StressTab";
 
 const PERIODS: WellbeingPeriod[] = [7, 30, 90];
 
@@ -96,6 +97,7 @@ export function Wellbeing() {
 function TabView({ tab, data }: { tab: WellbeingTab; data: WellbeingTabData[WellbeingTab] }) {
   if (tab === "summary") return <SummaryTab data={data as WellbeingTabData["summary"]} />;
   if (tab === "reasons") return <ReasonsTab data={data as WellbeingTabData["reasons"]} />;
+  if (tab === "stress") return <StressTab data={data as WellbeingTabData["stress"]} />;
   return (
     <section className="card" aria-label={slugOf(tab)}>
       <p className="field-help">Esta pestaña se completa en las tareas siguientes.</p>

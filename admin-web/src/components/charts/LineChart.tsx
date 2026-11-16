@@ -81,7 +81,7 @@ export function LineChart(
                   )
                 )}
                 {endLabels && last && (
-                  <text className="label" x={x(last[1]) + 8} y={ends.get(s.name)} fill={s.color}>{s.name}</text>
+                  <text className="label" x={x(last[1]) + 8} y={ends.get(s.name)} style={{ fill: s.color }}>{s.name}</text>
                 )}
               </g>
             );

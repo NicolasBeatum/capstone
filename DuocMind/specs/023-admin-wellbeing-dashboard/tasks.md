@@ -24,7 +24,7 @@
 - [x] T012 Página `pages/Wellbeing.tsx` con `application/useWellbeing.ts` (periodo, carrera y pestaña; carga solo la pestaña visible y cachea en memoria por combinación, sin `localStorage`), encabezado, aviso de privacidad, periodo segmentado, selector de carrera, pestañas en la URL (`/wellbeing/<pestaña>`), estados cargando, error con reintento e insuficiente; navegación «Bienestar» en `App.tsx` y `NavigationIcon.tsx`, y `/emotions` redirige a `/wellbeing`. **Verificación:** `npm run typecheck`, `npm run build` y revisión con los datos de T007: cambiar de pestaña pide solo esa ruta y volver no repite la petición. **CA-009.**
 - [x] T013 Pestaña `pages/wellbeing/SummaryTab.tsx`: KPIs con variación, tendencia semanal, distribución semanal apilada, ánimo por día de la semana centrado en «Neutro» y «Lo más mencionado». **Verificación:** `npm run typecheck`, `npm run build` y revisión con los datos de T007 (lunes visiblemente peor). **CA-009.**
 - [x] T014 Pestaña `pages/wellbeing/ReasonsTab.tsx`: ranking, ánimo por motivo en barras divergentes, matriz motivo × emoción y tendencia de los 3 motivos principales. **Verificación:** `npm run typecheck`, `npm run build` y revisión con los datos de T007 («Académico» con el ánimo más bajo). **CA-009.**
-- [ ] T015 Pestaña `pages/wellbeing/StressTab.tsx`: distribución por nivel con etiquetas del servidor, promedio y % alto por semana, y % alto y promedio por carrera. **Verificación:** `npm run typecheck`, `npm run build` y revisión con los datos de T007 (estrés en alza hacia el final). **CA-009.**
+- [x] T015 Pestaña `pages/wellbeing/StressTab.tsx`: distribución por nivel con etiquetas del servidor, promedio y % alto por semana, y % alto y promedio por carrera. **Verificación:** `npm run typecheck`, `npm run build` y revisión con los datos de T007 (estrés en alza hacia el final). **CA-009.**
 - [ ] T016 Pestaña `pages/wellbeing/CareersTab.tsx`: tabla comparativa alfabética con «Otras carreras». **Verificación:** `npm run typecheck`, `npm run build` y revisión con los datos de T007. **CA-009.**
 - [ ] T017 Pestaña `pages/wellbeing/ParticipationTab.tsx`: registrados, % con `analitica_anonima`, activos por semana y check-ins por participante, solo totales. **Verificación:** `npm run typecheck`, `npm run build` y revisión con los datos de T007. **CA-009.**
 - [ ] T018 Pruebas `admin-web/e2e/wellbeing.spec.ts`: cada pestaña con datos, con estado insuficiente y con su tabla accesible; filtro de carrera aplicado a todas; pestaña conservada en la URL; `/emotions` redirige. **Verificación:** `npm run test:e2e`. **CA-009.**
@@ -33,4 +33,4 @@
 
 ## Estado de las tareas abiertas
 
-- T015 a T020 pendientes. Aplicar la migración `20261116120000` en el proyecto en la nube requiere autorización aparte (plan § 8).
+- T016 a T020 pendientes. Aplicar la migración `20261116120000` en el proyecto en la nube requiere autorización aparte (plan § 8).
