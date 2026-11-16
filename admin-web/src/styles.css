@@ -1815,3 +1815,46 @@ summary {
   color: var(--text-secondary);
   font-size: .78rem;
 }
+.wb-funnel {
+  list-style: none;
+  margin: .5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: .8rem;
+}
+.wb-funnel li {
+  display: grid;
+  grid-template-columns: minmax(120px, 190px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .7rem;
+  font-size: .85rem;
+}
+.wb-funnel-track {
+  height: 22px;
+}
+.wb-funnel-bar,
+.wb-funnel-missing {
+  display: block;
+  height: 22px;
+  border-radius: 0 4px 4px 0;
+}
+.wb-funnel-bar.step-0 { background: var(--seq-2); }
+.wb-funnel-bar.step-1 { background: var(--seq-3); }
+.wb-funnel-bar.step-2 { background: var(--seq-4); }
+.wb-funnel-missing {
+  width: 100%;
+  background: repeating-linear-gradient(45deg, var(--wb-hatch-bg) 0 3px, var(--wb-hatch-line) 3px 5px);
+}
+.wb-funnel strong {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .wb-funnel li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .wb-funnel-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}

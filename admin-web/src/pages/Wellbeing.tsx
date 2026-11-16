@@ -9,6 +9,7 @@ import { SummaryTab } from "./wellbeing/SummaryTab";
 import { ReasonsTab } from "./wellbeing/ReasonsTab";
 import { StressTab } from "./wellbeing/StressTab";
 import { CareersTab } from "./wellbeing/CareersTab";
+import { ParticipationTab } from "./wellbeing/ParticipationTab";
 
 const PERIODS: WellbeingPeriod[] = [7, 30, 90];
 
@@ -100,9 +101,5 @@ function TabView({ tab, data }: { tab: WellbeingTab; data: WellbeingTabData[Well
   if (tab === "reasons") return <ReasonsTab data={data as WellbeingTabData["reasons"]} />;
   if (tab === "stress") return <StressTab data={data as WellbeingTabData["stress"]} />;
   if (tab === "careers") return <CareersTab data={data as WellbeingTabData["careers"]} />;
-  return (
-    <section className="card">
-      <p className="field-help">Esta pestaña se completa en la tarea siguiente.</p>
-    </section>
-  );
+  return <ParticipationTab data={data as WellbeingTabData["participation"]} />;
 }
