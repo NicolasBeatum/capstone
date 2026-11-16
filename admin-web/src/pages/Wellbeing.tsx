@@ -3,11 +3,12 @@ import { PageHeader } from "../components/PageHeader";
 import { Feedback } from "../components/Feedback";
 import { ChartDefs } from "../components/charts/Chart";
 import { useWellbeing } from "../application/useWellbeing";
-import { shortDate, slugOf, TABS, tabFromSlug } from "../domain/wellbeing";
+import { shortDate, TABS, tabFromSlug } from "../domain/wellbeing";
 import type { WellbeingPeriod, WellbeingTab, WellbeingTabData } from "../domain/types";
 import { SummaryTab } from "./wellbeing/SummaryTab";
 import { ReasonsTab } from "./wellbeing/ReasonsTab";
 import { StressTab } from "./wellbeing/StressTab";
+import { CareersTab } from "./wellbeing/CareersTab";
 
 const PERIODS: WellbeingPeriod[] = [7, 30, 90];
 
@@ -98,9 +99,10 @@ function TabView({ tab, data }: { tab: WellbeingTab; data: WellbeingTabData[Well
   if (tab === "summary") return <SummaryTab data={data as WellbeingTabData["summary"]} />;
   if (tab === "reasons") return <ReasonsTab data={data as WellbeingTabData["reasons"]} />;
   if (tab === "stress") return <StressTab data={data as WellbeingTabData["stress"]} />;
+  if (tab === "careers") return <CareersTab data={data as WellbeingTabData["careers"]} />;
   return (
-    <section className="card" aria-label={slugOf(tab)}>
-      <p className="field-help">Esta pestaña se completa en las tareas siguientes.</p>
+    <section className="card">
+      <p className="field-help">Esta pestaña se completa en la tarea siguiente.</p>
     </section>
   );
 }

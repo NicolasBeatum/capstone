@@ -1772,3 +1772,46 @@ summary {
 .wb-narrow {
   max-width: 600px;
 }
+.wb-card-title {
+  font-size: .95rem;
+  margin: 0;
+}
+.wb-table th,
+.wb-table td {
+  vertical-align: middle;
+  font-variant-numeric: tabular-nums;
+}
+.wb-table .num {
+  text-align: right;
+}
+.wb-muted {
+  color: var(--text-muted);
+  font-size: .8rem;
+}
+.wb-mood {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  white-space: nowrap;
+}
+.wb-mood-track {
+  position: relative;
+  width: 90px;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, transparent calc(50% - .5px), var(--wb-axis) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px)), #f1f4f8;
+}
+.wb-mood-bar {
+  position: absolute;
+  top: 0;
+  height: 8px;
+  border-radius: 4px;
+}
+.wb-pill {
+  display: inline-flex;
+  padding: .1rem .55rem;
+  border-radius: 999px;
+  background: #f1f4f8;
+  color: var(--text-secondary);
+  font-size: .78rem;
+}
