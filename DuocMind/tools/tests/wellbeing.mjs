@@ -2,9 +2,10 @@
 // Los datos sintéticos se crean dentro de una transacción que siempre termina en rollback,
 // por lo que la base queda exactamente como estaba. Cada escenario vive en un savepoint.
 import assert from "node:assert/strict";
-import { database } from "../scripts/runtime.mjs";
+import { authClient, database, fixtures } from "../scripts/runtime.mjs";
 
-const db = await database();
+const f = fixtures(), db = await database();
+const sessionOf = (token) => JSON.parse(Buffer.from(token.split(".")[1], "base64url")).session_id;
 const SANTIAGO = "'America/Santiago'";
 const PSS10 = "Escala de Estrés Percibido (PSS-10)";
 // Mediodía (hora de Santiago) de hace n días.
@@ -18,6 +19,13 @@ const PERIOD = `(now() at time zone ${SANTIAGO})::date - 89, (now() at time zone
 let seq = 0;
 
 try {
+  const staff = await authClient().auth.signInWithPassword({ email: f.staff.email, password: f.staff.password });
+  assert(!staff.error, "login de la cuenta administradora sintética");
+  const sessionId = sessionOf(staff.data.session.access_token);
+  const student = await authClient().auth.signInWithPassword({ email: f.student.email, password: f.student.password });
+  assert(!student.error);
+  const studentSessionId = sessionOf(student.data.session.access_token);
+
   await db.query("begin");
   // Línea base limpia dentro de la transacción (se revierte al final).
   await db.query("delete from public.registro_emocional_motivo");
@@ -453,6 +461,53 @@ try {
     assert.equal(filtered.registered, null);
   });
 
+  await scenario("T005 rutas /wellbeing en admin_read", async () => {
+    const read = (path, query = {}, actor = f.staff.id, session = sessionId) =>
+      db.query("select public.admin_read($1,$2,$3,$4::jsonb) d", [actor, session, path, JSON.stringify(query)]);
+    const rejected = async (path, query, code, actor, session) => {
+      await db.query("savepoint rejected");
+      await assert.rejects(read(path, query, actor, session), (e) => e.code === code, path + " " + JSON.stringify(query));
+      await db.query("rollback to savepoint rejected");
+    };
+    // Datos con nombres y RUT sintéticos que nunca deben aparecer en una respuesta (CA-007).
+    await db.query("update public.test_bienestar set is_active=false, revision=revision+1 where nombre_test=$1 and is_active", [PSS10]);
+    const test = await pss10(905);
+    const a = await career("Carrera WB Rutas");
+    const ids = await cohort(6, [2, 4], { careerId: a, reasons: ["Académico"] });
+    for (const id of ids) await apply(id, test, 30, dayAt(2));
+    const secrets = (await db.query(
+      "select rut, primer_nombre, primer_apellido, correo, id_estudiante::text id from public.estudiante where id_estudiante = any($1)",
+      [ids],
+    )).rows.flatMap((r) => [r.rut, r.primer_nombre, r.primer_apellido, r.correo]);
+    const paths = ["summary", "reasons", "stress", "careers", "participation"].map((t) => "/wellbeing/" + t);
+    for (const path of [...paths, "/wellbeing/careers-available"]) {
+      const d = (await read(path)).rows[0].d;
+      assert.equal(d.days, 30, path + ": 30 días por defecto");
+      const text = JSON.stringify(d);
+      for (const value of secrets) assert(!text.includes(value), path + ": dato personal en la respuesta");
+      assert(!/"(sid|rid|id_estudiante|rut|correo|email)"/.test(text), path + ": clave identificadora");
+      for (const days of ["7", "90"]) assert.equal((await read(path, { days })).rows[0].d.days, Number(days));
+      for (const days of ["15", "0", "abc", "", "007", "30 "]) await rejected(path, { days }, "P0422");
+      await rejected(path, { days: "30", extra: "1" }, "P0422");
+      await rejected(path, {}, "P0401", f.staff.id, crypto.randomUUID());
+      await rejected(path, {}, "P0401", f.student.id, sessionId);
+      await rejected(path, {}, "P0403", f.student.id, studentSessionId);
+    }
+    for (const path of paths) {
+      const d = (await read(path, { careerId: String(a) })).rows[0].d;
+      assert.equal(d.careerId, String(a));
+      assert.equal(d.sufficient, true, path + " con carrera");
+      for (const careerId of ["0", "-1", "1.5", "abc", "", "1e3", "99999999999999999999"]) {
+        await rejected(path, { careerId }, "P0422");
+      }
+      assert.equal((await read(path, { careerId: "999999999" })).rows[0].d.sufficient, false, "carrera inexistente: sin 4xx");
+    }
+    await rejected("/wellbeing/careers-available", { careerId: String(a) }, "P0422");
+    await rejected("/wellbeing/otra", {}, "P0404");
+    const access = (await db.query("select public.admin_access($1,$2) d", [f.staff.id, sessionId])).rows[0].d;
+    assert(access.capabilities.includes("wellbeing"), "capacidad wellbeing");
+  });
+
   await scenario("permisos de las funciones privadas", async () => {
     const fns = (await db.query(
       `select p.oid::regprocedure::text fn from pg_proc p join pg_namespace n on n.oid=p.pronamespace
@@ -473,7 +528,7 @@ try {
     assert.deepEqual(definers, [], "private no tiene funciones security definer");
   });
 
-  console.log("Bienestar: base filtrada (CA-004, CA-005) y supresión complementaria verificadas con datos sintéticos (revertidos).");
+  console.log("Bienestar: CA-001 a CA-008 verificados con datos sintéticos (revertidos).");
 } finally {
   await db.query("rollback").catch(() => {});
   await db.end();
