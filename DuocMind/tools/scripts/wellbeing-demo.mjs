@@ -1,5 +1,5 @@
 // Datos sintéticos para mirar el dashboard de bienestar (spec 023).
-// Crea unos 60 estudiantes `demo-*` en 4 carreras, más una carrera con 3 para ver la agrupación
+// Crea unos 320 estudiantes `demo-*` en 7 carreras, más una carrera con 3 para ver la agrupación
 // en «Otras carreras», con 90 días de check-ins, motivos y tests PSS-10 con patrones
 // reconocibles. Es idempotente: borra y recrea solo sus estudiantes.
 //
@@ -47,12 +47,27 @@ const where = cloudRef ? `la nube (${cloudRef})` : "Supabase local";
 const PSS10 = "Escala de Estrés Percibido (PSS-10)";
 const EMAIL = (n) => `demo-${String(n).padStart(3, "0")}@duocmind.example.test`;
 const CAREERS = [
-  ["Ingeniería en Informática (demo)", 18],
-  ["Técnico en Enfermería (demo)", 16],
-  ["Diseño Gráfico (demo)", 14],
-  ["Contabilidad General (demo)", 12],
-  ["Turismo (demo)", 3],
+  ["Ingeniería en Informática (demo)", 56, -0.2],
+  ["Técnico en Enfermería (demo)", 50, 0.1],
+  ["Diseño Gráfico (demo)", 46, 0.3],
+  ["Contabilidad General (demo)", 44, -0.4],
+  ["Administración de Empresas (demo)", 42, 0],
+  ["Ingeniería en Construcción (demo)", 40, -0.1],
+  ["Gastronomía (demo)", 42, 0.2],
+  ["Turismo (demo)", 3, 0],
 ];
+// Peso de cada motivo según el ánimo (1 a 5): todos aparecen con todas las emociones, para que
+// la matriz de motivos tenga al menos 5 estudiantes por celda en 30 días, pero con tendencias.
+const REASONS = {
+  "Académico": [6, 5, 3.5, 2.5, 2],
+  "Económico": [3, 2.5, 1.5, 1, 0.8],
+  "Salud": [2.5, 2, 1.5, 1.2, 1],
+  "Familia": [2, 2, 2.5, 3, 3],
+  "Trabajo": [1.5, 1.5, 1.5, 1.2, 1],
+  "Pareja": [1.2, 1.2, 1.5, 2, 2.5],
+  "Amistades": [1, 1.2, 2.5, 3.5, 4],
+  "Otro": [0.9, 0.9, 0.9, 0.9, 0.9],
+};
 const DAYS = 90;
 
 // Generador determinista: los mismos datos en cada ejecución.
@@ -142,13 +157,11 @@ try {
     )).rows.map((r) => r.id_carrera)
     : [];
   if (existingCareers && existing.length < CAREERS.length) throw new Error("Faltan carreras existentes.");
-  for (const [index, [name, size]] of CAREERS.entries()) {
+  for (const [index, [name, size, careerMood]] of CAREERS.entries()) {
     const careerId = existingCareers ? existing[index] : (await db.query(
       "insert into public.carrera(nombre_carrera) values($1) on conflict(nombre_carrera) do update set nombre_carrera=excluded.nombre_carrera returning id_carrera",
       [name],
     )).rows[0].id_carrera;
-    // Cada carrera tiene su propio tono para que la tabla comparativa muestre diferencias.
-    const careerMood = [-0.2, 0.1, 0.3, -0.4, 0][index];
     for (let i = 0; i < size; i++) {
       n++;
       const id = (await db.query(
@@ -163,7 +176,7 @@ try {
       // ~60 % comparte datos anónimos; del resto, la mitad solo autoriza contacto (sus datos
       // suben pero no cuentan) y la otra mitad no autoriza nada (no debería tener datos).
       const r = rand();
-      const share = r < 0.6, contact = !share && r < 0.8;
+      const share = r < 0.7, contact = !share && r < 0.85;
       if (share) {
         summary.sharing++;
         await db.query(
@@ -180,8 +193,8 @@ try {
         );
       }
       if (!share && !contact) continue;
-      const base = 3.45 + careerMood + normal() * 0.45;
-      const frequency = 0.35 + rand() * 0.45;
+      const base = 3.4 + careerMood + normal() * 0.55;
+      const frequency = 0.45 + rand() * 0.4;
       for (let d = DAYS - 1; d >= 0; d--) {
         if (rand() > frequency) continue;
         const date = new Date(today + "T12:00:00Z");
@@ -189,13 +202,11 @@ try {
         const weekday = date.getUTCDay(); // 0 domingo, 1 lunes
         const progress = (DAYS - 1 - d) / (DAYS - 1); // 0 al inicio, 1 hoy
         const effect = (weekday === 1 ? -0.8 : 0) + (weekday === 0 || weekday === 6 ? 0.35 : 0) - progress * 0.5;
-        const mood = Math.min(5, Math.max(1, Math.round(base + effect + normal() * 0.75)));
+        const mood = Math.min(5, Math.max(1, Math.round(base + effect + normal() * 0.85)));
         const chosen = new Set();
-        const count = rand() < 0.25 ? 0 : rand() < 0.7 ? 1 : 2;
+        const count = rand() < 0.15 ? 0 : rand() < 0.6 ? 1 : 2;
         for (let k = 0; k < count; k++) {
-          chosen.add(pick(mood <= 2
-            ? { "Académico": 6, "Económico": 2, "Salud": 1.5, "Familia": 1, "Trabajo": 1, "Pareja": 0.5 }
-            : { "Amistades": 3, "Familia": 3, "Académico": 1.5, "Pareja": 1.5, "Salud": 1, "Trabajo": 1, "Otro": 0.5 }));
+          chosen.add(pick(Object.fromEntries(Object.entries(REASONS).map(([m, w]) => [m, w[mood - 1]]))));
         }
         const hour = 8 + Math.floor(rand() * 14);
         checkins.student.push(id);
@@ -205,10 +216,11 @@ try {
         checkins.reasons.push([...chosen].map((m) => reasons[m]).filter(Boolean).join(","));
       }
       // PSS-10 cada ~30 días; el estrés sube hacia fin de semestre.
-      const stress = 11 + careerMood * -8 + normal() * 8;
-      for (const center of [76, 46, 16]) {
-        if (rand() < 0.2) continue;
-        const d = Math.max(0, center + Math.floor(rand() * 25) - 12);
+      const stress = 16 + careerMood * -4 + normal() * 7;
+      // Cada estudiante tiene su propio día del ciclo, así hay tests en cualquier semana.
+      const phase = Math.floor(rand() * 30);
+      for (const d of [phase + 60, phase + 30, phase]) {
+        if (rand() < 0.15) continue;
         const score = Math.min(40, Math.max(0, Math.round(stress + (DAYS - d) / DAYS * 8 + normal() * 3)));
         const date = new Date(today + "T12:00:00Z");
         date.setUTCDate(date.getUTCDate() - d);
