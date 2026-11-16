@@ -2,11 +2,11 @@
 
 | Campo | Valor |
 | --- | --- |
-| Versión | 0.1.0 |
-| Estado | BORRADOR |
+| Versión | 1.0.0 |
+| Estado | APROBADO |
 | Fecha | 2026-11-15 |
 | Spec | 023 0.2.0 |
-| Aprobación | Pendiente |
+| Aprobación | Nicolás Hernández, 2026-11-15 |
 
 ## 1. Arquitectura
 
@@ -144,3 +144,4 @@ que las migraciones de la spec 022.
 | Versión | Fecha | Cambio |
 | --- | --- | --- |
 | 0.1.0 | 2026-11-15 | Borrador inicial |
+| 1.0.0 | 2026-11-15 | Aprobado por Nicolás Hernández |
