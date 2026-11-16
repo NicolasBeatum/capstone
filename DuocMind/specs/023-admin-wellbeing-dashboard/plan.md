@@ -23,7 +23,7 @@
 | Herramientas | `tools/tests/wellbeing.mjs`, `tools/scripts/wellbeing-demo.mjs` | Pruebas de backend y datos sintéticos locales para mirar el panel |
 
 `private.emotion_dashboard` y la ruta `/emotions` se retiran al final, cuando la página nueva
-cubre todo lo que mostraban (T011). No hay compatibilidad hacia atrás: el panel y la función se
+cubre todo lo que mostraban (T019). No hay compatibilidad hacia atrás: el panel y la función se
 despliegan juntos.
 
 ## 2. Datos
