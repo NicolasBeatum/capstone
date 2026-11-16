@@ -315,6 +315,164 @@ begin
 end;
 $fn$;
 
+-- Pestaña «Motivos». Un check-in puede mencionar varios motivos, así que las proporciones son
+-- sobre el total de check-ins y no suman 100 %. Los motivos con menos de 5 estudiantes se juntan
+-- en «Otros motivos» con la misma regla anti-diferencia que las carreras.
+create or replace function private.wellbeing_reasons(p_days int, p_career bigint default null)
+returns jsonb
+language plpgsql stable security invoker set search_path = '' as $fn$
+declare
+  p record;
+  result jsonb;
+begin
+  select * into p from private.wellbeing_period(p_days);
+  with b as materialized (select * from private.wellbeing_checkins(p.first_day, p.last_day, p_career)),
+  tot as (select count(distinct sid)::int n, count(*)::int k from b),
+  mr as materialized (select b.rid, b.sid, b.val, b.dy, r name from b, unnest(b.reasons) r),
+  grp as (select name, count(distinct sid)::int n, count(distinct rid)::int k from mr group by name),
+  vis as (select * from grp where n >= 5),
+  small as (select name from vis order by n, k, name limit 1),
+  rest0 as (select count(distinct sid)::int n from mr where name in (select name from grp where n < 5)),
+  merged as (select (rest0.n between 1 and 4 and exists (select 1 from small)) m from rest0),
+  mapping as (
+    select g.name src,
+           case when g.n >= 5 and not (merged.m and g.name = (select name from small)) then g.name
+                else 'Otros motivos' end grp
+    from grp g, merged
+  ),
+  -- Un check-in cuenta una vez por grupo aunque mencione dos motivos de «Otros motivos».
+  mg as materialized (
+    select distinct mr.rid, mr.sid, mr.val, mr.dy, mp.grp
+    from mr join mapping mp on mp.src = mr.name
+  ),
+  gg as (
+    select grp, count(distinct sid)::int n, count(*)::int k, avg(val) a
+    from mg group by grp having count(distinct sid) >= 5
+  ),
+  top3 as (select grp from gg where grp <> 'Otros motivos' order by k desc, grp limit 3),
+  cell as (select grp, val, count(distinct sid)::int n, count(*)::int k from mg group by grp, val),
+  wk as (
+    select date_trunc('week', dy::timestamp)::date ws, count(distinct sid)::int n, count(*)::int k
+    from b group by 1
+  ),
+  wkg as (
+    select date_trunc('week', dy::timestamp)::date ws, grp, count(distinct sid)::int n, count(*)::int k
+    from mg group by 1, 2
+  ),
+  ok as (select tot.n >= 5 c from tot)
+  select private.wellbeing_header(p_days, p_career, ok.c) || jsonb_build_object(
+    'ranking', case when ok.c then coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'name', g.grp, 'share', round(100.0 * g.k / tot.k, 1), 'average', round(g.a, 1))
+             order by (g.grp = 'Otros motivos'), g.k desc, g.grp)
+      from gg g), '[]'::jsonb) else '[]'::jsonb end,
+    'matrix', case when ok.c then coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'name', g.grp,
+               'cells', private.suppress_row((
+                 select jsonb_agg(jsonb_build_object(
+                          'n', coalesce(c.n, 0), 'value', round(100.0 * coalesce(c.k, 0) / g.k, 1)) order by s.v)
+                 from generate_series(1, 5) s(v)
+                 left join cell c on c.grp = g.grp and c.val = s.v)))
+             order by (g.grp = 'Otros motivos'), g.k desc, g.grp)
+      from gg g), '[]'::jsonb) else '[]'::jsonb end,
+    'trend', case when ok.c then coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'name', t.grp,
+               'weeks', (
+                 select jsonb_agg(jsonb_build_object(
+                          'weekStart', to_char(w.ws, 'YYYY-MM-DD'),
+                          'share', case when wk.n >= 5 then
+                            private.wellbeing_share(coalesce(x.n, 0), 0, coalesce(x.k, 0), wk.k) end)
+                        order by w.ws)
+                 from private.wellbeing_weeks(p.first_day, p.last_day) w
+                 left join wk on wk.ws = w.ws
+                 left join wkg x on x.ws = w.ws and x.grp = t.grp))
+             order by gg.k desc, t.grp)
+      from top3 t join gg on gg.grp = t.grp), '[]'::jsonb) else '[]'::jsonb end
+  ) into result
+  from tot, ok;
+  return result;
+end;
+$fn$;
+
+-- Pestaña «Estrés» (PSS-10 activo): última aplicación de cada estudiante en el periodo; en la
+-- tendencia, la última de cada estudiante en cada semana.
+create or replace function private.wellbeing_stress(p_days int, p_career bigint default null)
+returns jsonb
+language plpgsql stable security invoker set search_path = '' as $fn$
+declare
+  p record;
+  result jsonb;
+begin
+  select * into p from private.wellbeing_period(p_days);
+  with b as (
+    select count(distinct sid)::int n from private.wellbeing_checkins(p.first_day, p.last_day, p_career)
+  ),
+  t as materialized (select * from private.wellbeing_tests(p.first_day, p.last_day, p_career)),
+  tp as materialized (select * from private.wellbeing_tests(p.prev_first, p.prev_last, p_career)),
+  cur as (select count(*)::int n, count(*) filter (where is_high)::int h, avg(score) a from t),
+  prv as (select count(*)::int n, count(*) filter (where is_high)::int h, avg(score) a from tp),
+  ok as (select b.n >= 5 c, cur.n >= 5 t, prv.n >= 5 pv from b, cur, prv),
+  lv as (
+    select n.nivel_resultado level, n.label, n.puntaje_minimo, count(t.sid)::int k
+    from public.test_resultado_nivel n
+    join public.test_bienestar tb
+      on tb.id_test = n.test_id and tb.version = n.test_version
+     and tb.nombre_test = 'Escala de Estrés Percibido (PSS-10)' and tb.is_active
+    left join t on t.level = n.nivel_resultado
+    group by n.nivel_resultado, n.label, n.puntaje_minimo
+  ),
+  lvs as (
+    select private.suppress_row(jsonb_agg(jsonb_build_object('n', k, 'value', k) order by puntaje_minimo, level)) v
+    from lv
+  ),
+  wk as (
+    select w.ws, x.n, x.h, x.a
+    from private.wellbeing_weeks(p.first_day, p.last_day) w
+    cross join lateral (
+      select count(*)::int n, count(*) filter (where y.is_high)::int h, avg(y.score) a
+      from private.wellbeing_tests(greatest(w.ws, p.first_day), least(w.ws + 6, p.last_day), p_career) y
+    ) x
+  ),
+  cg as (select * from private.wellbeing_career_groups(p.first_day, p.last_day, p_career)),
+  cs as (
+    select cg.name, min(cg.ord) ord, count(t.sid)::int n, count(t.sid) filter (where t.is_high)::int h, avg(t.score) a
+    from cg left join t on coalesce(t.cid, 0) = cg.cid
+    group by cg.name
+  )
+  select private.wellbeing_header(p_days, p_career, ok.c) || jsonb_build_object(
+    'participants', private.wellbeing_kpi(case when ok.c and ok.t then cur.n end, case when ok.pv then prv.n end),
+    'average', private.wellbeing_kpi(case when ok.c and ok.t then round(cur.a, 1) end, case when ok.pv then round(prv.a, 1) end),
+    'highShare', private.wellbeing_kpi(
+      case when ok.c and ok.t then private.wellbeing_share(cur.h, cur.n - cur.h, cur.h, cur.n) end,
+      case when ok.pv then private.wellbeing_share(prv.h, prv.n - prv.h, prv.h, prv.n) end),
+    'levels', case when ok.c then coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'level', l.level, 'label', l.label,
+               'students', case when ok.t then lvs.v -> (l.rn - 1)::int end) order by l.rn)
+      from (select lv.*, row_number() over (order by puntaje_minimo, level) rn from lv) l, lvs), '[]'::jsonb)
+      else '[]'::jsonb end,
+    'weekly', case when ok.c then (
+      select jsonb_agg(jsonb_build_object(
+               'weekStart', to_char(w.ws, 'YYYY-MM-DD'),
+               'average', case when w.n >= 5 then round(w.a, 1) end,
+               'highShare', case when w.n >= 5 then private.wellbeing_share(w.h, w.n - w.h, w.h, w.n) end)
+             order by w.ws)
+      from wk w) else '[]'::jsonb end,
+    'careers', case when ok.c then coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'name', c.name,
+               'average', case when c.n >= 5 then round(c.a, 1) end,
+               'highShare', case when c.n >= 5 then private.wellbeing_share(c.h, c.n - c.h, c.h, c.n) end)
+             order by c.ord, c.name)
+      from cs c), '[]'::jsonb) else '[]'::jsonb end
+  ) into result
+  from cur, prv, ok;
+  return result;
+end;
+$fn$;
+
 do $grants$
 declare fn text;
 begin
@@ -324,7 +482,8 @@ begin
     'private.wellbeing_header(int, bigint, boolean)', 'private.wellbeing_kpi(numeric, numeric)',
     'private.wellbeing_share(int, int, int, int)', 'private.wellbeing_weeks(date, date)',
     'private.wellbeing_career_groups(date, date, bigint)', 'private.wellbeing_summary(int, bigint)',
-    'private.wellbeing_careers_available(int)'
+    'private.wellbeing_careers_available(int)', 'private.wellbeing_reasons(int, bigint)',
+    'private.wellbeing_stress(int, bigint)'
   ] loop
     execute format('revoke all on function %s from public, anon, authenticated', fn);
     execute format('grant execute on function %s to service_role', fn);

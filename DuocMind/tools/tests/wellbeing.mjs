@@ -326,6 +326,82 @@ try {
     assert.equal((await call("wellbeing_summary", 30, 999999999)).sufficient, false, "carrera inexistente igual que bajo k");
   });
 
+  await scenario("T003 motivos: ranking, matriz, tendencia y «Otros motivos»", async () => {
+    await cohort(6, [2], { reasons: ["Académico"] });
+    await cohort(5, [4], { reasons: ["Familia"] });
+    await cohort(2, [3], { reasons: ["Salud"] });
+    await cohort(1, [5], { reasons: ["Salud", "Trabajo"] });
+    const d = await call("wellbeing_reasons", 30, null);
+    assert.deepEqual(Object.keys(d).sort(), [...HEADER, "matrix", "ranking", "trend"].sort());
+    assert.equal(d.sufficient, true);
+    // «Otros» (Salud y Trabajo: 3 estudiantes) absorbe Familia, la visible más pequeña (CA-003),
+    // y el check-in con dos motivos de «Otros» cuenta una sola vez.
+    assert.deepEqual(d.ranking, [
+      { name: "Académico", share: 42.9, average: 2 },
+      { name: "Otros motivos", share: 57.1, average: 3.9 },
+    ]);
+    assert.deepEqual(d.matrix, [
+      { name: "Académico", cells: [0, 100, 0, 0, 0] },
+      { name: "Otros motivos", cells: [0, 0, null, 62.5, null] },
+    ], "CA-001: celdas de 1 a 4 estudiantes ocultas");
+    assert.equal(d.trend.length, 1, "«Otros motivos» no entra en la tendencia");
+    assert.equal(d.trend[0].name, "Académico");
+    assert.deepEqual(d.trend[0].weeks.filter((w) => w.share !== null).map((w) => w.share), [42.9]);
+    const text = JSON.stringify(d);
+    assert(!text.includes("Familia") && !text.includes("Salud") && !text.includes("Trabajo"));
+  });
+
+  await scenario("T003 motivos sin grupo resto pequeño", async () => {
+    await cohort(5, [1], { reasons: ["Académico"] });
+    await cohort(5, [5], { reasons: ["Familia"] });
+    const d = await call("wellbeing_reasons", 30, null);
+    assert.deepEqual(d.ranking.map((r) => [r.name, r.share, r.average]), [["Académico", 50, 1], ["Familia", 50, 5]]);
+    assert.deepEqual(d.trend.map((t) => t.name), ["Académico", "Familia"]);
+    assert.deepEqual((await call("wellbeing_reasons", 30, -1)).ranking, [], "bajo k: vacío");
+  });
+
+  await scenario("T003 estrés: niveles, tendencia y carreras", async () => {
+    await db.query("update public.test_bienestar set is_active=false, revision=revision+1 where nombre_test=$1 and is_active", [PSS10]);
+    const test = await pss10(903);
+    const x = await career("Carrera WB X"), y = await career("Carrera WB Y");
+    const scores = [[x, 5], [x, 5], [x, 5], [x, 5], [x, 5], [x, 20], [y, 30], [y, 30], [y, 30], [y, 30], [y, 30]];
+    for (const [c, score] of scores) {
+      const [id] = await cohort(1, [3], { careerId: c });
+      await apply(id, test, score, dayAt(3));
+    }
+    const d = await call("wellbeing_stress", 30, null);
+    assert.deepEqual(Object.keys(d).sort(), [...HEADER, "average", "careers", "highShare", "levels", "participants", "weekly"].sort());
+    assert.deepEqual(d.participants, { value: 11, previous: null });
+    assert.deepEqual(d.average, { value: 17.7, previous: null });
+    assert.deepEqual(d.highShare, { value: 45.5, previous: null });
+    assert.deepEqual(d.levels, [
+      { level: "leve", label: "Estrés leve", students: null },
+      { level: "moderado", label: "Estrés moderado", students: null },
+      { level: "severo", label: "Estrés severo", students: 5 },
+    ], "moderado (1) se oculta y arrastra a leve, la primera visible con menos estudiantes");
+    const weeks = d.weekly.filter((w) => w.average !== null);
+    assert.deepEqual(weeks.map((w) => [w.average, w.highShare]), [[17.7, 45.5]]);
+    assert.deepEqual(d.careers, [
+      { name: "Carrera WB X", average: 7.5, highShare: 0 },
+      { name: "Carrera WB Y", average: 30, highShare: 100 },
+    ]);
+    const onlyY = await call("wellbeing_stress", 30, y);
+    assert.deepEqual(onlyY.participants, { value: 5, previous: null }, "filtro de carrera");
+  });
+
+  await scenario("T003 estrés bajo k", async () => {
+    await db.query("update public.test_bienestar set is_active=false, revision=revision+1 where nombre_test=$1 and is_active", [PSS10]);
+    const test = await pss10(904);
+    const ids = await cohort(6, [3]);
+    for (const id of ids.slice(0, 4)) await apply(id, test, 30, dayAt(2));
+    const d = await call("wellbeing_stress", 30, null);
+    assert.equal(d.sufficient, true, "hay participantes de check-in");
+    assert.deepEqual(d.participants, { value: null, previous: null }, "CA-001: 4 tests no se publican");
+    assert.deepEqual(d.highShare, { value: null, previous: null });
+    assert(d.levels.every((l) => l.students === null));
+    assert(d.weekly.every((w) => w.average === null && w.highShare === null));
+  });
+
   await scenario("permisos de las funciones privadas", async () => {
     const fns = (await db.query(
       `select p.oid::regprocedure::text fn from pg_proc p join pg_namespace n on n.oid=p.pronamespace
