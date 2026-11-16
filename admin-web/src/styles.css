@@ -1611,3 +1611,118 @@ summary {
 .chart-tip strong {
   font-size: .8rem;
 }
+.wellbeing {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+.wb-privacy {
+  border: 1px dashed #c8d0dc;
+  border-radius: 10px;
+  background: #f7f9fc;
+  padding: .65rem .9rem;
+  font-size: .82rem;
+  color: var(--text-secondary);
+}
+.wb-privacy p {
+  margin: 0;
+}
+.wb-privacy strong {
+  color: var(--navy);
+}
+.wb-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+}
+.wb-segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  padding: 3px;
+}
+.wb-segmented button {
+  min-height: 36px;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: .4rem .8rem;
+}
+.wb-segmented button:hover:not(:disabled) {
+  background: #f1f4f8;
+}
+.wb-segmented button.on,
+.wb-segmented button.on:hover:not(:disabled) {
+  background: var(--navy);
+  color: white;
+}
+.wb-career select {
+  min-height: 44px;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  color: var(--navy);
+  padding: .45rem .7rem;
+}
+.wb-range {
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+.wb-tabs {
+  display: flex;
+  gap: .25rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+}
+.wb-tabs a {
+  padding: .65rem .9rem;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.wb-tabs a:hover {
+  color: var(--navy);
+}
+.wb-tabs a.active {
+  border-bottom-color: var(--yellow-dark);
+  color: var(--navy);
+}
+.wb-loading {
+  color: var(--text-muted);
+}
+.wb-empty h2 {
+  margin: 0 0 .3rem;
+  font-size: 1rem;
+}
+.wb-empty p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+.wb-grid {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+.wb-kpis {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+.wb-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.wb-two > .wide {
+  grid-column: 1 / -1;
+}
+.wb-tab {
+  display: grid;
+  gap: 1rem;
+}
+@media (max-width: 980px) {
+  .wb-two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
