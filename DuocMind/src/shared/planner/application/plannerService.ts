@@ -4,6 +4,7 @@ import {
   type ActivityTransfer,
   removePersonalActivity,
   savePersonalActivity,
+  setActivityDone,
   transferActivities,
 } from './personalActivities.ts';
 import type {
@@ -90,6 +91,18 @@ export class PlannerService {
   }
   removeActivity(session: PlannerSession, id: string, version: number): Promise<void> {
     return this.local(session, (doc) => removePersonalActivity(doc, id, version));
+  }
+  setActivityDone(
+    session: PlannerSession,
+    id: string,
+    version: number,
+    done: boolean,
+    now: () => Date = () => new Date(),
+  ): Promise<void> {
+    return this.local(
+      session,
+      (doc) => setActivityDone(doc, id, version, done ? now().toISOString() : null),
+    );
   }
   transfer(session: PlannerSession, request: ActivityTransfer): Promise<void> {
     return this.local(session, (doc) => transferActivities(doc, request));

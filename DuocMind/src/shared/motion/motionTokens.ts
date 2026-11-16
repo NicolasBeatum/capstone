@@ -16,6 +16,8 @@ export const motionDuration = {
   pressIn: 140,
   /** Regreso al soltar un botón. */
   pressOut: 260,
+  /** Salida de una fila de la lista al marcarla como hecha. */
+  rowExit: 260,
   /** Ajuste de la barra de ánimo al soltarla. */
   snap: 400,
   /** Fundido del contenido al cambiar de paso en el tutorial. */

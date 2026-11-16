@@ -1,5 +1,6 @@
 import { identifier, invalid, isDate } from '../domain/schedule.ts';
 import {
+  isInstant,
   parseActivity,
   parsePlanner,
   type PersonalActivity,
@@ -18,12 +19,32 @@ export function savePersonalActivity(
     activity.semesterId && !doc.schedule.semesters.some((s) => s.id === activity.semesterId) &&
     previous?.semesterId !== activity.semesterId
   ) invalid('Ese semestre no está disponible.');
+  // El formulario no decide el estado: se conserva el de la versión guardada.
+  const { doneAt: _ignored, ...fields } = activity;
   return parsePlanner({
     ...doc,
     activities: [...doc.activities.filter((a) => a.id !== activity.id), {
-      ...activity,
+      ...fields,
+      ...(previous?.doneAt ? { doneAt: previous.doneAt } : {}),
       version: previous ? previous.version + 1 : 1,
     }],
+  });
+}
+/** Marca la actividad como hecha en `doneAt`, o la devuelve a pendiente con `null`. */
+export function setActivityDone(
+  doc: PlannerDocument,
+  id: string,
+  version: number,
+  doneAt: string | null,
+): PlannerDocument {
+  const previous = doc.activities.find((a) => a.id === id && a.version === version);
+  if (!previous) invalid('La actividad cambió. Vuelve a abrirla.');
+  if (doneAt !== null && !isInstant(doneAt)) invalid('Revisa la actividad.');
+  const { doneAt: _previous, ...fields } = previous;
+  const next = { ...fields, ...(doneAt ? { doneAt } : {}), version: version + 1 };
+  return parsePlanner({
+    ...doc,
+    activities: doc.activities.map((a) => a.id === id ? next : a),
   });
 }
 export function removePersonalActivity(
@@ -79,7 +100,9 @@ export function transferActivities(
       date: source.date,
     };
     if (request.mode === 'copy') {
-      copies.push({ ...next, id: identifier(source.copyId), version: 1 });
+      // La copia nace pendiente aunque el original ya esté hecho.
+      const { doneAt: _done, ...copy } = next;
+      copies.push({ ...copy, id: identifier(source.copyId), version: 1 });
     } else changes.set(original.id, { ...next, version: original.version + 1 });
   }
   return parsePlanner({

@@ -16,6 +16,7 @@ export interface PlannerModel {
   ): Promise<void>;
   saveActivity(activity: PersonalActivity): Promise<void>;
   removeActivity(id: string, version: number): Promise<void>;
+  setActivityDone(id: string, version: number, done: boolean): Promise<void>;
   transfer(request: ActivityTransfer): Promise<void>;
 }
 export const PlannerContext = createContext<PlannerModel | null>(null);

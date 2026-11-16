@@ -23,7 +23,7 @@ export function projectPlannerDashboard(
     : next
     ? 'Tu próxima clase'
     : 'Tus clases de hoy terminaron';
-  const upcoming = activities.filter((a) => personalActivityState(a, now) !== 'ended').sort((
+  const upcoming = activities.filter((a) => !a.doneAt && personalActivityState(a, now) !== 'ended').sort((
     a,
     b,
   ) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time) || a.id.localeCompare(b.id))
