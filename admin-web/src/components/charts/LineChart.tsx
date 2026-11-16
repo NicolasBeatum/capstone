@@ -30,6 +30,19 @@ export function LineChart(
   const x = (i: number) => left + step * (i + 0.5);
   const y = linear(domain[0], domain[1], height - B, T);
   const tick = weekTicks(weeks);
+  // Etiquetas al final de cada línea, separadas al menos 13 px para que no se encimen.
+  const ends = new Map<string, number>();
+  if (endLabels) {
+    const placed = series
+      .map((s) => ({ name: s.name, v: s.values.filter((v): v is number => v !== null).at(-1) }))
+      .filter((e): e is { name: string; v: number } => e.v !== undefined)
+      .map((e) => ({ name: e.name, y: y(e.v) + 4 }))
+      .sort((a, b) => a.y - b.y);
+    placed.forEach((e, i) => {
+      if (i > 0 && e.y - placed[i - 1].y < 13) e.y = placed[i - 1].y + 13;
+      ends.set(e.name, e.y);
+    });
+  }
   return (
     <Chart height={height} label={label}>
       {(api) => (
@@ -68,7 +81,7 @@ export function LineChart(
                   )
                 )}
                 {endLabels && last && (
-                  <text className="label" x={x(last[1]) + 8} y={y(last[0] as number) + 4}>{s.name}</text>
+                  <text className="label" x={x(last[1]) + 8} y={ends.get(s.name)} fill={s.color}>{s.name}</text>
                 )}
               </g>
             );
