@@ -2,10 +2,10 @@
 
 | Campo | Valor |
 | --- | --- |
-| Versión | 1.0.0 |
+| Versión | 1.1.0 |
 | Estado | APROBADO |
 | Aprobación | Nicolás Hernández, 2026-11-15 |
-| Spec | `spec.md` 0.3.0 |
+| Spec | `spec.md` 0.4.0 |
 | Plan | `plan.md` 1.0.1 |
 
 ## Tareas
@@ -30,6 +30,7 @@
 - [x] T018 Pruebas `admin-web/e2e/wellbeing.spec.ts`: cada pestaña con datos, con estado insuficiente y con su tabla accesible; filtro de carrera aplicado a todas; pestaña conservada en la URL; `/emotions` redirige. **Verificación:** `npm run test:e2e`. **CA-009.**
 - [x] T019 Retiro de lo anterior: quitar `/emotions` de `admin_read` y de `validation.ts`, eliminar `private.emotion_dashboard` en la migración del incremento, y borrar `Emotions.tsx`, `useEmotions.ts`, `e2e/emotions.spec.ts`, `tools/tests/emotions.mjs` (y su registro en `backend-tests.mjs`), `admin-api/emotions_test.ts` y `domain/emotionState.ts` con su prueba si quedan sin uso; se mantiene la redirección de `/emotions` en el panel. **Verificación:** `git grep -n -e emotion_dashboard -e useEmotions` sin resultados fuera de migraciones anteriores, `npm run test:backend`, `deno test` de `admin-api`, `npm test` y `npm run test:e2e`. **CA-008, CA-010.**
 - [x] T020 Verificación final y recorrido visual: `npm run typecheck`, `npm test`, `npm run build` y `npm run test:e2e` en `admin-web/`, y `npm run test:backend` en `tools/`, todos en verde; recorrido de las cinco pestañas con los datos de T007 en 7, 30 y 90 días, con y sin carrera, con teclado, tooltips por foco y «Ver como tabla». **CA-001 a CA-010.**
+- [x] T021 Botón «i» en cada gráfico: `InfoButton` junto al título de `ChartCard` y de la tabla de carreras, con los textos en `domain/chartInfo.ts` (qué muestra, cómo leerlo, cómo se calcula); se abre con puntero, foco o clic y se cierra con Escape. **Verificación:** prueba e2e del botón, typecheck, `npm test`, build y `npm run test:e2e` en verde; recorrido en escritorio. **CA-011.**
 
 ## Estado de las tareas abiertas
 
