@@ -12,6 +12,7 @@ function repositories(initial = []) {
   const entries = new Map(initial.map((entry) => [entry.clientRequestId, { ...entry }]));
   const local = {
     savePending: async (entry) => entries.set(entry.clientRequestId, { ...entry, syncStatus: 'pending' }),
+    saveDeviceOnly: async (entry) => entries.set(entry.clientRequestId, { ...entry, syncStatus: 'device' }),
     listAll: async () => [...entries.values()],
     listPending: async () => [...entries.values()].filter((entry) => entry.syncStatus === 'pending'),
     markSynced: async (id) => entries.set(id, { ...entries.get(id), syncStatus: 'synced' }),
@@ -30,8 +31,11 @@ function repositories(initial = []) {
       if (index >= 0) remoteRows.splice(index, 1);
     },
   };
-  return { entries, local, remote, remoteRows };
+  return { entries, local, remote, remoteRows, canUpload: allowed };
 }
+
+const allowed = async () => true;
+const denied = async () => false;
 
 test('confirmar conserva primero localmente y marca sincronizado tras éxito remoto', async () => {
   const deps = repositories();
@@ -77,8 +81,8 @@ test('si fallan los motivos el check-in sigue pendiente y el reintento los sube 
   assert.equal(result.syncStatus, 'pending');
 
   failReasons = false;
-  await syncPendingCheckins(deps.local, remote);
-  await syncPendingCheckins(deps.local, remote);
+  await syncPendingCheckins(deps.local, remote, allowed);
+  await syncPendingCheckins(deps.local, remote, allowed);
   assert.deepEqual([...saved], ['retry-reasons:1']);
   assert.equal(deps.entries.get('retry-reasons').syncStatus, 'synced');
 });
@@ -100,16 +104,70 @@ test('sincronizar pendientes es idempotente y los errores dejan la cola intacta'
   const deps = repositories([{
     clientRequestId: 'request-1', mood: 'Bien', createdAt: '2026-09-27T12:00:00.000Z', syncStatus: 'pending',
   }]);
-  await syncPendingCheckins(deps.local, deps.remote);
-  await syncPendingCheckins(deps.local, deps.remote);
+  await syncPendingCheckins(deps.local, deps.remote, allowed);
+  await syncPendingCheckins(deps.local, deps.remote, allowed);
   assert.equal(deps.remoteRows.length, 1);
   assert.equal(deps.entries.get('request-1').syncStatus, 'synced');
 
   const broken = repositories([{
     clientRequestId: 'request-2', mood: 'Mal', createdAt: '2026-09-27T12:00:00.000Z', syncStatus: 'pending',
   }]);
-  await assert.rejects(syncPendingCheckins(broken.local, { ...broken.remote, save: async () => { throw new Error('offline'); } }));
+  await assert.rejects(syncPendingCheckins(broken.local, { ...broken.remote, save: async () => { throw new Error('offline'); } }, allowed));
   assert.equal(broken.entries.get('request-2').syncStatus, 'pending');
+});
+
+test('sin consentimientos el check-in se queda solo en el dispositivo', async () => {
+  const deps = repositories();
+  const result = await saveConfirmedCheckin('Mal', {
+    ...deps,
+    canUpload: denied,
+    createRequestId: () => 'request-private',
+    now: () => new Date('2026-11-15T12:00:00.000Z'),
+  }, [3]);
+
+  assert.deepEqual(result, { clientRequestId: 'request-private', syncStatus: 'device' });
+  assert.equal(deps.remoteRows.length, 0);
+  assert.deepEqual(deps.entries.get('request-private').reasonIds, [3]);
+});
+
+test('lo registrado sin consentimiento no se sube aunque después se active uno', async () => {
+  const deps = repositories();
+  await saveConfirmedCheckin('Bien', {
+    ...deps,
+    canUpload: denied,
+    createRequestId: () => 'request-never',
+    now: () => new Date('2026-11-15T12:00:00.000Z'),
+  });
+  await syncPendingCheckins(deps.local, deps.remote, allowed);
+
+  assert.equal(deps.remoteRows.length, 0);
+  assert.equal(deps.entries.get('request-never').syncStatus, 'device');
+});
+
+test('un pendiente con permiso espera si se revoca y se sube al volver a activarlo', async () => {
+  const deps = repositories([{
+    clientRequestId: 'request-later', mood: 'Bien', createdAt: '2026-11-15T12:00:00.000Z', syncStatus: 'pending',
+  }]);
+  await syncPendingCheckins(deps.local, deps.remote, denied);
+  assert.equal(deps.remoteRows.length, 0);
+  assert.equal(deps.entries.get('request-later').syncStatus, 'pending');
+
+  await syncPendingCheckins(deps.local, deps.remote, allowed);
+  assert.equal(deps.remoteRows.length, 1);
+  assert.equal(deps.entries.get('request-later').syncStatus, 'synced');
+});
+
+test('borrar un check-in solo del dispositivo no llama al servidor', async () => {
+  const deps = repositories([{
+    clientRequestId: 'request-device', mood: 'Mal', createdAt: '2026-11-15T12:00:00.000Z', syncStatus: 'device',
+  }]);
+  let remoteCalls = 0;
+  await deleteCheckin('request-device', {
+    local: deps.local,
+    remote: { ...deps.remote, remove: async () => { remoteCalls += 1; } },
+  });
+  assert.equal(remoteCalls, 0);
+  assert.equal(deps.entries.has('request-device'), false);
 });
 
 test('el historial mezcla remoto y local por UUID y ordena por fecha', async () => {

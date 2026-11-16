@@ -10,6 +10,7 @@ import {
 import { getLocalCheckinStore } from '@/features/emotional-checkin/infrastructure/encryptedCheckinDatabase';
 import { supabaseCheckinGateway } from '@/features/emotional-checkin/infrastructure/supabaseCheckinGateway';
 import { supabaseAuthGateway } from '@/features/auth/infrastructure/supabaseAuthGateway';
+import { canUploadEmotionalDataNow } from '@/shared/consents/infrastructure/emotionalUploadPolicy';
 import { BottomNav } from '@/shared/components/BottomNav';
 import { LiquidBackground } from '@/shared/components/Glass';
 import { Brote } from '@/shared/components/Brote';
@@ -28,7 +29,7 @@ import { useCheckinReasons } from '../hooks/useCheckinReasons';
 import { MOOD_MAX, clampMoodValue, moodFromValue, valueFromMood } from '../domain/moodScale';
 import { styles } from './CheckinScreen.styles';
 
-type SaveState = 'idle' | 'saving' | 'saved' | 'saved-offline';
+type SaveState = 'idle' | 'saving' | 'saved' | 'saved-offline' | 'saved-device-only';
 
 // El guardado local es casi instantáneo; la gota se deja ver un momento para que el cierre se sienta calmado.
 const MIN_SAVING_FEEDBACK_MS = 2200;
@@ -46,13 +47,13 @@ const THANKS_VISIBLE_MS: Record<CheckinMood, number> = {
 const BROTE_RATIO = 0.78;
 const BROTE_RATIO_WITH_REASONS = 0.55;
 
-/** Sube los check-ins que quedaron en la outbox cifrada mientras no había conexión. */
+/** Sube los check-ins que quedaron en la outbox cifrada, si la persona lo permite. */
 async function syncPendingInBackground(): Promise<void> {
   try {
     const userId = await supabaseAuthGateway.getCurrentUserId();
     if (!userId) return;
     const local = await getLocalCheckinStore(userId);
-    await syncPendingCheckins(local, supabaseCheckinGateway);
+    await syncPendingCheckins(local, supabaseCheckinGateway, canUploadEmotionalDataNow);
   } catch {
     // La outbox cifrada conserva los registros hasta el siguiente intento.
   }
@@ -166,6 +167,7 @@ export default function CheckinScreen() {
         {
           local,
           remote: supabaseCheckinGateway,
+          canUpload: canUploadEmotionalDataNow,
           createRequestId: Crypto.randomUUID,
           now: () => new Date(),
         },
@@ -174,7 +176,13 @@ export default function CheckinScreen() {
       // El tutorial se entera de que el registro quedó guardado; no recibe la emoción.
       notifyTutorialCheckinSaved(userId);
       await keepLoaderVisible();
-      setSaveState(result.syncStatus === 'synced' ? 'saved' : 'saved-offline');
+      // Sin consentimientos el registro queda solo en el dispositivo y el cierre lo dice.
+      const savedState: Record<typeof result.syncStatus, SaveState> = {
+        synced: 'saved',
+        pending: 'saved-offline',
+        device: 'saved-device-only',
+      };
+      setSaveState(savedState[result.syncStatus]);
       // Tras el agradecimiento se va al inicio para que no se registre de nuevo por error.
       redirectTimer.current = setTimeout(goToDashboard, THANKS_VISIBLE_MS[mood]);
     } catch {
@@ -242,7 +250,9 @@ export default function CheckinScreen() {
           phase={saveState === 'saving' ? 'saving' : 'thanks'}
           t={clampMoodValue(moodValue) / MOOD_MAX}
           mood={mood}
-          savedOffline={saveState === 'saved-offline'}
+          storage={
+            saveState === 'saved-device-only' ? 'device-only' : saveState === 'saved-offline' ? 'offline' : 'synced'
+          }
           onContinue={goToDashboard}
         />
       ) : null}

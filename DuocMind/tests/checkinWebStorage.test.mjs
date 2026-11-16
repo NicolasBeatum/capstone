@@ -40,3 +40,12 @@ test('la vista web guarda motivos y catálogo en memoria', async () => {
   assert.deepEqual(await store.listReasonCatalog(), [{ id: 2, name: 'Pareja' }, { id: 1, name: 'Familia' }]);
   await deleteLocalCheckinData(userId);
 });
+
+test('la vista web distingue los check-ins solo del dispositivo', async () => {
+  const userId = '40000000-0000-0000-0000-000000000004';
+  const store = await getLocalCheckinStore(userId);
+  await store.saveDeviceOnly({ clientRequestId: 'web-device', mood: 'Bien', createdAt: '2026-11-15T03:00:00.000Z' });
+  assert.equal((await store.listAll())[0].syncStatus, 'device');
+  assert.equal((await store.listPending()).length, 0);
+  await deleteLocalCheckinData(userId);
+});

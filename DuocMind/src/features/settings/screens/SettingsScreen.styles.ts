@@ -88,8 +88,15 @@ export const styles = StyleSheet.create({
     gap: 14,
     paddingVertical: 12,
   },
-  consentText: {
+  consentBody: {
     flex: 1,
+  },
+  infoLink: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  consentText: {
     fontSize: 14,
     lineHeight: 20,
     color: navy,
@@ -102,6 +109,22 @@ export const styles = StyleSheet.create({
   linkText: {
     fontSize: 12,
     color: navy,
+    textDecorationLine: 'underline',
+    fontFamily: font.bold,
+  },
+  deletionRow: {
+    paddingVertical: 12,
+  },
+  deletionTitle: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: navy,
+    fontFamily: font.bold,
+    marginBottom: 2,
+  },
+  dangerLinkText: {
+    fontSize: 12,
+    color: '#9b3d33',
     textDecorationLine: 'underline',
     fontFamily: font.bold,
   },

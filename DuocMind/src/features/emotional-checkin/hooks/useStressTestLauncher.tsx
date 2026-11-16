@@ -2,7 +2,28 @@ import React, { useCallback, useRef, useState } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { RecentTestModal } from '../components/RecentTestModal';
 import { daysSinceApplication, isStressTestDue } from '../domain/stressTestRecency';
+import { consentOwnerGateway } from '@/shared/consents/infrastructure/consentOwnerGateway';
+import { latestStressTest, type LastStressTestRecord } from '../application/lastStressTest';
+import { lastStressTestStore } from '../infrastructure/lastStressTestStorage';
 import { fetchLastStressTest } from '../infrastructure/stressTestRepository';
+
+/**
+ * Última aplicación conocida: la más reciente entre el servidor y la copia del dispositivo.
+ * Sin consentimientos el resultado no se envía, así que la copia local es la única fuente.
+ * Lanza solo si no se pudo consultar ninguna de las dos.
+ */
+async function loadLastStressTest(): Promise<LastStressTestRecord | null> {
+  const readLocal = async () => {
+    const ownerId = await consentOwnerGateway.currentOwner();
+    return ownerId ? lastStressTestStore.read(ownerId) : null;
+  };
+  const [remote, local] = await Promise.allSettled([fetchLastStressTest(), readLocal()]);
+  if (remote.status === 'rejected' && local.status === 'rejected') throw remote.reason;
+  return latestStressTest(
+    remote.status === 'fulfilled' ? remote.value : null,
+    local.status === 'fulfilled' ? local.value : null,
+  );
+}
 
 export type LastStressTest =
   | { status: 'loading' }
@@ -26,7 +47,7 @@ export function useStressTestLauncher() {
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      const request = fetchLastStressTest();
+      const request = loadLastStressTest();
       pending.current = request.then((last) => last?.appliedAt ?? null).catch(() => null);
       request.then(
         (last) =>

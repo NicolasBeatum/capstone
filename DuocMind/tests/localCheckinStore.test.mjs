@@ -141,3 +141,17 @@ test('el catálogo local se reemplaza entero y conserva el orden', async () => {
   assert.deepEqual(await store.listReasonCatalog(), [{ id: 2, name: 'Pareja' }, { id: 1, name: 'Familia' }]);
   database.close();
 });
+
+test('un check-in solo del dispositivo aparece en el historial pero nunca en la cola de envío', async () => {
+  const { database, store } = memoryStore();
+  await store.initialize();
+  await store.saveDeviceOnly({
+    clientRequestId: 'device-1', mood: 'Mal', createdAt: '2026-11-15T10:00:00.000Z', reasonIds: [2],
+  });
+
+  const [saved] = await store.listAll();
+  assert.equal(saved.syncStatus, 'device');
+  assert.deepEqual(saved.reasonIds, [2]);
+  assert.equal((await store.listPending()).length, 0);
+  database.close();
+});

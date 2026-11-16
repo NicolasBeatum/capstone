@@ -318,6 +318,20 @@ export const styles = StyleSheet.create({
     color: palette.navy,
     fontFamily: font.semiBold,
   },
+  // Alineado con el texto de la casilla (36 px de casilla + 12 px de separación).
+  consentInfo: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    marginLeft: 48,
+    marginTop: -6,
+    justifyContent: 'center',
+  },
+  consentInfoText: {
+    fontSize: 13,
+    color: palette.navy,
+    textDecorationLine: 'underline',
+    fontFamily: font.bold,
+  },
 
   /* ── Acciones ── */
   primaryButton: {

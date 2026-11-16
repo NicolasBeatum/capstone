@@ -25,6 +25,7 @@ export interface CheckinRange {
 
 export interface CheckinLocalRepository {
   savePending(checkin: NewLocalCheckin): Promise<void>;
+  saveDeviceOnly(checkin: NewLocalCheckin): Promise<void>;
   listAll(): Promise<LocalCheckin[]>;
   listPending(): Promise<LocalCheckin[]>;
   markSynced(clientRequestId: string): Promise<void>;
@@ -48,10 +49,19 @@ export type SaveCheckinResult = {
   syncStatus: CheckinSyncStatus;
 };
 
+/** Responde si hoy se permite enviar datos emocionales al servidor; no debe lanzar. */
+export type EmotionalUploadPolicy = () => Promise<boolean>;
+
+/**
+ * Sube la cola de envío solo si la persona lo permite. Sin permiso los pendientes esperan;
+ * los registrados sin consentimiento (`device`) nunca están en esta cola.
+ */
 export async function syncPendingCheckins(
   local: CheckinLocalRepository,
   remote: CheckinRemoteGateway,
+  canUpload: EmotionalUploadPolicy,
 ): Promise<void> {
+  if (!(await canUpload())) return;
   const pending = await local.listPending();
   for (const checkin of pending) {
     await remote.save(checkin);
@@ -59,11 +69,16 @@ export async function syncPendingCheckins(
   }
 }
 
+/**
+ * Guarda el check-in. El permiso se decide al registrar: sin consentimientos activos queda
+ * como `device` y no se envía nunca, ni siquiera si después se activa un consentimiento.
+ */
 export async function saveConfirmedCheckin(
   mood: CheckinMood,
   dependencies: {
     local: CheckinLocalRepository;
     remote: CheckinRemoteGateway;
+    canUpload: EmotionalUploadPolicy;
     createRequestId(): string;
     now(): Date;
   },
@@ -76,11 +91,15 @@ export async function saveConfirmedCheckin(
     reasonIds: [...reasonIds],
   };
 
-  await dependencies.local.savePending(checkin);
-  try {
-    await syncPendingCheckins(dependencies.local, dependencies.remote);
-  } catch {
-    // The encrypted local outbox remains authoritative until sync succeeds.
+  if (await dependencies.canUpload()) {
+    await dependencies.local.savePending(checkin);
+    try {
+      await syncPendingCheckins(dependencies.local, dependencies.remote, dependencies.canUpload);
+    } catch {
+      // The encrypted local outbox remains authoritative until sync succeeds.
+    }
+  } else {
+    await dependencies.local.saveDeviceOnly(checkin);
   }
 
   const saved = (await dependencies.local.listAll()).find(

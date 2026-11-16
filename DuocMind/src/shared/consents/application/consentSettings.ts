@@ -1,4 +1,5 @@
 import {
+  allowsEmotionalUpload,
   NO_CONSENTS,
   type ConsentChoices,
   type ConsentKey,
@@ -113,4 +114,22 @@ export async function changeConsent(deps: {
     // Sin registrar el error: contiene el identificador de la cuenta.
   }
   return { choices: next, failed: false };
+}
+
+/**
+ * Indica si los datos emocionales pueden enviarse al servidor. Lee el estado guardado en el
+ * dispositivo (que `loadConsents` mantiene igual al del servidor) para decidir también sin
+ * conexión. Nunca lanza: ante cualquier duda responde `false` y los datos no salen.
+ */
+export async function canUploadEmotionalData(deps: {
+  owners: ConsentOwnerGateway;
+  store: ConsentStore;
+}): Promise<boolean> {
+  try {
+    const ownerId = await deps.owners.currentOwner();
+    if (!ownerId) return false;
+    return allowsEmotionalUpload(await deps.store.read(ownerId));
+  } catch {
+    return false;
+  }
 }
