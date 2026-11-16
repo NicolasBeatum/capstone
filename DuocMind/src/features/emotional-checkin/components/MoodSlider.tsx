@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useId, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   PanResponder,
@@ -44,6 +44,9 @@ export function MoodSlider({ value, onChange, onCommit }: MoodSliderProps) {
   const onCommitRef = useRef(onCommit);
   onCommitRef.current = onCommit;
   const thumbScale = useRef(new Animated.Value(1)).current;
+  // Id único del degradado: con dos barras montadas (p. ej. al tocar + otra vez), un id
+  // repetido hacía que en web la barra visible usara el degradado de la oculta y quedara sin color.
+  const gradientId = `moodTrack-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const snap = useRef(new Animated.Value(0)).current;
 
   const measure = () => {
@@ -151,13 +154,13 @@ export function MoodSlider({ value, onChange, onCommit }: MoodSliderProps) {
         <View style={styles.track} pointerEvents="none">
           <Svg width="100%" height={TRACK_HEIGHT}>
             <Defs>
-              <LinearGradient id="moodTrack" x1="0" y1="0" x2="1" y2="0">
+              <LinearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">
                 {MOOD_SCALE.map((mood, index) => (
                   <Stop key={mood} offset={index / MOOD_MAX} stopColor={moodColorAt(index / MOOD_MAX)} />
                 ))}
               </LinearGradient>
             </Defs>
-            <Rect width="100%" height={TRACK_HEIGHT} rx={TRACK_HEIGHT / 2} fill="url(#moodTrack)" />
+            <Rect width="100%" height={TRACK_HEIGHT} rx={TRACK_HEIGHT / 2} fill={`url(#${gradientId})`} />
           </Svg>
         </View>
 

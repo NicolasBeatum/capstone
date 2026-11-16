@@ -40,6 +40,8 @@ interface TutorialOverlayProps {
   onSkip: () => void;
   /** Botón Atrás del sistema: retrocede un paso o, si no puede, omite. */
   onSystemBack: () => void;
+  /** Dibujo opcional sobre el título del paso (p. ej. el Brote creciendo). */
+  illustration?: React.ReactNode;
 }
 
 interface MeasuredLayout {
@@ -68,6 +70,7 @@ export function TutorialOverlay({
   onBack,
   onSkip,
   onSystemBack,
+  illustration,
 }: TutorialOverlayProps) {
   const { width, height, fontScale } = useWindowDimensions();
   const reduceMotion = useReducedMotion();
@@ -213,6 +216,7 @@ export function TutorialOverlay({
             style={[styles.card, { opacity: ready ? cardFade : 0 }]}
             accessibilityLiveRegion="polite"
           >
+            {illustration ? <View style={styles.illustration}>{illustration}</View> : null}
             <Text style={styles.position}>{view.position}</Text>
             <Text ref={titleRef} style={styles.title} accessibilityRole="header">
               {step.title}
@@ -299,6 +303,9 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 10 },
     elevation: 12,
+  },
+  illustration: {
+    alignItems: 'center',
   },
   position: {
     fontFamily: font.bold,

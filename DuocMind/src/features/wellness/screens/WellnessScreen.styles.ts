@@ -38,6 +38,8 @@ export const styles = StyleSheet.create({
   eventsTitle: { fontFamily: font.extraBold, fontSize: 17, color: navy },
   eventsDesc: { fontFamily: font.regular, fontSize: 13, color: navy, marginTop: 4 },
   eventsArrow: { fontSize: 24, color: navy },
+  pomodoroCard: { backgroundColor: '#f6e3b4' },
+  breathingCard: { backgroundColor: '#d6eadf' },
 
   /* ── Tarjeta principal del test ── */
   heroCard: {

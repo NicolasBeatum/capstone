@@ -110,7 +110,10 @@ export function BottomNav({ currentTab, tutorialTargets }: BottomNavProps) {
         <ScalePress
           ref={tutorialTargets?.checkin}
           style={[styles.fab, currentTab === 'checkin' && styles.fabActive]}
-          onPress={() => router.push('/checkin')}
+          // Si ya estamos en el check-in no se abre otro encima.
+          onPress={() => {
+            if (currentTab !== 'checkin') router.push('/checkin');
+          }}
           accessibilityRole="button"
           accessibilityLabel="Registrar cómo te sientes"
         >

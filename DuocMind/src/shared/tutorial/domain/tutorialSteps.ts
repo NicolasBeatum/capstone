@@ -1,5 +1,15 @@
 /** Elementos del inicio que el recorrido puede resaltar. */
-export type TutorialTargetId = 'weekCard' | 'checkin' | 'agenda' | 'events' | 'wellness';
+export type TutorialTargetId =
+  | 'weekCard'
+  | 'checkin'
+  | 'agenda'
+  | 'events'
+  | 'wellness'
+  // Guía del Pomodoro (Bienestar).
+  | 'pomodoroTimer'
+  | 'pomodoroConfig'
+  // Guía de la respiración 4-7-8 (Bienestar).
+  | 'breathingCircle';
 
 /**
  * info: explica una sección. checkin: invita a registrar el primer check-in.

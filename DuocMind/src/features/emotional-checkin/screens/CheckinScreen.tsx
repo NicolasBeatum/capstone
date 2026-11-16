@@ -16,7 +16,7 @@ import { LiquidBackground } from '@/shared/components/Glass';
 import { Brote } from '@/shared/components/Brote';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { Reveal } from '@/shared/motion/Reveal';
-import { motionDuration, motionEasing } from '@/shared/motion/motionTokens';
+import { motionDuration, motionEasing, NATIVE_DRIVER } from '@/shared/motion/motionTokens';
 import { useReducedMotion } from '@/shared/motion/useReducedMotion';
 import { notifyTutorialCheckinSaved } from '@/shared/tutorial/infrastructure/tutorialRuntime';
 import type { CheckinMood } from '../application/localCheckinStore';
@@ -43,9 +43,9 @@ const THANKS_VISIBLE_MS: Record<CheckinMood, number> = {
   'Muy bien': 6200,
 };
 
-// Proporción del Brote respecto del área de la cara, antes y después de mostrar los motivos.
-const BROTE_RATIO = 0.78;
-const BROTE_RATIO_WITH_REASONS = 0.55;
+// Proporción del Brote respecto del área de la cara. Es fija: el espacio de los motivos
+// está siempre reservado, así la pantalla no cambia de tamaño al mostrarlos.
+const BROTE_RATIO = 0.55;
 
 /** Sube los check-ins que quedaron en la outbox cifrada, si la persona lo permite. */
 async function syncPendingInBackground(): Promise<void> {
@@ -68,39 +68,32 @@ export default function CheckinScreen() {
   const redirectTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const reasons = useCheckinReasons();
   const [selectedReasonIds, setSelectedReasonIds] = useState<number[]>([]);
-  // Las burbujas aparecen la primera vez que la persona deja la barra en una emoción.
+  // Los motivos ya ocupan su lugar, pero se ven recién cuando la persona elige una emoción.
   const [moodChosen, setMoodChosen] = useState(false);
-  const showReasons = moodChosen && reasons.length > 0;
   const reduceMotion = useReducedMotion();
-  const broteRatioAnim = useRef(new Animated.Value(BROTE_RATIO)).current;
-  const [broteRatio, setBroteRatio] = useState(BROTE_RATIO);
+  const reasonsOpacity = useRef(new Animated.Value(0)).current;
 
   const mood = moodFromValue(moodValue);
-  // El Brote ocupa el centro sin empujar la barra ni el botón fuera de la pantalla;
-  // se achica al aparecer los motivos para dejarles espacio.
+  // El Brote ocupa el centro sin empujar la barra ni el botón fuera de la pantalla.
   const faceSize = Math.min(width * 0.62, height * 0.34, 300);
-  const broteSize = faceSize * broteRatio;
+  const broteSize = faceSize * BROTE_RATIO;
 
+  // Al elegir una emoción, los motivos aparecen con un fundido en el lugar que ya tenían.
   useEffect(() => {
-    const target = showReasons ? BROTE_RATIO_WITH_REASONS : BROTE_RATIO;
+    if (!moodChosen) return;
     if (reduceMotion) {
-      broteRatioAnim.setValue(target);
-      setBroteRatio(target);
+      reasonsOpacity.setValue(1);
       return;
     }
-    const listener = broteRatioAnim.addListener(({ value }) => setBroteRatio(value));
-    const animation = Animated.timing(broteRatioAnim, {
-      toValue: target,
+    const animation = Animated.timing(reasonsOpacity, {
+      toValue: 1,
       duration: motionDuration.screen,
       easing: motionEasing.calm,
-      useNativeDriver: false,
+      useNativeDriver: NATIVE_DRIVER,
     });
     animation.start();
-    return () => {
-      animation.stop();
-      broteRatioAnim.removeListener(listener);
-    };
-  }, [broteRatioAnim, reduceMotion, showReasons]);
+    return () => animation.stop();
+  }, [moodChosen, reduceMotion, reasonsOpacity]);
 
   useEffect(() => {
     void syncPendingInBackground();
@@ -218,9 +211,15 @@ export default function CheckinScreen() {
           <MoodSlider value={moodValue} onChange={handleMoodChange} onCommit={() => setMoodChosen(true)} />
         </Reveal>
 
-        {showReasons ? (
+        <Animated.View
+          style={{ opacity: reasonsOpacity }}
+          // Ocultos: no se pueden tocar ni los lee el lector de pantalla.
+          pointerEvents={moodChosen ? 'auto' : 'none'}
+          accessibilityElementsHidden={!moodChosen}
+          importantForAccessibility={moodChosen ? 'auto' : 'no-hide-descendants'}
+        >
           <ReasonBubbles reasons={reasons} selectedIds={selectedReasonIds} onToggle={handleReasonToggle} />
-        ) : null}
+        </Animated.View>
 
         <Reveal index={3}>
           <ScalePress

@@ -8,7 +8,7 @@ import {
 } from '@/features/emotional-checkin/domain/stressTestRecency';
 import { useStressTestLauncher, type LastStressTest } from '@/features/emotional-checkin/hooks/useStressTestLauncher';
 import { BottomNav } from '@/shared/components/BottomNav';
-import { PhoneIcon, TicketIcon } from '@/shared/components/Icons';
+import { PhoneIcon, TicketIcon, TimerIcon, WindIcon } from '@/shared/components/Icons';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { Reveal } from '@/shared/motion/Reveal';
 import { ResourcesSection } from '../components/ResourcesSection';
@@ -54,6 +54,40 @@ export default function WellnessScreen() {
             <View style={styles.helpText}>
               <Text style={styles.eventsTitle}>Eventos</Text>
               <Text style={styles.eventsDesc}>Actividades, encuentros y talleres para tu agenda</Text>
+            </View>
+            <Text style={styles.eventsArrow}>›</Text>
+          </ScalePress>
+        </Reveal>
+
+        {/* ── Pomodoro (herramienta local, no viene de la base de datos) ── */}
+        <Reveal index={1}>
+          <ScalePress
+            style={[styles.eventsCard, styles.pomodoroCard]}
+            onPress={() => router.push('/wellness/pomodoro')}
+            accessibilityRole="button"
+            accessibilityLabel="Pomodoro, temporizador de estudio"
+          >
+            <View style={styles.helpIcon}><TimerIcon size={22} color="#1a2b44" /></View>
+            <View style={styles.helpText}>
+              <Text style={styles.eventsTitle}>Pomodoro</Text>
+              <Text style={styles.eventsDesc}>Temporizador de estudio con bloques y descansos</Text>
+            </View>
+            <Text style={styles.eventsArrow}>›</Text>
+          </ScalePress>
+        </Reveal>
+
+        {/* ── Respiración 4-7-8 (herramienta local, no viene de la base de datos) ── */}
+        <Reveal index={1}>
+          <ScalePress
+            style={[styles.eventsCard, styles.breathingCard]}
+            onPress={() => router.push('/wellness/breathing')}
+            accessibilityRole="button"
+            accessibilityLabel="Respiración 4-7-8, para bajar la ansiedad"
+          >
+            <View style={styles.helpIcon}><WindIcon size={22} color="#1a2b44" /></View>
+            <View style={styles.helpText}>
+              <Text style={styles.eventsTitle}>Respiración 4-7-8</Text>
+              <Text style={styles.eventsDesc}>Poco más de un minuto para calmar la ansiedad</Text>
             </View>
             <Text style={styles.eventsArrow}>›</Text>
           </ScalePress>
