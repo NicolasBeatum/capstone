@@ -2,8 +2,9 @@
 
 | Campo | Valor |
 | --- | --- |
-| Versión | 0.1.0 |
-| Estado | BORRADOR |
+| Versión | 1.0.0 |
+| Estado | APROBADO |
+| Aprobación | Nicolás Hernández, 2026-11-15 |
 | Spec | `spec.md` 0.2.0 |
 | Plan | `plan.md` 1.0.0 |
 
