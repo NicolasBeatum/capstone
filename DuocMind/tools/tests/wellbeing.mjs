@@ -10,6 +10,9 @@ const PSS10 = "Escala de Estrés Percibido (PSS-10)";
 // Mediodía (hora de Santiago) de hace n días.
 const dayAt = (n) =>
   `((date_trunc('day', now() at time zone ${SANTIAGO}) - interval '${n} days' + interval '12 hours') at time zone ${SANTIAGO})`;
+// Mediodía del lunes de la semana de hace k semanas (+ d días).
+const weekAt = (k, d = 0) =>
+  `((date_trunc('week', now() at time zone ${SANTIAGO}) - interval '${7 * k - d} days' + interval '12 hours') at time zone ${SANTIAGO})`;
 const PERIOD = `(now() at time zone ${SANTIAGO})::date - 89, (now() at time zone ${SANTIAGO})::date`;
 
 let seq = 0;
@@ -126,6 +129,18 @@ try {
       `select sid::int, score, level, label, is_high, cid from private.wellbeing_tests(${PERIOD}, $1) order by sid`,
       [career],
     )).rows;
+  // Estudiantes que comparten, cada uno con un registro por valor en `values`.
+  async function cohort(count, values, { careerId = null, at = dayAt(3), reasons = [] } = {}) {
+    const ids = [];
+    for (let i = 0; i < count; i++) {
+      const id = await sharing(careerId);
+      for (const v of values) await checkin(id, v, at, reasons);
+      ids.push(id);
+    }
+    return ids;
+  }
+  const call = async (fn, ...args) =>
+    (await db.query(`select private.${fn}(${args.map((_, i) => "$" + (i + 1)).join(",")}) d`, args)).rows[0].d;
   const suppress = async (cells) =>
     (await db.query("select private.suppress_row($1::jsonb) r", [JSON.stringify(cells)])).rows[0].r;
 
@@ -241,8 +256,82 @@ try {
     assert.deepEqual(await suppress([{ n: 3, value: 100 }]), [null], "única celda oculta sin visibles");
   });
 
+  const HEADER = ["careerId", "days", "from", "minGroupSize", "sufficient", "to"];
+  const SUMMARY_KEYS = [...HEADER, "average", "checkins", "difficultShare", "highStressShare", "participants", "testTaken", "topReasons", "weekdays", "weekly"].sort();
+  const KPIS = ["participants", "checkins", "average", "difficultShare", "testTaken", "highStressShare"];
+
+  await scenario("T002 resumen bajo k", async () => {
+    await cohort(4, [1, 2]);
+    const d = await call("wellbeing_summary", 30, null);
+    assert.deepEqual(Object.keys(d).sort(), SUMMARY_KEYS);
+    assert.equal(d.sufficient, false);
+    assert.equal(d.minGroupSize, 5);
+    for (const k of KPIS) assert.deepEqual(d[k], { value: null, previous: null }, k);
+    for (const k of ["weekly", "weekdays", "topReasons"]) assert.deepEqual(d[k], [], k);
+    await assert.rejects(call("wellbeing_summary", 15, null), (e) => e.code === "P0422");
+  });
+
+  await scenario("T002 resumen: KPIs, variación y motivos", async () => {
+    // Periodo actual: 6 estudiantes; 5 con [4, 4] y Académico, 1 con [1] (días difíciles: 1 estudiante).
+    await cohort(5, [4, 4], { reasons: ["Académico"] });
+    await cohort(1, [1], { reasons: ["Salud"] });
+    let d = await call("wellbeing_summary", 30, null);
+    assert.equal(d.sufficient, true);
+    assert.deepEqual(d.participants, { value: 6, previous: null }, "CA-006: periodo anterior bajo k omite la variación");
+    assert.deepEqual(d.checkins, { value: 11, previous: null });
+    assert.equal(d.average.value, 3.7);
+    assert.equal(d.difficultShare.value, null, "CA-001: 1 estudiante en días difíciles no se publica");
+    assert.deepEqual(d.topReasons, [{ name: "Académico", share: 90.9 }], "Salud (1 estudiante) no aparece");
+    assert.deepEqual(d.testTaken, { value: null, previous: null });
+    // Periodo anterior (hace 31 a 60 días) con 5 estudiantes: ahora sí hay variación.
+    await cohort(5, [2, 3], { at: dayAt(40) });
+    await cohort(4, [2], {});
+    d = await call("wellbeing_summary", 30, null);
+    assert.deepEqual(d.participants, { value: 10, previous: 5 });
+    assert.deepEqual(d.checkins, { value: 15, previous: 10 });
+    assert.deepEqual(d.average, { value: 3.3, previous: 2.5 });
+    assert.deepEqual(d.difficultShare, { value: 33.3, previous: 50 }, "5 estudiantes dentro y 5 fuera");
+  });
+
+  await scenario("T002 tendencia, distribución y días de la semana", async () => {
+    // Semana de hace 2 semanas: 6 estudiantes con 4 el lunes y 3 con 1 el martes.
+    await cohort(6, [4], { at: weekAt(2) });
+    await cohort(3, [1], { at: weekAt(2, 1) });
+    const d = await call("wellbeing_summary", 90, null);
+    const week = d.weekly.find((w) => w.distribution.some((v) => v !== null));
+    assert(week, "semana con datos");
+    assert.equal(week.average, 3);
+    assert.deepEqual(week.distribution, [null, 0, 0, null, 0], "CA-001 y supresión complementaria: 1 oculta arrastra la menor visible");
+    assert(d.weekly.length >= 13 && d.weekly.length <= 14, "una entrada por semana del periodo");
+    assert(d.weekly.filter((w) => w !== week).every((w) => w.average === null), "semanas sin datos: null");
+    assert.deepEqual(d.weekdays.map((w) => w.day), [1, 2, 3, 4, 5, 6, 7]);
+    assert.equal(d.weekdays[0].average, 4, "lunes con 6 estudiantes");
+    assert.equal(d.weekdays[1].average, null, "martes con 3 estudiantes");
+  });
+
+  await scenario("T002 filtro y selector de carrera", async () => {
+    const big = await career("Carrera WB Grande"), tiny = await career("Carrera WB Chica");
+    await cohort(5, [5], { careerId: big });
+    await cohort(4, [1], { careerId: tiny });
+    const available = await call("wellbeing_careers_available", 30);
+    assert.deepEqual(available.careers, [{ id: String(big), name: "Carrera WB Grande" }], "CA-002: solo carreras con 5 o más");
+    assert.deepEqual(Object.keys(available).sort(), [...HEADER, "careers"].sort());
+    const filtered = await call("wellbeing_summary", 30, big);
+    assert.equal(filtered.careerId, String(big));
+    assert.deepEqual(filtered.participants, { value: 5, previous: null });
+    assert.equal(filtered.average.value, 5);
+    const small = await call("wellbeing_summary", 30, tiny);
+    assert.equal(small.sufficient, false, "carrera bajo k: sufficient false, sin datos");
+    assert.deepEqual(small.participants, { value: null, previous: null });
+    assert.equal((await call("wellbeing_summary", 30, 999999999)).sufficient, false, "carrera inexistente igual que bajo k");
+  });
+
   await scenario("permisos de las funciones privadas", async () => {
-    const fns = ["private.wellbeing_checkins(date,date,bigint)", "private.wellbeing_tests(date,date,bigint)", "private.suppress_row(jsonb)"];
+    const fns = (await db.query(
+      `select p.oid::regprocedure::text fn from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+       where n.nspname='private' and (p.proname like 'wellbeing%' or p.proname='suppress_row') order by 1`,
+    )).rows.map((r) => r.fn);
+    assert(fns.length >= 3, "funciones del dashboard de bienestar");
     for (const fn of fns) {
       const grants = (await db.query(
         `select r, has_function_privilege(r, $1, 'execute') p from unnest(array['anon','authenticated','service_role']) r`,
