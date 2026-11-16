@@ -14,35 +14,37 @@ export function useWellbeing<T extends WellbeingTab>(tab: T) {
   const [days, setDaysState] = useState<WellbeingPeriod>(30);
   const [careerId, setCareerId] = useState<string | null>(null);
   const [careers, setCareers] = useState<CareerOption[]>([]);
-  const [data, setData] = useState<WellbeingTabData[T] | null>(null);
+  // Los datos se guardan con su clave: al cambiar de pestaña, periodo o carrera, lo anterior
+  // nunca llega a la vista nueva (la pestaña Motivos no debe recibir datos del Resumen).
+  const [loaded, setLoaded] = useState<{ key: string; value: WellbeingTabData[WellbeingTab] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const cache = useRef<Cache>(new Map());
   const sequence = useRef(0);
 
+  const key = [tab, days, careerId ?? ""].join("|");
   const load = useCallback(async (force = false) => {
-    const key = [tab, days, careerId ?? ""].join("|");
     const current = ++sequence.current;
     const cached = cache.current.get(key) as WellbeingTabData[T] | undefined;
     if (cached && !force) {
-      setData(cached);
+      setLoaded({ key, value: cached });
       setLoading(false);
       setError("");
       return;
     }
     setLoading(true);
     setError("");
-    setData(null);
+    setLoaded(null);
     try {
       const result = await adminGateway.wellbeing(tab, days, careerId);
       cache.current.set(key, result);
-      if (current === sequence.current) setData(result);
+      if (current === sequence.current) setLoaded({ key, value: result });
     } catch (e) {
       if (current === sequence.current) setError(errorMessage(e));
     } finally {
       if (current === sequence.current) setLoading(false);
     }
-  }, [tab, days, careerId]);
+  }, [key, tab, days, careerId]);
 
   useEffect(() => {
     void load();
@@ -71,8 +73,8 @@ export function useWellbeing<T extends WellbeingTab>(tab: T) {
     careerId,
     setCareerId,
     careers,
-    data,
-    loading,
+    data: loaded?.key === key ? (loaded.value as WellbeingTabData[T]) : null,
+    loading: loading || (loaded?.key !== key && !error),
     error,
     reload: () => {
       cache.current.clear();
