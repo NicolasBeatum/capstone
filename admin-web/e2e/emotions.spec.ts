@@ -153,7 +153,11 @@ test("datos insuficientes: sin valores parciales ni cuántas personas hay", asyn
 
 test("se opera solo con teclado", async ({ page }) => {
   const seen: string[] = [];
-  await mock(page, sufficient, seen);
+  // El periodo de 90 días trae otra fecha de inicio para saber cuándo ya se pintó.
+  await mock(page, (days) => ({
+    ...sufficient(days),
+    from: days === 90 ? "2026-08-09" : "2026-10-08",
+  }), seen);
   await login(page);
   await openEmotions(page);
   await expect(page.getByRole("region", { name: "Tendencia semanal" })).toBeVisible();
@@ -163,6 +167,9 @@ test("se opera solo con teclado", async ({ page }) => {
   await page.keyboard.press("Enter");
   await expect.poll(() => distinct(seen)).toEqual(["30", "90"]);
   await expect(ninety).toHaveAttribute("aria-pressed", "true");
+  // La petición sale antes de que React desmonte los datos de 30 días: sin esta
+  // espera, el foco podía caer en un punto que luego se reemplaza.
+  await expect(page.getByText("Del 9 de agosto de 2026", { exact: false })).toBeVisible();
   const summary = page.getByRole("region", { name: "Cómo se distribuyen los registros" })
     .getByText("Ver como tabla");
   await summary.focus();
