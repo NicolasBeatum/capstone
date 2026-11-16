@@ -1430,3 +1430,184 @@ summary {
     grid-column: 2;
   }
 }
+
+/* Dashboard de bienestar (spec 023). Paletas validadas con validate_palette.js:
+   ánimo divergente rojo ↔ gris ↔ azul, 3 ranuras categóricas para motivos y rampa
+   ordinal naranja para el estrés. Lo que no reúne 5 estudiantes va rayado. */
+:root {
+  --mood-1: #b8322f;
+  --mood-2: #e8807a;
+  --mood-3: #cfcdc6;
+  --mood-4: #6da7ec;
+  --mood-5: #256abf;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --stress-1: #ee9a73;
+  --stress-2: #d9622e;
+  --stress-3: #9c3a14;
+  --seq-0: #f3f7fd;
+  --seq-1: #cde2fb;
+  --seq-2: #9ec5f4;
+  --seq-3: #5598e7;
+  --seq-4: #256abf;
+  --wb-grid: #e8ecf1;
+  --wb-axis: #c3cad5;
+  --wb-hatch-bg: #f3f5f8;
+  --wb-hatch-line: #d7dde6;
+  --good: #006300;
+  --bad: #a6323c;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.chart-defs {
+  position: absolute;
+}
+.kpi h2 {
+  font-size: .8rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+.kpi-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: .25rem 0 0;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+}
+.kpi-value small {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-left: .3rem;
+}
+.kpi-missing {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: .45rem 0;
+}
+.kpi-delta {
+  font-size: .8rem;
+  font-weight: 600;
+  margin: .2rem 0 0;
+}
+.kpi-delta.good { color: var(--good); }
+.kpi-delta.bad { color: var(--bad); }
+.kpi-delta.neutral { color: var(--text-muted); }
+.kpi-hint {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.chart-card h2 {
+  font-size: .95rem;
+  margin: 0;
+}
+.chart-sub {
+  font-size: .8rem;
+  color: var(--text-muted);
+  margin: .1rem 0 .6rem;
+}
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem .9rem;
+  list-style: none;
+  margin: 0 0 .5rem;
+  padding: 0;
+  font-size: .78rem;
+  color: var(--text-secondary);
+}
+.chart-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}
+.legend-swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+}
+.legend-line {
+  width: 16px;
+  height: 2px;
+  border-radius: 2px;
+}
+.legend-hatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(45deg, var(--wb-hatch-bg) 0 3px, var(--wb-hatch-line) 3px 5px);
+}
+.chart {
+  position: relative;
+}
+.chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.chart .grid {
+  stroke: var(--wb-grid);
+}
+.chart .baseline {
+  stroke: var(--wb-axis);
+}
+.chart .axis {
+  fill: var(--text-muted);
+  font-size: 11px;
+}
+.chart .label {
+  fill: var(--text-secondary);
+  font-size: 12px;
+}
+.chart .value {
+  fill: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+}
+.chart .missing-text {
+  fill: var(--text-muted);
+  font-size: 10.5px;
+}
+.chart [tabindex]:focus {
+  outline: none;
+}
+.chart [tabindex]:focus-visible > :first-child,
+.chart [tabindex]:focus-visible.focus-ring {
+  stroke: var(--navy);
+  stroke-width: 2.5;
+}
+.chart .hit {
+  fill: transparent;
+}
+.chart-tip {
+  position: absolute;
+  z-index: 3;
+  transform: translate(12px, -50%);
+  pointer-events: none;
+  display: grid;
+  gap: .1rem;
+  min-width: 140px;
+  max-width: 240px;
+  padding: .45rem .6rem;
+  border-radius: 7px;
+  background: var(--navy);
+  color: white;
+  font-size: .75rem;
+  box-shadow: 0 4px 14px #0003;
+}
+.chart-tip.left {
+  transform: translate(calc(-100% - 12px), -50%);
+}
+.chart-tip strong {
+  font-size: .8rem;
+}
