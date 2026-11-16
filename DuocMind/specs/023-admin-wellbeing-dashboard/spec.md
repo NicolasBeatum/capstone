@@ -8,7 +8,7 @@
 | Incremento | 023-admin-wellbeing-dashboard |
 | Plataformas | Panel web, Supabase |
 | Depende de | Spec 016 (dashboard emocional) y spec 022 (consentimientos y borrado programado) |
-| Aprobación | Nicolás Hernández, 2026-11-15, tras revisar el mockup. |
+| Aprobación | Nicolás Hernández, 2026-11-15, tras revisar el mockup; versión 0.3.0 confirmada el 2026-11-16. |
 
 ## 1. Problema y resultado esperado
 
@@ -140,4 +140,4 @@ identificar a nadie:
 | --- | --- | --- |
 | 0.1.0 | 2026-11-15 | Borrador inicial |
 | 0.2.0 | 2026-11-15 | Aprobada: sin pestaña Patrones (ánimo por día de la semana en Resumen), filtro por carrera global, estrés alto = nivel máximo del PSS-10 y supresión complementaria |
-| 0.3.0 | 2026-11-16 | La supresión complementaria se reemplaza por ocultar la fila completa: con el promedio publicado se podían despejar dos celdas ocultas. Pendiente de confirmar por el responsable |
+| 0.3.0 | 2026-11-16 | La supresión complementaria se reemplaza por ocultar la fila completa: con el promedio publicado se podían despejar dos celdas ocultas. Confirmada por Nicolás Hernández el 2026-11-16 |

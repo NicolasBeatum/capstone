@@ -36,6 +36,6 @@
 - Todas completas en local (2026-11-16): suite de backend, `deno test` de `admin-api`, 19 pruebas
   unitarias y 34 e2e del panel, typecheck y build en verde; recorrido visual con los datos de T007
   en 7, 30 y 90 días, con y sin carrera, en escritorio y a 390 px sin desborde horizontal.
-- La supresión de filas completas (spec 0.3.0) queda pendiente de confirmación del responsable.
+- La supresión de filas completas (spec 0.3.0) quedó confirmada por el responsable el 2026-11-16.
 - Aplicar la migración `20261116120000` y desplegar `admin-api` en el proyecto en la nube requiere
   autorización aparte (plan § 8).
