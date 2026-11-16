@@ -107,6 +107,17 @@ traen ids de estudiante ni filas individuales.
 | Panel | Cada pestaña con datos, insuficiente, filtro y tabla accesible (CA-009) | `admin-web/e2e/wellbeing.spec.ts` |
 | Todo | `npm run typecheck`, `test`, `build`, `test:e2e`, `npm run test:backend` (CA-010) | comandos |
 
+### Datos semilla para mirar el panel
+
+`tools/scripts/wellbeing-demo.mjs` (`npm run local:wellbeing-demo` en `tools/`) crea, solo en el
+Supabase local, unos 60 estudiantes sintéticos (`demo-*@duocmind.example.test`) repartidos en
+4 carreras, más una carrera con 3 estudiantes para ver la agrupación en «Otras carreras».
+Genera 90 días de check-ins con motivos y tests PSS-10 con patrones reconocibles (peor ánimo
+los lunes, «Académico» ligado a días malos, estrés que sube hacia fin de semestre), deja a
+~40 % sin `analitica_anonima` y a algunos con solicitud de borrado, para comprobar que no
+cuentan. Es idempotente: borra y recrea solo sus cuentas `demo-*`. Se niega a correr si el
+`API_URL` no es local. Nunca se aplica en la nube.
+
 ## 6. Riesgos
 
 - Rendimiento: 90 días × varias agregaciones. Mitigación: base `materialized` por llamada e
