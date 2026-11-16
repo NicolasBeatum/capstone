@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Versión | 0.3.0 |
+| Versión | 0.4.0 |
 | Estado | APROBADA |
 | Fecha | 2026-11-15 |
 | Incremento | 023-admin-wellbeing-dashboard |
@@ -101,6 +101,10 @@ identificar a nadie:
 - Sin dependencias nuevas para gráficos (SVG propio, como la spec 016).
 - Cada gráfico tiene alternativa en tabla accesible («Ver como tabla») y no depende solo
   del color.
+- Cada gráfico (y la tabla de carreras) tiene junto al título un botón «i» que explica qué
+  muestra, cómo leerlo y cómo se calcula, incluida la regla de privacidad que aplica. Se abre al
+  pasar el puntero, al enfocarlo con teclado o al hacer clic (queda fija); Escape lo cierra.
+- El panel se diseña y verifica para escritorio.
 - No se registran en logs datos emocionales ni consentimientos.
 - La página carga cada pestaña por separado para no pedir todo de una vez.
 
@@ -118,6 +122,7 @@ identificar a nadie:
 | CA-008 | Sin sesión de administrador las rutas nuevas se rechazan | prueba backend |
 | CA-009 | Cada pestaña muestra datos, el estado insuficiente y su tabla accesible | e2e |
 | CA-010 | Typecheck, pruebas, build y e2e del panel en verde | comandos |
+| CA-011 | Cada gráfico tiene un botón «i» con su explicación, accesible con puntero y teclado | e2e |
 
 ## 6. Decisiones
 
@@ -141,3 +146,4 @@ identificar a nadie:
 | 0.1.0 | 2026-11-15 | Borrador inicial |
 | 0.2.0 | 2026-11-15 | Aprobada: sin pestaña Patrones (ánimo por día de la semana en Resumen), filtro por carrera global, estrés alto = nivel máximo del PSS-10 y supresión complementaria |
 | 0.3.0 | 2026-11-16 | La supresión complementaria se reemplaza por ocultar la fila completa: con el promedio publicado se podían despejar dos celdas ocultas. Confirmada por Nicolás Hernández el 2026-11-16 |
+| 0.4.0 | 2026-11-16 | Botón «i» con la explicación de cada gráfico (CA-011), pedido por el responsable; el panel se verifica solo en escritorio |
