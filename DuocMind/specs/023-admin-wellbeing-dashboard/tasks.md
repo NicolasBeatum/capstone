@@ -29,8 +29,13 @@
 - [x] T017 Pestaña `pages/wellbeing/ParticipationTab.tsx`: registrados, % con `analitica_anonima`, activos por semana y check-ins por participante, solo totales. **Verificación:** `npm run typecheck`, `npm run build` y revisión con los datos de T007. **CA-009.**
 - [x] T018 Pruebas `admin-web/e2e/wellbeing.spec.ts`: cada pestaña con datos, con estado insuficiente y con su tabla accesible; filtro de carrera aplicado a todas; pestaña conservada en la URL; `/emotions` redirige. **Verificación:** `npm run test:e2e`. **CA-009.**
 - [x] T019 Retiro de lo anterior: quitar `/emotions` de `admin_read` y de `validation.ts`, eliminar `private.emotion_dashboard` en la migración del incremento, y borrar `Emotions.tsx`, `useEmotions.ts`, `e2e/emotions.spec.ts`, `tools/tests/emotions.mjs` (y su registro en `backend-tests.mjs`), `admin-api/emotions_test.ts` y `domain/emotionState.ts` con su prueba si quedan sin uso; se mantiene la redirección de `/emotions` en el panel. **Verificación:** `git grep -n -e emotion_dashboard -e useEmotions` sin resultados fuera de migraciones anteriores, `npm run test:backend`, `deno test` de `admin-api`, `npm test` y `npm run test:e2e`. **CA-008, CA-010.**
-- [ ] T020 Verificación final y recorrido visual: `npm run typecheck`, `npm test`, `npm run build` y `npm run test:e2e` en `admin-web/`, y `npm run test:backend` en `tools/`, todos en verde; recorrido de las cinco pestañas con los datos de T007 en 7, 30 y 90 días, con y sin carrera, con teclado, tooltips por foco y «Ver como tabla». **CA-001 a CA-010.**
+- [x] T020 Verificación final y recorrido visual: `npm run typecheck`, `npm test`, `npm run build` y `npm run test:e2e` en `admin-web/`, y `npm run test:backend` en `tools/`, todos en verde; recorrido de las cinco pestañas con los datos de T007 en 7, 30 y 90 días, con y sin carrera, con teclado, tooltips por foco y «Ver como tabla». **CA-001 a CA-010.**
 
 ## Estado de las tareas abiertas
 
-- T020 pendiente. Aplicar la migración `20261116120000` en el proyecto en la nube requiere autorización aparte (plan § 8).
+- Todas completas en local (2026-11-16): suite de backend, `deno test` de `admin-api`, 19 pruebas
+  unitarias y 34 e2e del panel, typecheck y build en verde; recorrido visual con los datos de T007
+  en 7, 30 y 90 días, con y sin carrera, en escritorio y a 390 px sin desborde horizontal.
+- La supresión de filas completas (spec 0.3.0) queda pendiente de confirmación del responsable.
+- Aplicar la migración `20261116120000` y desplegar `admin-api` en el proyecto en la nube requiere
+  autorización aparte (plan § 8).
