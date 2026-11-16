@@ -402,6 +402,57 @@ try {
     assert(d.weekly.every((w) => w.average === null && w.highShare === null));
   });
 
+  await scenario("T004 carreras con «Otras carreras»", async () => {
+    const a = await career("Carrera WB A"), bc = await career("Carrera WB B"), c = await career("Carrera WB C");
+    await cohort(6, [2], { careerId: a, reasons: ["Académico"] });
+    await cohort(5, [4], { careerId: bc, reasons: ["Familia"] });
+    await cohort(3, [5], { careerId: c });
+    const d = await call("wellbeing_careers", 30, null);
+    assert.deepEqual(Object.keys(d).sort(), [...HEADER, "rows"].sort());
+    // C (3) queda en «Otras carreras», que absorbe B (la visible más pequeña): CA-003.
+    assert.deepEqual(d.rows, [
+      { name: "Carrera WB A", participants: 6, average: 2, difficultShare: 100, highStressShare: null, topReason: "Académico" },
+      { name: "Otras carreras", participants: 8, average: 4.4, difficultShare: 0, highStressShare: null, topReason: "Familia" },
+    ]);
+    const text = JSON.stringify(d);
+    assert(!text.includes("Carrera WB B") && !text.includes("Carrera WB C"));
+    const onlyA = await call("wellbeing_careers", 30, a);
+    assert.deepEqual(onlyA.rows.map((r) => r.name), ["Carrera WB A"], "con filtro, solo esa carrera");
+    assert.equal((await call("wellbeing_careers", 30, c)).sufficient, false);
+  });
+
+  await scenario("T004 participación: solo totales", async () => {
+    const registered = async () =>
+      (await db.query(
+        `select count(*)::int n, count(*) filter (where exists (
+           select 1 from public.estudiante_consentimiento_actual eca join public.consentimiento co
+             on co.id_consentimiento=eca.consentimiento_id_consentimiento
+           where eca.estudiante_id_estudiante=e.id_estudiante and eca.otorgado and co.codigo='analitica_anonima'))::int s
+         from public.estudiante e where not exists (select 1 from public.solicitud_eliminacion s
+           where s.estudiante_id_estudiante=e.id_estudiante and s.tipo='cuenta')`,
+      )).rows[0];
+    const ids = await cohort(6, [3, 3]);
+    for (let i = 0; i < 6; i++) await makeStudent(); // registrados que no comparten
+    let expected = await registered();
+    let d = await call("wellbeing_participation", 30, null);
+    assert.deepEqual(Object.keys(d).sort(), [...HEADER, "active", "checkinsPerParticipant", "registered", "sharingShare", "weekly"].sort());
+    assert.equal(d.registered, expected.n);
+    assert.equal(d.sharingShare, Math.round((1000 * expected.s) / expected.n) / 10);
+    assert.deepEqual(d.active, { value: 6, previous: null });
+    assert.deepEqual(d.checkinsPerParticipant, { value: 2, previous: null });
+    assert.deepEqual(d.weekly.filter((w) => w.active !== null).map((w) => w.active), [6]);
+    await deletion(ids[0], "cuenta", dayAt(1));
+    expected = await registered();
+    d = await call("wellbeing_participation", 30, null);
+    assert.equal(d.registered, expected.n, "quien pidió borrar su cuenta no cuenta");
+    assert.deepEqual(d.active, { value: 5, previous: null });
+    const tiny = await career("Carrera WB Mini");
+    await cohort(4, [3], { careerId: tiny });
+    const filtered = await call("wellbeing_participation", 30, tiny);
+    assert.equal(filtered.sufficient, false, "carrera bajo k: sin datos");
+    assert.equal(filtered.registered, null);
+  });
+
   await scenario("permisos de las funciones privadas", async () => {
     const fns = (await db.query(
       `select p.oid::regprocedure::text fn from pg_proc p join pg_namespace n on n.oid=p.pronamespace

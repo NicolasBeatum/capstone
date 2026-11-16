@@ -9,7 +9,8 @@ begin;
 grant select on public.registro_emocional, public.registro_emocional_motivo, public.motivo,
   public.emocion_general, public.aplicacion_test, public.test_bienestar,
   public.test_resultado_nivel, public.estudiante_carrera, public.carrera, public.consentimiento,
-  public.estudiante_consentimiento_actual, public.solicitud_eliminacion to service_role;
+  public.estudiante_consentimiento_actual, public.solicitud_eliminacion, public.estudiante
+  to service_role;
 
 -- Una fila por check-in que cuenta entre p_from y p_to (días de Santiago, ambos incluidos).
 -- `rid` y `sid` solo se usan dentro de SQL para contar registros y estudiantes distintos; nunca sale en una respuesta.
@@ -473,6 +474,115 @@ begin
 end;
 $fn$;
 
+-- Pestaña «Carreras»: tabla comparativa en orden alfabético (no es un ranking), con
+-- «Otras carreras» al final según la regla anti-diferencia.
+create or replace function private.wellbeing_careers(p_days int, p_career bigint default null)
+returns jsonb
+language plpgsql stable security invoker set search_path = '' as $fn$
+declare
+  p record;
+  result jsonb;
+begin
+  select * into p from private.wellbeing_period(p_days);
+  with b as materialized (select * from private.wellbeing_checkins(p.first_day, p.last_day, p_career)),
+  t as materialized (select * from private.wellbeing_tests(p.first_day, p.last_day, p_career)),
+  ok as (select count(distinct sid) >= 5 c from b),
+  cg as (select * from private.wellbeing_career_groups(p.first_day, p.last_day, p_career)),
+  bc as materialized (select b.*, cg.name grp, cg.ord from b join cg on cg.cid = coalesce(b.cid, 0)),
+  rows as (
+    select grp, min(ord) ord, count(distinct sid)::int n, count(*)::int k, avg(val) a,
+           count(distinct sid) filter (where val <= 2)::int nd,
+           count(distinct sid) filter (where val > 2)::int nnd,
+           count(*) filter (where val <= 2)::int kd
+    from bc group by grp
+  ),
+  tc as (
+    select cg.name grp, count(*)::int n, count(*) filter (where t.is_high)::int h
+    from t join cg on cg.cid = coalesce(t.cid, 0) group by cg.name
+  ),
+  rs as (
+    select bc.grp, r name, count(distinct bc.sid)::int n, count(*)::int k
+    from bc, unnest(bc.reasons) r group by bc.grp, r
+  ),
+  top as (
+    select distinct on (grp) grp, name from rs where n >= 5 order by grp, k desc, name
+  )
+  select private.wellbeing_header(p_days, p_career, ok.c) || jsonb_build_object(
+    'rows', case when ok.c then coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'name', r.grp,
+               'participants', r.n,
+               'average', round(r.a, 1),
+               'difficultShare', private.wellbeing_share(r.nd, r.nnd, r.kd, r.k),
+               'highStressShare', case when tc.n >= 5 then private.wellbeing_share(tc.h, tc.n - tc.h, tc.h, tc.n) end,
+               'topReason', top.name)
+             order by r.ord, r.grp)
+      from rows r
+      left join tc on tc.grp = r.grp
+      left join top on top.grp = r.grp), '[]'::jsonb) else '[]'::jsonb end
+  ) into result
+  from ok;
+  return result;
+end;
+$fn$;
+
+-- Pestaña «Participación»: solo totales. Registrados y % que comparte se cuentan sin filtro de
+-- consentimiento (nunca se lista quién comparte); quien pidió borrar su cuenta no cuenta.
+create or replace function private.wellbeing_participation(p_days int, p_career bigint default null)
+returns jsonb
+language plpgsql stable security invoker set search_path = '' as $fn$
+declare
+  p record;
+  result jsonb;
+begin
+  select * into p from private.wellbeing_period(p_days);
+  with b as materialized (select * from private.wellbeing_checkins(p.first_day, p.last_day, p_career)),
+  bp as materialized (select * from private.wellbeing_checkins(p.prev_first, p.prev_last, p_career)),
+  reg as (
+    select count(*)::int n,
+           count(*) filter (where exists (
+             select 1 from public.estudiante_consentimiento_actual eca
+             join public.consentimiento co on co.id_consentimiento = eca.consentimiento_id_consentimiento
+             where eca.estudiante_id_estudiante = e.id_estudiante and eca.otorgado
+               and co.codigo = 'analitica_anonima'))::int s
+    from public.estudiante e
+    left join public.estudiante_carrera ec
+      on ec.estudiante_id_estudiante = e.id_estudiante and ec.fecha_fin is null
+    where (p_career is null or ec.carrera_id_carrera = p_career)
+      and not exists (
+        select 1 from public.solicitud_eliminacion s
+        where s.estudiante_id_estudiante = e.id_estudiante and s.tipo = 'cuenta')
+  ),
+  cur as (select count(distinct sid)::int n, count(*)::int k from b),
+  prv as (select count(distinct sid)::int n, count(*)::int k from bp),
+  -- Con carrera, solo se responde si la carrera cumple k en el periodo (como el selector).
+  ok as (
+    select case when p_career is null then reg.n >= 5 else cur.n >= 5 end c,
+           cur.n >= 5 a, prv.n >= 5 pv
+    from reg, cur, prv
+  ),
+  wk as (
+    select date_trunc('week', dy::timestamp)::date ws, count(distinct sid)::int n from b group by 1
+  )
+  select private.wellbeing_header(p_days, p_career, ok.c) || jsonb_build_object(
+    'registered', case when ok.c then reg.n end,
+    'sharingShare', case when ok.c then private.wellbeing_share(reg.s, reg.n - reg.s, reg.s, reg.n) end,
+    'active', private.wellbeing_kpi(case when ok.c and ok.a then cur.n end, case when ok.pv then prv.n end),
+    'checkinsPerParticipant', private.wellbeing_kpi(
+      case when ok.c and ok.a then round(cur.k::numeric / cur.n, 1) end,
+      case when ok.pv then round(prv.k::numeric / prv.n, 1) end),
+    'weekly', case when ok.c then (
+      select jsonb_agg(jsonb_build_object(
+               'weekStart', to_char(w.ws, 'YYYY-MM-DD'),
+               'active', case when wk.n >= 5 then wk.n end) order by w.ws)
+      from private.wellbeing_weeks(p.first_day, p.last_day) w left join wk on wk.ws = w.ws)
+      else '[]'::jsonb end
+  ) into result
+  from reg, cur, prv, ok;
+  return result;
+end;
+$fn$;
+
 do $grants$
 declare fn text;
 begin
@@ -483,7 +593,8 @@ begin
     'private.wellbeing_share(int, int, int, int)', 'private.wellbeing_weeks(date, date)',
     'private.wellbeing_career_groups(date, date, bigint)', 'private.wellbeing_summary(int, bigint)',
     'private.wellbeing_careers_available(int)', 'private.wellbeing_reasons(int, bigint)',
-    'private.wellbeing_stress(int, bigint)'
+    'private.wellbeing_stress(int, bigint)', 'private.wellbeing_careers(int, bigint)',
+    'private.wellbeing_participation(int, bigint)'
   ] loop
     execute format('revoke all on function %s from public, anon, authenticated', fn);
     execute format('grant execute on function %s to service_role', fn);
