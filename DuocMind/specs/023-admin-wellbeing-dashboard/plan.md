@@ -2,10 +2,10 @@
 
 | Campo | Valor |
 | --- | --- |
-| Versión | 1.0.0 |
+| Versión | 1.0.1 |
 | Estado | APROBADO |
 | Fecha | 2026-11-15 |
-| Spec | 023 0.2.0 |
+| Spec | 023 0.3.0 |
 | Aprobación | Nicolás Hernández, 2026-11-15 |
 
 ## 1. Arquitectura
@@ -51,9 +51,10 @@ Las dos son `security invoker`, `search_path = ''`, ejecutables solo por `servic
 
 - `k = 5` estudiantes distintos por cualquier valor publicado; si no, `null`.
 - Grupos con resto («Otras carreras», «Otros motivos»): misma regla anti-diferencia que la 016.
-- **Complementaria** en distribuciones que suman 100 % (emoción semanal, motivo × emoción,
-  niveles del test): si una fila queda con exactamente una celda oculta, se oculta además la
-  menor visible. Se implementa en `private.suppress_row(jsonb)` y se prueba aparte.
+- **Filas completas** en distribuciones que suman 100 % (emoción semanal, motivo × emoción,
+  niveles del test): si una celda tiene entre 1 y 4 estudiantes, se oculta la fila entera,
+  porque el promedio o el % alto que la acompaña permitiría despejar dos celdas ocultas
+  (spec 0.3.0). Se implementa en `private.suppress_row(jsonb)` y se prueba aparte.
 - Variación vs. periodo anterior: se calcula solo si ambos periodos cumplen k; si no, `null`.
 - Filtro de carrera: `careerId` que no cumpla k en el periodo devuelve `sufficient: false`
   (no 4xx, para no revelar cuántos hay).
@@ -123,7 +124,7 @@ cuentan. Es idempotente: borra y recrea solo sus cuentas `demo-*`. Se niega a co
 - Rendimiento: 90 días × varias agregaciones. Mitigación: base `materialized` por llamada e
   índices existentes en `fecha_hora`; medir con `explain analyze` sobre los datos de demo.
 - Diferencias entre pestañas o periodos: mitigadas con k, grupos con resto y supresión
-  complementaria; riesgo residual aceptado en la spec.
+  supresión de filas; riesgo residual aceptado en la spec.
 - El PSS-10 se identifica por nombre, igual que la app; si cambia el nombre, la pestaña queda
   sin datos (no falla).
 
@@ -145,3 +146,4 @@ que las migraciones de la spec 022.
 | --- | --- | --- |
 | 0.1.0 | 2026-11-15 | Borrador inicial |
 | 1.0.0 | 2026-11-15 | Aprobado por Nicolás Hernández |
+| 1.0.1 | 2026-11-16 | Supresión de filas completas en vez de complementaria (spec 0.3.0) |

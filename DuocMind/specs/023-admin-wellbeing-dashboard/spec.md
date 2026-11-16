@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Versión | 0.2.0 |
+| Versión | 0.3.0 |
 | Estado | APROBADA |
 | Fecha | 2026-11-15 |
 | Incremento | 023-admin-wellbeing-dashboard |
@@ -126,8 +126,10 @@ identificar a nadie:
 - El filtro por carrera aplica a todas las pestañas.
 - «Estrés alto» es el nivel con el puntaje mínimo más alto del PSS-10 activo (hoy
   «severo», 27–40).
-- Supresión complementaria: si en una distribución que suma 100 % queda oculta una sola
-  celda, también se oculta la menor de las visibles, para que no se deduzca por resta.
+- Supresión de filas: si en una distribución que suma 100 % alguna celda tiene entre 1 y 4
+  estudiantes, se oculta la fila completa. Ocultar solo la menor visible no basta, porque
+  junto a cada distribución se publica un promedio o un porcentaje (ánimo de la semana,
+  ánimo del motivo, % de estrés alto) con el que dos celdas ocultas se podrían despejar.
 - Riesgo residual: combinar periodo y carrera puede revelar cambios pequeños. Mitigación:
   k = 5 por celda y agrupación anti-diferencia; si Bienestar necesita más protección, se
   limita la vista a semanas completas.
@@ -138,3 +140,4 @@ identificar a nadie:
 | --- | --- | --- |
 | 0.1.0 | 2026-11-15 | Borrador inicial |
 | 0.2.0 | 2026-11-15 | Aprobada: sin pestaña Patrones (ánimo por día de la semana en Resumen), filtro por carrera global, estrés alto = nivel máximo del PSS-10 y supresión complementaria |
+| 0.3.0 | 2026-11-16 | La supresión complementaria se reemplaza por ocultar la fila completa: con el promedio publicado se podían despejar dos celdas ocultas. Pendiente de confirmar por el responsable |

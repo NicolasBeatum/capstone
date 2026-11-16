@@ -1,7 +1,7 @@
 -- Dashboard de bienestar ampliado (spec 023).
 -- Base común para todas las pestañas: qué check-ins y qué tests cuentan. Las reglas de
 -- consentimiento (spec 016) y de borrado programado (spec 022) se aplican solo aquí.
--- Los controles de privacidad (k = 5, grupos con resto, supresión complementaria) se aplican
+-- Los controles de privacidad (k = 5, grupos con resto, supresión de filas) se aplican
 -- en las funciones de cada pestaña, siempre en el servidor.
 begin;
 
@@ -98,9 +98,10 @@ $fn$;
 
 -- Supresión de una fila de una distribución que suma 100 %. Recibe las celdas en orden como
 -- [{"n": estudiantes distintos, "value": valor publicable}] y devuelve los valores en el mismo
--- orden. Una celda con 1 a 4 estudiantes se oculta (null); 0 estudiantes no identifica a nadie
--- y se muestra. Si queda exactamente una celda oculta, también se oculta la visible con menos
--- estudiantes (mayor que 0; ante empate, la primera), para que no se deduzca por resta.
+-- orden. 0 estudiantes no identifica a nadie. Si alguna celda tiene entre 1 y 4 estudiantes, se
+-- oculta la fila completa: junto a cada distribución se publica un promedio o un porcentaje
+-- (ánimo de la semana, ánimo del motivo, % de estrés alto), y con él dos celdas ocultas se
+-- podrían despejar; ocultar solo la menor visible no basta.
 create or replace function private.suppress_row(p_cells jsonb)
 returns jsonb
 language sql immutable security invoker set search_path = '' as $fn$
@@ -108,17 +109,11 @@ language sql immutable security invoker set search_path = '' as $fn$
     select ord, (cell->>'n')::int n, cell->'value' value
     from jsonb_array_elements(coalesce(p_cells, '[]'::jsonb)) with ordinality as e(cell, ord)
   ),
-  hidden as (select count(*) k from cells where n between 1 and 4),
-  extra as (
-    select ord from cells, hidden
-    where hidden.k = 1 and n >= 5
-    order by n, ord limit 1
-  )
+  hidden as (select exists (select 1 from cells where n between 1 and 4) h)
   select coalesce(jsonb_agg(
-    case when n between 1 and 4 or ord in (select ord from extra) then 'null'::jsonb
-         else coalesce(value, 'null'::jsonb) end
+    case when hidden.h then 'null'::jsonb else coalesce(value, 'null'::jsonb) end
     order by ord), '[]'::jsonb)
-  from cells
+  from cells, hidden
 $fn$;
 
 -- Periodo de p_days días que termina hoy (Santiago) y el periodo anterior de igual duración.

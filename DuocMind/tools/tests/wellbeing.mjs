@@ -268,21 +268,16 @@ try {
     assert.deepEqual(await suppress([{ n: 5, value: 25 }, { n: 0, value: 0 }, { n: 9, value: 75 }]), [25, 0, 75], "0 ocultas");
     assert.deepEqual(
       await suppress([{ n: 3, value: 10 }, { n: 8, value: 30 }, { n: 6, value: 20 }, { n: 0, value: 0 }, { n: 12, value: 40 }]),
-      [null, 30, null, 0, 40],
-      "1 oculta: también la visible con menos estudiantes (no la de 0)",
-    );
-    assert.deepEqual(
-      await suppress([{ n: 6, value: 1 }, { n: 6, value: 2 }, { n: 2, value: 3 }]),
-      [null, 2, null],
-      "empate: la primera",
+      [null, null, null, null, null],
+      "1 oculta: se oculta la fila completa",
     );
     assert.deepEqual(
       await suppress([{ n: 1, value: 5 }, { n: 4, value: 15 }, { n: 7, value: 30 }, { n: 20, value: 50 }]),
-      [null, null, 30, 50],
-      "2 ocultas: no se oculta nada más",
+      [null, null, null, null],
+      "2 ocultas: también la fila completa (con el promedio se podrían despejar)",
     );
     assert.deepEqual(await suppress([]), []);
-    assert.deepEqual(await suppress([{ n: 3, value: 100 }]), [null], "única celda oculta sin visibles");
+    assert.deepEqual(await suppress([{ n: 3, value: 100 }]), [null]);
   });
 
   const HEADER = ["careerId", "days", "from", "minGroupSize", "sufficient", "to"];
@@ -327,10 +322,11 @@ try {
     await cohort(6, [4], { at: weekAt(2) });
     await cohort(3, [1], { at: weekAt(2, 1) });
     const d = await call("wellbeing_summary", 90, null);
-    const week = d.weekly.find((w) => w.distribution.some((v) => v !== null));
+    const week = d.weekly.find((w) => w.average !== null);
     assert(week, "semana con datos");
     assert.equal(week.average, 3);
-    assert.deepEqual(week.distribution, [null, 0, 0, null, 0], "CA-001 y supresión complementaria: 1 oculta arrastra la menor visible");
+    assert.deepEqual(week.distribution, [null, null, null, null, null], "CA-001: una celda de 3 estudiantes oculta la fila");
+    assert.equal(d.weekly.filter((w) => w.distribution.some((v) => v !== null)).length, 0);
     assert(d.weekly.length >= 13 && d.weekly.length <= 14, "una entrada por semana del periodo");
     assert(d.weekly.filter((w) => w !== week).every((w) => w.average === null), "semanas sin datos: null");
     assert.deepEqual(d.weekdays.map((w) => w.day), [1, 2, 3, 4, 5, 6, 7]);
@@ -371,8 +367,8 @@ try {
     ]);
     assert.deepEqual(d.matrix, [
       { name: "Académico", cells: [0, 100, 0, 0, 0] },
-      { name: "Otros motivos", cells: [0, 0, null, 62.5, null] },
-    ], "CA-001: celdas de 1 a 4 estudiantes ocultas");
+      { name: "Otros motivos", cells: [null, null, null, null, null] },
+    ], "CA-001: una fila con celdas de 1 a 4 estudiantes se oculta completa");
     assert.equal(d.trend.length, 1, "«Otros motivos» no entra en la tendencia");
     assert.equal(d.trend[0].name, "Académico");
     assert.deepEqual(d.trend[0].weeks.filter((w) => w.share !== null).map((w) => w.share), [42.9]);
@@ -406,8 +402,8 @@ try {
     assert.deepEqual(d.levels, [
       { level: "leve", label: "Estrés leve", students: null },
       { level: "moderado", label: "Estrés moderado", students: null },
-      { level: "severo", label: "Estrés severo", students: 5 },
-    ], "moderado (1) se oculta y arrastra a leve, la primera visible con menos estudiantes");
+      { level: "severo", label: "Estrés severo", students: null },
+    ], "moderado (1 estudiante) oculta todos los niveles: con el % alto se despejarían");
     const weeks = d.weekly.filter((w) => w.average !== null);
     assert.deepEqual(weeks.map((w) => [w.average, w.highShare]), [[17.7, 45.5]]);
     assert.deepEqual(d.careers, [
