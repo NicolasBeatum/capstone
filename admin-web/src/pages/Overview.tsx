@@ -65,14 +65,15 @@ export function Overview() {
           </Link>
         ))}
       </div>
-      <section className="card sharing-status" aria-label="Emociones agregadas">
-        <h2>Emociones de quienes eligen compartir</h2>
+      <section className="card sharing-status" aria-label="Bienestar agregado">
+        <h2>Bienestar de quienes eligen compartir</h2>
         <p>
-          La página Emociones muestra datos agregados y anónimos de estudiantes
-          que aceptaron compartirlos. No incluye historiales individuales.
+          La página Bienestar muestra ánimo, motivos, estrés y participación de
+          forma agregada y anónima, solo de estudiantes que aceptaron
+          compartirlos. No incluye historiales individuales.
         </p>
         <p>
-          <Link to="/emotions">Ver Emociones →</Link>
+          <Link to="/wellbeing/resumen">Ver Bienestar →</Link>
         </p>
       </section>
       <section aria-label="Vista del registro de alumnos">

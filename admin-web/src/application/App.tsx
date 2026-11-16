@@ -17,16 +17,15 @@ import { Tests } from "../pages/Tests";
 import { TestEditor } from "../pages/TestEditor";
 import { EventTypes } from "../pages/EventTypes";
 import { Events } from "../pages/Events";
-import { Emotions } from "../pages/Emotions";
+import { Wellbeing } from "../pages/Wellbeing";
 import { Brand } from "../components/Brand";
 import { NavigationIcon } from "../components/NavigationIcon";
 function Protected() {
   const session = useAuth();
   const location = useLocation();
-  const section = location.pathname.startsWith("/tests") ? "Tests" : location.pathname.startsWith("/events") ? "Eventos" : ({
+  const section = location.pathname.startsWith("/tests") ? "Tests" : location.pathname.startsWith("/events") ? "Eventos" : location.pathname.startsWith("/wellbeing") ? "Bienestar" : ({
     "/overview": "Dashboard",
     "/students": "Alumnos",
-    "/emotions": "Emociones",
     "/events": "Eventos",
   }[location.pathname] ?? "Administración");
   if (session.loading) return <main role="status">Comprobando sesión…</main>;
@@ -42,8 +41,8 @@ function Protected() {
         <p className="eyebrow sidebar-label">Administración</p>
         <nav aria-label="Administración">
           {[["/overview", "Dashboard"], ["/students", "Alumnos"], [
-            "/emotions",
-            "Emociones",
+            "/wellbeing",
+            "Bienestar",
           ], [
             "/tests",
             "Tests",
@@ -88,7 +87,9 @@ export function App() {
           <Route element={<Protected />}>
             <Route path="/overview" element={<Overview />} />
             <Route path="/students" element={<Students />} />
-            <Route path="/emotions" element={<Emotions />} />
+            <Route path="/wellbeing" element={<Navigate to="/wellbeing/resumen" replace />} />
+            <Route path="/wellbeing/:tab" element={<Wellbeing />} />
+            <Route path="/emotions" element={<Navigate to="/wellbeing/resumen" replace />} />
             <Route path="/tests" element={<Tests />} />
             <Route path="/tests/new" element={<TestEditor />} />
             <Route path="/tests/versions/:versionId" element={<TestEditor />} />

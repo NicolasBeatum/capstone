@@ -1,11 +1,25 @@
 import { auth } from "./auth";
 import * as contract from "./contracts";
-import type { EmotionPeriod, EventContent, EventTypeContent, TestContent } from "../domain/types";
+import type {
+  EventContent,
+  EventTypeContent,
+  TestContent,
+  WellbeingPeriod,
+  WellbeingTab,
+  WellbeingTabData,
+} from "../domain/types";
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
   }
 }
+const WELLBEING_CONTRACTS: { [K in WellbeingTab]: (v: unknown) => WellbeingTabData[K] } = {
+  summary: contract.wellbeingSummary,
+  reasons: contract.wellbeingReasons,
+  stress: contract.wellbeingStress,
+  careers: contract.wellbeingCareers,
+  participation: contract.wellbeingParticipation,
+};
 let epoch = 0;
 let expired = () => {};
 export function configureSession(onExpired: () => void) {
@@ -94,8 +108,14 @@ export const adminGateway = {
   students: (query: URLSearchParams) =>
     request("GET", "/students?" + query, contract.students),
   formOptions: () => request("GET", "/catalogs", contract.options),
-  emotions: (days: EmotionPeriod) =>
-    request("GET", "/emotions?days=" + days, contract.emotions),
+  wellbeing: <T extends WellbeingTab>(tab: T, days: WellbeingPeriod, careerId: string | null) =>
+    request(
+      "GET",
+      "/wellbeing/" + tab + "?days=" + days + (careerId ? "&careerId=" + encodeURIComponent(careerId) : ""),
+      WELLBEING_CONTRACTS[tab] as (v: unknown) => WellbeingTabData[T],
+    ),
+  careersAvailable: (days: WellbeingPeriod) =>
+    request("GET", "/wellbeing/careers-available?days=" + days, contract.careersAvailable),
   recover: (id: string, requestId: string) =>
     request("POST", "/students/" + id + "/password-reset", contract.accepted, {
       requestId,

@@ -121,7 +121,7 @@ Deno.serve(async (request) => {
         if (name in query) throw new HttpError(422, messages[422]);
         query[name] = value;
       }
-      // Nunca se registra la respuesta: /emotions contiene datos emocionales agregados.
+      // Nunca se registra la respuesta: /wellbeing/* contiene datos emocionales agregados.
       validateReadQuery(path, query);
       return reply(
         200,

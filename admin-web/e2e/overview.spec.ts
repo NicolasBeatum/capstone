@@ -41,10 +41,10 @@ test("dashboard refleja registro real sin consultar información emocional", asy
   await expect(page.getByRole("table")).toBeVisible();
   await expect(page.getByText("Pendiente de habilitar")).toHaveCount(0);
   await expect(
-    page.getByRole("region", { name: "Emociones agregadas" }).getByRole("link", {
-      name: "Ver Emociones →",
+    page.getByRole("region", { name: "Bienestar agregado" }).getByRole("link", {
+      name: "Ver Bienestar →",
     }),
-  ).toHaveAttribute("href", "/emotions");
+  ).toHaveAttribute("href", "/wellbeing/resumen");
   expect(requests.every((path) => ["/students", "/catalogs"].includes(path)))
     .toBe(true);
   await page.screenshot({

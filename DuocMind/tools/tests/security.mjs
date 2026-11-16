@@ -9,12 +9,13 @@ try{
  await db.query('insert into private.admin_staff(auth_user_id,enabled) values($1,true) on conflict(auth_user_id) do update set enabled=true',[f.dual.id]);
  dualSession=authClient();const dual=await dualSession.auth.signInWithPassword({email:f.dual.email,password:f.dual.password});assert(!dual.error);
  for(const path of ['/results','/referrals','/students/'+f.student.studentId+'/results'])assert.equal((await fetchApi(dual.data.session.access_token,path)).status,404);
- // /emotions existe (spec 016) y devuelve solo agregados: la cuenta dual, que además es estudiante, no filtra datos propios ni ajenos.
- const emotions=await fetchApi(dual.data.session.access_token,'/emotions');assert.equal(emotions.status,200);const emotionsBody=await emotions.json();
- assert.deepEqual(Object.keys(emotionsBody).sort(),['average','careers','checkins','days','distribution','from','minGroupSize','participants','sufficient','to','weekly']);
- for(const secret of [f.dual.email,f.dual.id,f.student.email,f.student.id,'perfil-dual','perfil-student','FIXTURE-'])assert(!JSON.stringify(emotionsBody).includes(secret));
- assert.equal((await fetchApi(dual.data.session.access_token,'/emotions',{method:'POST',body:JSON.stringify({requestId:crypto.randomUUID(),expectedRevision:1})})).status,404);
- assert.equal((await fetchApi(dual.data.session.access_token,'/emotions?days=15')).status,422);
+ // /wellbeing/* devuelve solo agregados: la cuenta dual, que además es estudiante, no filtra datos propios ni ajenos.
+ const wellbeing=await fetchApi(dual.data.session.access_token,'/wellbeing/summary');assert.equal(wellbeing.status,200);const wellbeingBody=await wellbeing.json();
+ for(const secret of [f.dual.email,f.dual.id,f.student.email,f.student.id,'perfil-dual','perfil-student','FIXTURE-'])assert(!JSON.stringify(wellbeingBody).includes(secret));
+ assert.equal((await fetchApi(dual.data.session.access_token,'/wellbeing/summary',{method:'POST',body:JSON.stringify({requestId:crypto.randomUUID(),expectedRevision:1})})).status,404);
+ assert.equal((await fetchApi(dual.data.session.access_token,'/wellbeing/summary?days=15')).status,422);
+ // El dashboard emocional (spec 016) fue retirado: /emotions ya no existe.
+ assert.equal((await fetchApi(dual.data.session.access_token,'/emotions')).status,404);
  // Tips fue retirado: la ruta no existe, ni siquiera con un cuerpo válido para otra operación.
  assert.equal((await fetchApi(dual.data.session.access_token,'/tips',{method:'POST',body:JSON.stringify({requestId:crypto.randomUUID(),expectedRevision:1,title:'Retirado',content:'Orientación',rules:[]})})).status,404);
  // Una referencia inexistente (FK) no debe filtrar detalles de la base: el tipo de evento no existe.
