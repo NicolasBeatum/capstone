@@ -1644,3 +1644,61 @@ summary {
     grid-row: 2;
   }
 }
+
+/* Botón «i» de cada gráfico (spec 023, 0.4.0). */
+.chart-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+/* La explicación se ancla al encabezado de la tarjeta, no al botón, para no salirse en pantallas
+   angostas. */
+.info {
+  display: inline-flex;
+}
+.info .info-button {
+  flex: none;
+  inline-size: 1.625rem;
+  block-size: 1.625rem;
+  min-height: 0;
+  border-radius: 50%;
+  border: 1px solid var(--wb-axis);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font: italic 600 .8rem/1 Georgia, "Times New Roman", serif;
+  padding: 0;
+}
+.info .info-button:hover:not(:disabled),
+.info .info-button[aria-expanded="true"] {
+  background: var(--surface);
+  border-color: var(--navy);
+  color: var(--navy);
+}
+.info-button:focus-visible {
+  outline: 2px solid var(--series-1);
+  outline-offset: 2px;
+}
+.info-popover {
+  position: absolute;
+  z-index: 20;
+  inset-block-start: calc(100% + .45rem);
+  inset-inline-start: 0;
+  inline-size: min(24rem, 100%);
+  padding: .75rem .85rem;
+  border-radius: 8px;
+  background: var(--navy);
+  color: #fff;
+  box-shadow: 0 6px 18px #182a4433;
+  font-size: .8rem;
+  line-height: 1.45;
+  display: grid;
+  gap: .4rem;
+}
+.info-popover[hidden] {
+  display: none;
+}
+.info-row strong {
+  color: var(--yellow);
+  font-weight: 600;
+}

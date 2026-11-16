@@ -1,3 +1,5 @@
+import { InfoButton } from "../../components/charts/InfoButton";
+import { CHART_INFO } from "../../domain/chartInfo";
 import type { WellbeingCareers } from "../../domain/types";
 import { decimal, integer, moodLabel, percent } from "../../domain/wellbeing";
 
@@ -5,7 +7,10 @@ import { decimal, integer, moodLabel, percent } from "../../domain/wellbeing";
 export function CareersTab({ data }: { data: WellbeingCareers }) {
   return (
     <section className="card" aria-labelledby="wb-careers-title">
-      <h2 id="wb-careers-title" className="wb-card-title">Comparación por carrera</h2>
+      <div className="chart-head">
+        <h2 id="wb-careers-title" className="wb-card-title">Comparación por carrera</h2>
+        <InfoButton title="Comparación por carrera" info={CHART_INFO["wb-careers"]} />
+      </div>
       <p className="chart-sub">
         Solo carreras con 5 o más participantes; el resto, y quienes no tienen carrera registrada,
         se agrupa en «Otras carreras». Orden alfabético; no es un ranking.

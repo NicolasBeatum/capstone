@@ -242,3 +242,35 @@ test("/emotions redirige a Bienestar", async ({ page }) => {
   await expect(page).toHaveURL(/\/wellbeing\/resumen$/);
   await expect(page.getByRole("heading", { name: "Bienestar estudiantil" })).toBeVisible();
 });
+
+test("cada gráfico tiene un botón «i» que explica qué muestra", async ({ page }) => {
+  await mock(page);
+  await login(page);
+  await openWellbeing(page);
+  await expect(page.getByRole("button", { name: /^Qué muestra «/ })).toHaveCount(4);
+  const trend = page.getByRole("region", { name: "Ánimo promedio por semana" });
+  const button = trend.getByRole("button", { name: "Qué muestra «Ánimo promedio por semana»" });
+  const tip = trend.getByRole("tooltip");
+  await expect(tip).toBeHidden();
+  // Al pasar el mouse se abre y al salir se cierra.
+  await button.hover();
+  await expect(tip).toContainText("Qué muestra.");
+  await expect(tip).toContainText("Cómo se calcula.");
+  await page.mouse.move(0, 0);
+  await expect(tip).toBeHidden();
+  // Con teclado se abre al enfocar y Escape la cierra.
+  await button.focus();
+  await expect(tip).toBeVisible();
+  await expect(button).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("Escape");
+  await expect(tip).toBeHidden();
+  // Un clic la deja fija; otro clic la cierra.
+  await button.click();
+  await page.mouse.move(0, 0);
+  await expect(tip).toBeVisible();
+  await button.click();
+  await page.mouse.move(0, 0);
+  await expect(tip).toBeHidden();
+  await sections(page).getByRole("link", { name: "Carreras" }).click();
+  await expect(page.getByRole("button", { name: "Qué muestra «Comparación por carrera»" })).toBeVisible();
+});
