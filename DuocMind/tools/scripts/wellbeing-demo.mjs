@@ -1,13 +1,49 @@
-// Datos sintéticos para mirar el dashboard de bienestar (spec 023) en el Supabase local.
+// Datos sintéticos para mirar el dashboard de bienestar (spec 023).
 // Crea unos 60 estudiantes `demo-*` en 4 carreras, más una carrera con 3 para ver la agrupación
 // en «Otras carreras», con 90 días de check-ins, motivos y tests PSS-10 con patrones
-// reconocibles. Es idempotente: borra y recrea solo sus estudiantes. Nunca toca la nube:
-// `runtime()` rechaza cualquier API_URL o DB_URL que no sea local antes de conectarse.
-import { database, runtime } from "./runtime.mjs";
+// reconocibles. Es idempotente: borra y recrea solo sus estudiantes.
+//
+//   node scripts/wellbeing-demo.mjs                      carga en el Supabase local
+//   node scripts/wellbeing-demo.mjs --remove             borra solo lo que crea este script
+//   --existing-careers                                   usa carreras que ya existen en vez de crear
+//                                                        las «(demo)», que la app mostraría al registrarse
+//   --cloud=<project-ref>                                apunta al proyecto en la nube; exige
+//                                                        WELLBEING_DEMO_DB_URL con ese ref, que coincida con
+//                                                        el proyecto vinculado, e implica --existing-careers
+//
+// Todo lo creado se identifica por el correo `demo-NNN@duocmind.example.test`; las filas
+// dependientes se borran por estudiante y las carreras «(demo)» solo si nadie más las usa. En la
+// nube nunca crea un PSS-10 sintético: si no hay uno activo, se detiene.
+import fs from "node:fs";
+import path from "node:path";
+import pg from "pg";
+import { database, projectRoot, runtime } from "./runtime.mjs";
 
-runtime();
-const db = await database();
+const args = process.argv.slice(2);
+const flag = (name) => args.includes(`--${name}`);
+const cloudRef = args.find((a) => a.startsWith("--cloud="))?.slice("--cloud=".length);
+const remove = flag("remove");
+const existingCareers = flag("existing-careers") || Boolean(cloudRef);
+const unknown = args.filter((a) => !["--remove", "--existing-careers"].includes(a) && !a.startsWith("--cloud="));
+if (unknown.length) throw new Error(`Opciones desconocidas: ${unknown.join(" ")}`);
 
+async function cloudDatabase(ref) {
+  const linked = fs.readFileSync(path.join(projectRoot, "supabase/.temp/project-ref"), "utf8").trim();
+  if (!/^[a-z0-9]{20}$/.test(ref) || ref !== linked) {
+    throw new Error("--cloud debe ser el project-ref del proyecto vinculado.");
+  }
+  const url = process.env.WELLBEING_DEMO_DB_URL;
+  if (!url || new URL(url).username !== `postgres.${ref}`) {
+    throw new Error("WELLBEING_DEMO_DB_URL debe ser la conexión del pooler de ese proyecto.");
+  }
+  const client = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } });
+  await client.connect();
+  return client;
+}
+
+if (!cloudRef) runtime();
+const db = cloudRef ? await cloudDatabase(cloudRef) : await database();
+const where = cloudRef ? `la nube (${cloudRef})` : "Supabase local";
 const PSS10 = "Escala de Estrés Percibido (PSS-10)";
 const EMAIL = (n) => `demo-${String(n).padStart(3, "0")}@duocmind.example.test`;
 const CAREERS = [
@@ -35,20 +71,21 @@ const pick = (weights) => {
 
 try {
   await db.query("begin");
-  const demo = "select id_estudiante from public.estudiante where correo like 'demo-%@duocmind.example.test'";
-  await db.query(`delete from public.registro_emocional where estudiante_id_estudiante in (${demo})`);
-  await db.query(`delete from public.aplicacion_test where estudiante_id_estudiante in (${demo})`);
-  await db.query(`delete from public.alerta_bienestar where estudiante_id_estudiante in (${demo})`);
-  await db.query(`delete from public.estudiante_consentimiento where estudiante_id_estudiante in (${demo})`);
-  await db.query(`delete from public.estudiante_carrera where estudiante_id_estudiante in (${demo})`);
-  await db.query(`delete from public.estudiante where correo like 'demo-%@duocmind.example.test'`);
-
+  const removed = await removeDemo();
+  if (remove) {
+    await db.query("commit");
+    console.log(
+      `Datos de demostración borrados de ${where}: ${removed.students} estudiantes, ` +
+        `${removed.checkins} check-ins, ${removed.tests} tests y ${removed.careers} carreras «(demo)».`,
+    );
+  } else {
   // PSS-10: se usa el activo; si la base local no lo tiene, se crea uno sintético solo con
   // niveles (leve 0–13, moderado 14–26, severo 27–40), sin preguntas.
   let test = (await db.query(
     "select id_test id, version from public.test_bienestar where nombre_test=$1 and is_active",
     [PSS10],
   )).rows[0];
+  if (!test && cloudRef) throw new Error("No hay un PSS-10 activo en la nube; no se crea uno sintético.");
   if (!test) {
     const version = 1 + (await db.query(
       "select coalesce(max(version),0)::int v from public.test_bienestar where nombre_test=$1",
@@ -96,13 +133,22 @@ try {
   const summary = { students: 0, sharing: 0, checkins: 0, tests: 0, deletions: 0 };
   const checkins = { student: [], career: [], mood: [], at: [], reasons: [] };
   const applications = { student: [], career: [], score: [], level: [], at: [] };
-  for (const [name, size] of CAREERS) {
-    const careerId = (await db.query(
+  // Con --existing-careers se reparten en las primeras carreras existentes por nombre, sin crear
+  // ninguna; si no, en las «(demo)».
+  const existing = existingCareers
+    ? (await db.query(
+      "select id_carrera from public.carrera where nombre_carrera not like '%(demo)' order by nombre_carrera limit $1",
+      [CAREERS.length],
+    )).rows.map((r) => r.id_carrera)
+    : [];
+  if (existingCareers && existing.length < CAREERS.length) throw new Error("Faltan carreras existentes.");
+  for (const [index, [name, size]] of CAREERS.entries()) {
+    const careerId = existingCareers ? existing[index] : (await db.query(
       "insert into public.carrera(nombre_carrera) values($1) on conflict(nombre_carrera) do update set nombre_carrera=excluded.nombre_carrera returning id_carrera",
       [name],
     )).rows[0].id_carrera;
     // Cada carrera tiene su propio tono para que la tabla comparativa muestre diferencias.
-    const careerMood = { 0: -0.2, 1: 0.1, 2: 0.3, 3: -0.4, 4: 0 }[CAREERS.findIndex((c) => c[0] === name)];
+    const careerMood = [-0.2, 0.1, 0.3, -0.4, 0][index];
     for (let i = 0; i < size; i++) {
       n++;
       const id = (await db.query(
@@ -211,13 +257,34 @@ try {
   summary.tests = applications.student.length;
   await db.query("commit");
   console.log(
-    `Datos de demostración locales: ${summary.students} estudiantes (${summary.sharing} comparten), ` +
+    `Datos de demostración en ${where}: ${summary.students} estudiantes (${summary.sharing} comparten), ` +
       `${summary.checkins} check-ins con ${inserted.rowCount} motivos, ${summary.tests} tests PSS-10 y ` +
       `${summary.deletions} solicitudes de borrado.`,
   );
+  }
 } catch (e) {
   await db.query("rollback").catch(() => {});
   throw e;
 } finally {
   await db.end();
+}
+
+// Borra solo lo creado por este script: los estudiantes `demo-*` con todas sus filas y las
+// carreras «(demo)» que ningún otro estudiante usa. Las solicitudes de borrado, los motivos de cada
+// registro y los límites de recuperación de contraseña caen en cascada.
+async function removeDemo() {
+  const demo = "select id_estudiante from public.estudiante where correo like 'demo-%@duocmind.example.test'";
+  const count = async (sql) => (await db.query(sql)).rowCount;
+  const checkins = await count(`delete from public.registro_emocional where estudiante_id_estudiante in (${demo})`);
+  await db.query(`delete from public.alerta_bienestar where estudiante_id_estudiante in (${demo})`);
+  const tests = await count(`delete from public.aplicacion_test where estudiante_id_estudiante in (${demo})`);
+  await db.query(`delete from public.estudiante_consentimiento where estudiante_id_estudiante in (${demo})`);
+  await db.query(`delete from public.estudiante_carrera where estudiante_id_estudiante in (${demo})`);
+  const students = await count("delete from public.estudiante where correo like 'demo-%@duocmind.example.test'");
+  const careers = await count(
+    `delete from public.carrera c where nombre_carrera = any($1::text[])
+       and not exists (select 1 from public.estudiante_carrera ec where ec.carrera_id_carrera = c.id_carrera)
+       and not exists (select 1 from public.carrera_asignatura ca where ca.carrera_id_carrera = c.id_carrera)`.replace("$1::text[]", `array[${CAREERS.map(([n]) => `'${n.replace(/'/g, "''")}'`).join(",")}]`),
+  );
+  return { students, checkins, tests, careers };
 }
