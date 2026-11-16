@@ -1,6 +1,5 @@
 import type {
   CareerOption,
-  EmotionDashboard,
   Kpi,
   WellbeingCareers,
   WellbeingHeader,
@@ -9,7 +8,6 @@ import type {
   WellbeingReasons,
   WellbeingStress,
   WellbeingSummary,
-  EmotionPeriod,
   FormOptions,
   EventType,
   InstitutionalEvent,
@@ -235,7 +233,7 @@ export function accepted(v: unknown) {
   return true;
 }
 
-// Dashboard emocional: validación estricta. Cualquier clave desconocida (por ejemplo un
+// Dashboard de bienestar: validación estricta. Cualquier clave desconocida (por ejemplo un
 // identificador de estudiante) invalida toda la respuesta para que nunca llegue a la pantalla.
 function exact<T extends Obj>(v: unknown, keys: string[]): T {
   const o = obj(v);
@@ -246,65 +244,6 @@ function day(v: unknown): string {
   const s = str(v);
   return /^\d{4}-\d{2}-\d{2}$/.test(s) && Number.isFinite(Date.parse(s + "T00:00:00Z")) ? s : bad();
 }
-function mean(v: unknown): number {
-  return typeof v === "number" && Number.isFinite(v) && v >= 1 && v <= 5 ? v : bad();
-}
-export function emotions(v: unknown): EmotionDashboard {
-  const o = exact(v, [
-    "average", "careers", "checkins", "days", "distribution", "from",
-    "minGroupSize", "participants", "sufficient", "to", "weekly",
-  ]);
-  if (o.days !== 7 && o.days !== 30 && o.days !== 90) bad();
-  const days = o.days as EmotionPeriod;
-  const minGroupSize = positive(o.minGroupSize);
-  const sufficient = bool(o.sufficient);
-  const from = day(o.from), to = day(o.to);
-  if (from > to) bad();
-  if (!sufficient) {
-    if (
-      o.participants !== null || o.checkins !== null || o.average !== null ||
-      !Array.isArray(o.distribution) || o.distribution.length ||
-      !Array.isArray(o.weekly) || o.weekly.length ||
-      !Array.isArray(o.careers) || o.careers.length
-    ) bad();
-    return {
-      days, from, to, minGroupSize, sufficient,
-      participants: null, checkins: null, average: null,
-      distribution: [], weekly: [], careers: [],
-    };
-  }
-  const participants = num(o.participants);
-  const checkins = num(o.checkins);
-  if (participants < minGroupSize || checkins < participants) bad();
-  const distribution = list(o.distribution, (item, index) => {
-    const d = exact<Obj>(item, ["checkins", "label", "value"]);
-    if (d.value !== index + 1) bad();
-    return { value: index + 1, label: str(d.label), checkins: num(d.checkins) };
-  });
-  if (distribution.length !== 5) bad();
-  const weekly = list(o.weekly, (item) => {
-    const w = exact<Obj>(item, ["average", "participants", "weekStart"]);
-    if ((w.participants === null) !== (w.average === null)) bad();
-    if (w.participants === null) {
-      return { weekStart: day(w.weekStart), participants: null, average: null };
-    }
-    const count = num(w.participants);
-    if (count < minGroupSize) bad();
-    return { weekStart: day(w.weekStart), participants: count, average: mean(w.average) };
-  });
-  const careers = list(o.careers, (item) => {
-    const c = exact<Obj>(item, ["average", "name", "participants"]);
-    const count = num(c.participants);
-    if (count < minGroupSize) bad();
-    return { name: str(c.name), participants: count, average: mean(c.average) };
-  });
-  return {
-    days, from, to, minGroupSize, sufficient,
-    participants, checkins, average: mean(o.average),
-    distribution, weekly, careers,
-  };
-}
-
 // Dashboard de bienestar (spec 023): mismas reglas estrictas. Las claves deben coincidir
 // exactamente; un id de estudiante o cualquier campo de más invalida toda la respuesta.
 const HEADER = ["careerId", "days", "from", "minGroupSize", "sufficient", "to"];

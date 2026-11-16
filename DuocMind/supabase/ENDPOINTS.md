@@ -260,10 +260,24 @@ Orden de actualización: migración de tipos de Hans, migración
 la migración y se actualizó admin-api en el proyecto remoto autorizado, con
 verificación de lectura documentada en la evidencia del incremento 012.
 
-### Dashboard emocional agregado — incremento 016
+### Dashboard emocional agregado — incremento 016 (retirado)
 
-La API administrativa incorpora `GET /emotions?days=7|30|90` (por defecto 30; cualquier otro valor o parámetro responde 422). La retirada de `/tips` hace que `GET /session` anuncie `students`, `tests`, `events` y `emotions`.
+`GET /emotions` fue retirado en el incremento 023 junto con `private.emotion_dashboard`; la
+ruta responde 404. Lo reemplaza el dashboard de bienestar.
 
-Solo cuentan estudiantes con `analitica_anonima` vigente y otorgada, y registros posteriores al `registrado_en` de ese consentimiento. El mínimo de grupo es 5 estudiantes distintos y se aplica en el servidor. Respuesta:
-`{days,from,to,minGroupSize,sufficient,participants,checkins,average,distribution[{value,label,checkins}],weekly[{weekStart,participants,average}],careers[{name,participants,average}]}`.
-Con datos insuficientes, `sufficient` es `false`, `participants`, `checkins` y `average` son `null` y las listas van vacías. Una semana con menos de 5 estudiantes trae `participants` y `average` en `null`. Las carreras con menos de 5 estudiantes, y quienes no tienen carrera vigente, se agrupan en «Otras carreras». No se devuelven identificadores y la respuesta no se registra en logs. Ver la [spec 016](../specs/016-admin-emotion-dashboard/spec.md).
+### Dashboard de bienestar — incremento 023
+
+`GET /wellbeing/<summary|reasons|stress|careers|participation>?days=7|30|90&careerId=<id>`
+(por defecto 30 días y todas las carreras; cualquier otro valor o parámetro responde 422) y
+`GET /wellbeing/careers-available?days=` para el selector, que solo lista carreras con 5 o más
+participantes. `GET /session` anuncia `students`, `tests`, `events` y `wellbeing`.
+
+Todas las respuestas comparten `{days,from,to,minGroupSize,careerId,sufficient}` y nunca traen
+identificadores ni filas individuales. Las métricas principales son `{value,previous}`, con el
+periodo anterior de igual duración solo si ambos cumplen el mínimo. Solo cuenta lo registrado
+con `analitica_anonima` vigente y después de otorgarlo, y no cuenta lo que tiene solicitud de
+borrado. Todo valor publicado reúne al menos 5 estudiantes distintos (si no, `null`); en las
+distribuciones que suman 100 %, una celda pequeña oculta la fila completa, y los grupos
+pequeños se juntan en «Otras carreras» y «Otros motivos». Una carrera que no cumple el mínimo
+responde `sufficient: false`, no un error. Las respuestas no se registran en logs. Ver la
+[spec 023](../specs/023-admin-wellbeing-dashboard/spec.md).

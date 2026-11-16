@@ -597,9 +597,9 @@ begin
 end;
 $grants$;
 
--- Rutas del panel. Misma definición vigente (20261115140000) con las rutas `/wellbeing/*`:
--- solo aceptan `days` (7, 30 o 90) y `careerId` (entero positivo); `/emotions` se retira al
--- final del incremento.
+-- Rutas del panel. Misma definición vigente (20261115140000) con las rutas `/wellbeing/*`,
+-- que solo aceptan `days` (7, 30 o 90) y `careerId` (entero positivo). Se retira `/emotions`
+-- (spec 016): el dashboard de bienestar cubre todo lo que mostraba.
 CREATE OR REPLACE FUNCTION public.admin_read(p_actor uuid, p_session uuid, p_path text, p_query jsonb DEFAULT '{}'::jsonb)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -650,10 +650,6 @@ begin
    when 'stress' then private.wellbeing_stress(days,career)
    when 'careers' then private.wellbeing_careers(days,career)
    else private.wellbeing_participation(days,career) end;
- elsif p_path='/emotions' then
-  perform private.check_fields(p_query,array['days']);
-  if p_query ? 'days' and (p_query->>'days')!~'^(7|30|90)$' then raise exception using errcode='P0422',message='Periodo inválido';end if;
-  result:=private.emotion_dashboard(coalesce((p_query->>'days')::int,30));
  else raise exception using errcode='P0404',message='Consulta no disponible';end if;
  if result is null then raise exception using errcode='P0404',message='Recurso no disponible';end if;
  return result;
@@ -661,14 +657,16 @@ end;$function$;
 revoke all on function public.admin_read(uuid, uuid, text, jsonb) from public, anon, authenticated;
 grant execute on function public.admin_read(uuid, uuid, text, jsonb) to service_role;
 
--- Capacidades del panel: se anuncia `wellbeing`.
+-- Capacidades del panel: `wellbeing` reemplaza a `emotions`.
 create or replace function public.admin_access(p_actor uuid, p_session uuid) returns jsonb
 language plpgsql security invoker set search_path = '' as $$
 begin
   perform private.assert_admin(p_actor, p_session);
-  return jsonb_build_object('allowed', true, 'capabilities', array['students', 'tests', 'events', 'emotions', 'wellbeing']);
+  return jsonb_build_object('allowed', true, 'capabilities', array['students', 'tests', 'events', 'wellbeing']);
 end;$$;
 revoke all on function public.admin_access(uuid, uuid) from public, anon, authenticated;
 grant execute on function public.admin_access(uuid, uuid) to service_role;
+
+drop function if exists private.emotion_dashboard(int);
 
 commit;

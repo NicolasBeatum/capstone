@@ -1,7 +1,6 @@
 import { auth } from "./auth";
 import * as contract from "./contracts";
 import type {
-  EmotionPeriod,
   EventContent,
   EventTypeContent,
   TestContent,
@@ -109,8 +108,6 @@ export const adminGateway = {
   students: (query: URLSearchParams) =>
     request("GET", "/students?" + query, contract.students),
   formOptions: () => request("GET", "/catalogs", contract.options),
-  emotions: (days: EmotionPeriod) =>
-    request("GET", "/emotions?days=" + days, contract.emotions),
   wellbeing: <T extends WellbeingTab>(tab: T, days: WellbeingPeriod, careerId: string | null) =>
     request(
       "GET",

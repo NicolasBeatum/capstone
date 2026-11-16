@@ -22,16 +22,14 @@ export function fields(
     required.some((k) => !(k in value))
   ) throw new HttpError(422, "Campos inválidos.");
 }
-// Consultas GET con reglas propias. /emotions y /wellbeing/careers-available solo admiten
-// `days` (7, 30 o 90); las pestañas /wellbeing/* admiten además `careerId` (entero positivo).
+// Consultas GET con reglas propias. /wellbeing/careers-available solo admite `days` (7, 30 o
+// 90); las pestañas /wellbeing/* admiten además `careerId` (entero positivo).
 // La base repite la validación; aquí se rechaza antes de llegar al RPC.
 const WELLBEING_TABS =
   /^\/wellbeing\/(summary|reasons|stress|careers|participation)$/;
 export function validateReadQuery(path: string, query: Record<string, string>) {
   const tab = WELLBEING_TABS.test(path);
-  if (
-    !tab && path !== "/emotions" && path !== "/wellbeing/careers-available"
-  ) return;
+  if (!tab && path !== "/wellbeing/careers-available") return;
   fields(query, tab ? ["days", "careerId"] : ["days"], []);
   if ("days" in query && !/^(7|30|90)$/.test(query.days)) {
     throw new HttpError(422, "Periodo inválido.");

@@ -103,37 +103,6 @@ export interface MutationResult {
   catalogId?: string;
   revision: number;
 }
-export type EmotionPeriod = 7 | 30 | 90;
-export interface EmotionDistribution {
-  value: number;
-  label: string;
-  checkins: number;
-}
-export interface EmotionWeek {
-  weekStart: string;
-  participants: number | null;
-  average: number | null;
-}
-export interface EmotionCareer {
-  name: string;
-  participants: number;
-  average: number;
-}
-/** Agregados anónimos del servidor. Con `sufficient: false` no hay ningún valor. */
-export interface EmotionDashboard {
-  days: EmotionPeriod;
-  from: string;
-  to: string;
-  minGroupSize: number;
-  sufficient: boolean;
-  participants: number | null;
-  checkins: number | null;
-  average: number | null;
-  distribution: EmotionDistribution[];
-  weekly: EmotionWeek[];
-  careers: EmotionCareer[];
-}
-
 // Dashboard de bienestar (spec 023). Todo valor viene ya protegido desde el servidor:
 // `null` significa «sin datos suficientes» (menos de 5 estudiantes) y nunca se convierte en 0.
 export type WellbeingPeriod = 7 | 30 | 90;
