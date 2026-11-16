@@ -2,9 +2,13 @@
 // Los datos sintéticos se crean dentro de una transacción que siempre termina en rollback,
 // por lo que la base queda exactamente como estaba. Cada escenario vive en un savepoint.
 import assert from "node:assert/strict";
-import { authClient, database, fixtures } from "../scripts/runtime.mjs";
+import { authClient, database, fixtures, runtime } from "../scripts/runtime.mjs";
 
-const f = fixtures(), db = await database();
+const f = fixtures(), r = runtime(), db = await database();
+const api = (token, path) =>
+  fetch(r.API_URL + "/functions/v1/admin-api/wellbeing/" + path, {
+    headers: { ...(token ? { authorization: "Bearer " + token } : {}), apikey: r.ANON_KEY },
+  });
 const sessionOf = (token) => JSON.parse(Buffer.from(token.split(".")[1], "base64url")).session_id;
 const SANTIAGO = "'America/Santiago'";
 const PSS10 = "Escala de Estrés Percibido (PSS-10)";
@@ -25,6 +29,23 @@ try {
   const student = await authClient().auth.signInWithPassword({ email: f.student.email, password: f.student.password });
   assert(!student.error);
   const studentSessionId = sessionOf(student.data.session.access_token);
+
+  // CA-008 por HTTP: sin sesión de administrador se rechaza; la Edge valida la consulta.
+  const token = staff.data.session.access_token;
+  for (const path of ["summary", "reasons", "stress", "careers", "participation", "careers-available"]) {
+    assert.equal((await api(null, path)).status, 401, path + " sin token");
+    assert.equal((await api("token-invalido", path)).status, 401, path + " token inválido");
+    assert.equal((await api(student.data.session.access_token, path)).status, 403, path + " estudiante");
+    const ok = await api(token, path + "?days=7");
+    assert.equal(ok.status, 200, path);
+    assert.equal((await ok.json()).days, 7);
+    for (const q of ["?days=15", "?days=7&days=7", "?extra=1"]) {
+      assert.equal((await api(token, path + q)).status, 422, path + q);
+    }
+  }
+  assert.equal((await api(token, "summary?careerId=0")).status, 422);
+  assert.equal((await api(token, "summary?careerId=999999999")).status, 200, "carrera inexistente: sin 4xx");
+  assert.equal((await api(token, "careers-available?careerId=1")).status, 422);
 
   await db.query("begin");
   // Línea base limpia dentro de la transacción (se revierte al final).
