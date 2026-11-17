@@ -1,5 +1,10 @@
-import { invalid, parseSchedule, sameSchedule, type ScheduleDocument } from '../domain/schedule.ts';
-import { type PersonalActivity, type PlannerDocument, PlannerStore } from './plannerStore.ts';
+import { invalid, sameSchedule, type ScheduleDocument } from '../domain/schedule.ts';
+import {
+  parsePlanner,
+  type PersonalActivity,
+  type PlannerDocument,
+  PlannerStore,
+} from './plannerStore.ts';
 import {
   type ActivityTransfer,
   removePersonalActivity,
@@ -56,10 +61,21 @@ export class PlannerService {
     await this.check(session);
     return { document, session };
   }
-  async editSchedule(
+  editSchedule(
     session: PlannerSession,
     expected: ScheduleDocument,
     edit: (doc: ScheduleDocument) => ScheduleDocument,
+  ): Promise<void> {
+    return this.applyImport(session, expected, (doc) => ({ ...doc, schedule: edit(doc.schedule) }));
+  }
+  /**
+   * Cambia horario y actividades en una sola escritura, por ejemplo al importar un horario.
+   * Exige que el horario no haya cambiado y que no se pierdan semestres ni actividades.
+   */
+  async applyImport(
+    session: PlannerSession,
+    expected: ScheduleDocument,
+    transform: (doc: PlannerDocument) => PlannerDocument,
   ): Promise<void> {
     const { store } = await this.scope(session);
     await this.check(session);
@@ -67,11 +83,14 @@ export class PlannerService {
       if (!sameSchedule(doc.schedule, expected)) {
         invalid('El horario cambió. Revisa la versión actual antes de guardar.');
       }
-      const schedule = parseSchedule(edit(doc.schedule));
-      if (doc.schedule.semesters.some((s) => !schedule.semesters.some((next) => next.id === s.id))) {
-        invalid('Los semestres anteriores deben conservarse.');
+      const next = parsePlanner(transform(doc));
+      if (
+        doc.schedule.semesters.some((s) => !next.schedule.semesters.some((n) => n.id === s.id))
+      ) invalid('Los semestres anteriores deben conservarse.');
+      if (doc.activities.some((a) => !next.activities.some((n) => n.id === a.id))) {
+        invalid('Las actividades anteriores deben conservarse.');
       }
-      return { ...doc, schedule };
+      return next;
     });
     await this.check(session);
     this.notify();
