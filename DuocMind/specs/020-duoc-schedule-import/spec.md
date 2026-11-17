@@ -7,7 +7,7 @@
 | Fecha | 2026-11-14 |
 | Incremento | 020-duoc-schedule-import |
 | Rama | `feature/ocr-horario-duoc` |
-| Base | `dev`, commit `040a43e` |
+| Base | `dev`, commit `a7d369f` (rebase del 2026-11-16) |
 | Constitución | 2.0.0 |
 | Plataformas | Android y previsualización web |
 | Aprobación | Confirmada explícitamente por el usuario el 2026-11-14: «si adelante» |
