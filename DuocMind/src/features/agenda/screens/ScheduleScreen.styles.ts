@@ -86,7 +86,8 @@ export const scheduleStyles = StyleSheet.create({
   pill: { fontFamily: font.extraBold, fontSize: 12, color: '#087a55' },
   plannerHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   backArrow: { fontFamily: font.bold, fontSize: 28, lineHeight: 30, color: '#1a2b44' },
-  semesterRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  semesterRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10 },
+  semesterRowSpacer: { flexGrow: 1 },
   semesterPicker: {
     minHeight: 44,
     maxWidth: '100%',

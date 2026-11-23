@@ -192,3 +192,52 @@ test('marcar como hecha escribe doneAt, notifica y rechaza una versión vieja', 
   assert.equal('doneAt' in saved, false);
   assert.equal(saved.version, 3);
 });
+const activity = (n, semesterId) => ({
+  id: id(n),
+  kind: 'personal',
+  date: '2025-08-25',
+  time: '16:01',
+  endTime: '17:20',
+  title: `Actividad ${n}`,
+  subjectName: null,
+  semesterId,
+  semesterName: null,
+  version: 1,
+});
+test('applyImport guarda horario y actividades en una sola escritura', async () => {
+  const f = setup();
+  await f.service.applyImport(f.session, emptySchedule(), (doc) => ({
+    ...doc,
+    schedule: putSemester(doc.schedule, sem(2)),
+    activities: [activity(10, id(2))],
+  }));
+  const saved = await f.store.read();
+  assert.equal(saved.schedule.activeSemesterId, id(2));
+  assert.deepEqual(saved.activities.map((a) => a.id), [id(10)]);
+});
+test('applyImport no guarda nada si el horario cambió, algo es inválido o se pierden datos', async () => {
+  const f = setup();
+  await f.service.applyImport(f.session, emptySchedule(), (doc) => ({
+    ...doc,
+    schedule: putSemester(doc.schedule, sem(2)),
+    activities: [activity(10, id(2))],
+  }));
+  const saved = await f.store.read();
+  await assert.rejects(() =>
+    f.service.applyImport(f.session, emptySchedule(), (doc) => ({
+      ...doc,
+      schedule: putSemester(doc.schedule, sem(3)),
+    }))
+  );
+  await assert.rejects(() =>
+    f.service.applyImport(f.session, saved.schedule, (doc) => ({
+      ...doc,
+      schedule: putSemester(doc.schedule, sem(3)),
+      activities: [...doc.activities, { ...activity(11, id(3)), endTime: '10:00' }],
+    }))
+  );
+  await assert.rejects(() =>
+    f.service.applyImport(f.session, saved.schedule, (doc) => ({ ...doc, activities: [] }))
+  );
+  assert.deepEqual(await f.store.read(), saved);
+});

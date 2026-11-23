@@ -162,6 +162,12 @@ function ScheduleScreenContent({ planner }: { planner: PlannerModel }) {
             >
               <Text style={a.emptyButtonText}>Nuevo semestre</Text>
             </ScalePress>
+            <PlannerButton
+              secondary
+              label='Importar desde Duoc'
+              disabled={!doc || planner.busy}
+              onPress={() => router.push('/schedule-import')}
+            />
           </View>
         )}
         {selected && doc && (
@@ -179,6 +185,16 @@ function ScheduleScreenContent({ planner }: { planner: PlannerModel }) {
                 <Text style={s.semesterChevron}>▾</Text>
               </ScalePress>
               {active && <Text style={s.pill}>Activo</Text>}
+              <View style={s.semesterRowSpacer} />
+              <ScalePress
+                style={s.linkAction}
+                disabled={planner.busy}
+                onPress={() => router.push('/schedule-import')}
+                accessibilityRole='button'
+                accessibilityLabel='Importar horario desde el boletín de Duoc'
+              >
+                <Text style={s.linkActionText}>Importar desde Duoc</Text>
+              </ScalePress>
             </View>
             {(selected.startsOn || selected.endsOn) && (
               <Text style={a.dayCount}>
