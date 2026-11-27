@@ -38,6 +38,13 @@ export const BREATHING_GUIDE_STEPS: readonly TutorialStep[] = [
     target: 'breathingCircle',
   },
   {
+    id: 'sonido',
+    title: 'Sonido opcional',
+    body: 'Con el sonido encendido oirás un soplo suave de aire al inhalar y al exhalar, y un latido cada segundo que te ayuda a contar. Puedes apagarlo con el interruptor de sonido.',
+    kind: 'info',
+    target: null,
+  },
+  {
     id: 'cierre',
     title: 'Respira a tu ritmo',
     body: 'Si te mareas o te incomoda aguantar el aire, detente y vuelve a respirar normal. Puedes volver a ver esta guía con el botón ?.',

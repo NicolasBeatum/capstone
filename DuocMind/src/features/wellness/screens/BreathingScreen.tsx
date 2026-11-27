@@ -8,9 +8,11 @@ import { ChevronLeftIcon } from '@/shared/components/Icons';
 import { ScalePress } from '@/shared/components/ScalePress';
 import { Reveal } from '@/shared/motion/Reveal';
 import { useReducedMotion } from '@/shared/motion/useReducedMotion';
+import { SoundToggle } from '../components/SoundToggle';
 import { ToolGuide } from '../components/ToolGuide';
 import { BREATH_CYCLES, BREATH_PHASES, breathMomentAt, circleScale, type BreathKind } from '../domain/breathing478';
 import { BREATHING_GUIDE_STEPS } from '../domain/breathingGuide';
+import { useBreathingSounds } from '../hooks/useBreathingSounds';
 import { hasSeenGuide, markGuideSeen } from '../infrastructure/guideStorage';
 import { RING_SIZE, RING_STROKE, styles } from './BreathingScreen.styles';
 
@@ -61,6 +63,9 @@ export default function BreathingScreen() {
   useEffect(() => {
     if (finished) setStatus('done');
   }, [finished]);
+
+  // Sonidos guiados: el hook decide cuándo suenan; la pantalla solo le cuenta qué pasa.
+  const { enabled: soundEnabled, setEnabled: setSoundEnabled } = useBreathingSounds({ status, moment });
 
   function start() {
     const current = Date.now();
@@ -152,6 +157,8 @@ export default function BreathingScreen() {
               <Text style={styles.cycle}>
                 {moment ? `Ciclo ${moment.cycle} de ${BREATH_CYCLES}` : `${BREATH_CYCLES} ciclos · inhala, aguanta y exhala`}
               </Text>
+
+              <SoundToggle enabled={soundEnabled} onChange={setSoundEnabled} />
 
               {status === 'running' ? (
                 <ActionButton label="Detener" onPress={() => setStatus('idle')} />
